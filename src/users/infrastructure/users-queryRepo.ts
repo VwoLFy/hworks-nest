@@ -5,20 +5,19 @@ import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { SortDirection } from '../../main/types/enums';
 
 @Injectable()
 export class UsersQueryRepo {
   constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<UserViewModelPage> {
-    const {
-      pageNumber,
-      pageSize,
-      sortBy,
-      sortDirection,
-      searchLoginTerm,
-      searchEmailTerm,
-    } = dto;
+    const { searchLoginTerm, searchEmailTerm } = dto;
+    const pageNumber = +dto.pageNumber || 1;
+    const pageSize = +dto.pageSize || 10;
+    const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
+    const sortDirection = dto.sortDirection || SortDirection.desc;
+
     let filterFind = {};
 
     if (searchLoginTerm && searchEmailTerm) {
