@@ -69,12 +69,15 @@ export class BlogsController {
     @Query() query: FindPostsQueryModel,
   ): Promise<PostsViewModelPage> {
     const userId = null;
-    return await this.postsQueryRepo.findPostsByBlogId(blogId, userId, {
-      pageNumber: query.pageNumber,
-      pageSize: query.pageSize,
-      sortBy: query.sortBy,
-      sortDirection: query.sortDirection,
-    });
+    const foundPost = await this.postsQueryRepo.findPostsByBlogId(
+      blogId,
+      userId,
+      query,
+    );
+    if (!foundPost)
+      throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+
+    return foundPost;
   }
 
   @Post(':id/posts')
@@ -84,9 +87,7 @@ export class BlogsController {
   ): Promise<PostViewModel> {
     const userId = null;
     const createdPostId = await this.postsService.createPost({
-      title: body.title,
-      shortDescription: body.shortDescription,
-      content: body.content,
+      ...body,
       blogId,
     });
     if (!createdPostId)
