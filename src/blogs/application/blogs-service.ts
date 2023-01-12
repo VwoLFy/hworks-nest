@@ -1,5 +1,5 @@
 import { BlogsRepository } from '../infrastructure/blogs-repository';
-//import { PostsRepository } from '../../posts/infrastructure/posts-repository';
+import { PostsRepository } from '../../posts/infrastructure/posts-repository';
 import { UpdateBlogDto } from './dto/UpdateBlogDto';
 import { Blog, BlogDocument } from '../domain/blog.schema';
 import { CreateBlogDto } from './dto/CreateBlogDto';
@@ -11,7 +11,7 @@ import { Model } from 'mongoose';
 export class BlogsService {
   constructor(
     protected blogsRepository: BlogsRepository,
-    //protected postsRepository: PostsRepository,
+    protected postsRepository: PostsRepository,
     @InjectModel(Blog.name) private BlogModel: Model<BlogDocument>,
   ) {}
 
@@ -33,7 +33,7 @@ export class BlogsService {
     const isDeletedBlog = await this.blogsRepository.deleteBlog(_id);
     if (!isDeletedBlog) return false;
 
-    //await this.postsRepository.deleteAllPostsOfBlog(id);
+    await this.postsRepository.deleteAllPostsOfBlog(_id);
     return true;
   }
   async deleteAll() {

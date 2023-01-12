@@ -12,11 +12,11 @@ export class BlogsQueryRepo {
   constructor(@InjectModel(Blog.name) private BlogModel: Model<BlogDocument>) {}
 
   async findBlogs(dto: FindBlogsQueryModel): Promise<BlogsViewModelPage> {
-    let { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    sortBy = sortBy === 'id' ? '_id' : sortBy;
+    const sortByField = sortBy === 'id' ? '_id' : sortBy;
     const optionsSort: { [key: string]: SortDirection } = {
-      [sortBy]: sortDirection,
+      [sortByField]: sortDirection,
     };
 
     const totalCount = await this.BlogModel.countDocuments()

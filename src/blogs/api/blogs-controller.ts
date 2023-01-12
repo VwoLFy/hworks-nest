@@ -1,16 +1,16 @@
 import { BlogsQueryRepo } from '../infrastructure/blogs-queryRepo';
 import { BlogsService } from '../application/blogs-service';
-//import { PostsQueryRepo } from '../../posts/infrastructure/posts-queryRepo';
-//import { PostsService } from '../../posts/application/posts-service';
+import { PostsQueryRepo } from '../../posts/infrastructure/posts-queryRepo';
+import { PostsService } from '../../posts/application/posts-service';
 import { FindBlogsQueryModel } from './models/FindBlogsQueryModel';
 import { BlogViewModel } from './models/BlogViewModel';
-//import { HTTP_Status } from '../../main/types/enums';
-//import { PostsViewModelPage } from '../../posts/api/models/PostsViewModelPage';
-//import { BlogPostInputModel } from './models/BlogPostInputModel';
-//import { PostViewModel } from '../../posts/api/models/PostViewModel';
+import { HTTP_Status } from '../../main/types/enums';
+import { PostsViewModelPage } from '../../posts/api/models/PostsViewModelPage';
+import { BlogPostInputModel } from './models/BlogPostInputModel';
+import { PostViewModel } from '../../posts/api/models/PostViewModel';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
 import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
-//import { FindPostsQueryModel } from '../../posts/api/models/FindPostsQueryModel';
+import { FindPostsQueryModel } from '../../posts/api/models/FindPostsQueryModel';
 import {
   Body,
   Controller,
@@ -23,14 +23,15 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { HTTP_Status } from '../../main/types/enums';
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
 
 @Controller('blogs')
 export class BlogsController {
   constructor(
     protected blogsQueryRepo: BlogsQueryRepo,
-    protected blogsService: BlogsService, //protected postsQueryRepo: PostsQueryRepo, //protected postsService: PostsService,
+    protected blogsService: BlogsService,
+    protected postsQueryRepo: PostsQueryRepo,
+    protected postsService: PostsService,
   ) {}
 
   @Get()
@@ -41,8 +42,8 @@ export class BlogsController {
   }
 
   @Get(':id')
-  async getBlog(@Param('id') blogID): Promise<BlogViewModel> {
-    const blog = await this.blogsQueryRepo.findBlogById(blogID);
+  async getBlog(@Param('id') blogId): Promise<BlogViewModel> {
+    const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog)
       throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
     return blog;
@@ -56,19 +57,19 @@ export class BlogsController {
 
   @Put(':id')
   @HttpCode(204)
-  async updateBlog(@Param('id') blogID, @Body() body: UpdateBlogDto) {
-    const isUpdatedBlog = await this.blogsService.updateBlog(blogID, body);
+  async updateBlog(@Param('id') blogId, @Body() body: UpdateBlogDto) {
+    const isUpdatedBlog = await this.blogsService.updateBlog(blogId, body);
     if (!isUpdatedBlog)
       throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }
-  /*
 
   @Get(':id/posts')
   async getPostsForBlog(
-    @Param('id') blogID,
+    @Param('id') blogId,
     @Query() query: FindPostsQueryModel,
   ): Promise<PostsViewModelPage> {
-    return await this.postsQueryRepo.findPostsByBlogId(blogID, {
+    const userId = null;
+    return await this.postsQueryRepo.findPostsByBlogId(blogId, userId, {
       pageNumber: query.pageNumber,
       pageSize: query.pageSize,
       sortBy: query.sortBy,
@@ -78,27 +79,26 @@ export class BlogsController {
 
   @Post(':id/posts')
   async createPostForBlog(
-    @Param('id') blogID,
+    @Param('id') blogId,
     @Body() body: BlogPostInputModel,
   ): Promise<PostViewModel> {
+    const userId = null;
     const createdPostId = await this.postsService.createPost({
       title: body.title,
       shortDescription: body.shortDescription,
       content: body.content,
-      blogId: blogID,
+      blogId,
     });
-    if (!createdPostId) {
-      return HTTP_Status.NOT_FOUND_404;
-    } else {
-      return await this.postsQueryRepo.findPostById(createdPostId);
-    }
+    if (!createdPostId)
+      throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+
+    return await this.postsQueryRepo.findPostById(createdPostId, userId);
   }
-*/
 
   @Delete(':id')
   @HttpCode(204)
-  async deleteBlog(@Param('id') blogID) {
-    const isDeletedBlog = await this.blogsService.deleteBlog(blogID);
+  async deleteBlog(@Param('id') blogId) {
+    const isDeletedBlog = await this.blogsService.deleteBlog(blogId);
     if (!isDeletedBlog)
       throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }

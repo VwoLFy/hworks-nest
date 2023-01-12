@@ -22,6 +22,7 @@ export class ZUsersService {
     const hz = this.UserModel.createHZ(this.UserModel, input);
     console.log(hz);
     await user.save();
+    await hz.createHZ2(input);
     return user;
     //return this.usersRepository.userSave(user);
   }

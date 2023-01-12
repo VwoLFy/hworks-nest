@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, model, Model } from 'mongoose';
 import { InputModelType } from './ZUsersController';
 
 @Schema()
@@ -23,6 +23,9 @@ export class ZUser {
   ) {
     return new ZUserModel(input.age);
   }
+  static createHZ2(input: InputModelType) {
+    return new HZModel(input.age);
+  }
 }
 export type ZUserDocument = HydratedDocument<ZUser>;
 export type StaticsZUserType = Model<ZUser> & {
@@ -30,7 +33,10 @@ export type StaticsZUserType = Model<ZUser> & {
     UserModel: Model<ZUserDocument> & StaticsZUserType,
     input: InputModelType,
   );
+  createHZ2(input: InputModelType);
 };
 
 export const ZUserSchema = SchemaFactory.createForClass(ZUser);
 ZUserSchema.loadClass(ZUser);
+
+export const HZModel = model('sds', ZUserSchema);
