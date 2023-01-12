@@ -34,6 +34,7 @@ import { UsersQueryRepo } from './users/infrastructure/users-queryRepo';
 import { UsersRepository } from './users/infrastructure/users-repository';
 import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
+import { DeleteAllController } from './delete_all/delete_all.controller';
 
 const mongoUri = 'mongodb://0.0.0.0:27017/';
 const dbName = 'Homework';
@@ -58,6 +59,7 @@ const dbName = 'Homework';
     PostsController,
     CommentsController,
     UsersController,
+    DeleteAllController,
   ],
   providers: [
     AppService,
