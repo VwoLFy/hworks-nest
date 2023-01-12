@@ -35,13 +35,14 @@ import { UsersRepository } from './users/infrastructure/users-repository';
 import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
 import { DeleteAllController } from './delete_all/delete_all.controller';
+import { ConfigModule } from '@nestjs/config';
 
-const mongoUri = 'mongodb://0.0.0.0:27017/';
 const dbName = 'Homework';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(mongoUri, { dbName }),
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGOURI, { dbName }),
     MongooseModule.forFeature([
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
