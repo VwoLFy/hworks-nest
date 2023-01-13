@@ -37,7 +37,7 @@ export class UsersQueryRepo {
     }
 
     const sortByField = sortBy === 'id' ? '_id' : sortBy;
-    const optionsSort = { [sortByField]: sortDirection };
+    const optionsSort = { [`accountData.${sortByField}`]: sortDirection };
 
     const totalCount = await this.UserModel.countDocuments(filterFind);
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -50,6 +50,9 @@ export class UsersQueryRepo {
         .limit(pageSize)
         .lean()
     ).map((foundBlog) => this.userWithReplaceId(foundBlog));
+    console.log(items[1].createdAt > items[2].createdAt);
+    console.log(items[1].createdAt);
+    console.log(items[2].createdAt);
     console.log(items);
 
     return {

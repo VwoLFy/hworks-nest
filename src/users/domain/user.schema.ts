@@ -6,8 +6,8 @@ import { randomUUID } from 'crypto';
 
 @Schema({ _id: false })
 export class AccountData {
-  @Prop({ default: new Date() })
-  createdAt: Date;
+  @Prop()
+  createdAt: Date = new Date();
 
   @Prop({ required: true })
   login: string;
