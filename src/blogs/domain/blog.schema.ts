@@ -7,7 +7,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class Blog {
   _id: ObjectId;
 
-  @Prop({ default: new Date() })
+  @Prop({ default: Date.now })
   createdAt: Date;
 
   @Prop({ required: true })
