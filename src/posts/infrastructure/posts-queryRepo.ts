@@ -19,7 +19,11 @@ export class PostsQueryRepo {
     dto: FindPostsQueryModel,
     userId: string | null,
   ): Promise<PostsViewModelPage> {
-    const { pageNumber, pageSize, sortBy, sortDirection } = dto;
+    //const { pageNumber, pageSize, sortBy, sortDirection } = dto;
+    const pageNumber = +dto.pageNumber || 1;
+    const pageSize = +dto.pageSize || 10;
+    const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
+    const sortDirection = dto.sortDirection || SortDirection.desc;
 
     const sortByField = sortBy === 'id' ? '_id' : sortBy;
     const optionsSort: { [key: string]: SortDirection } = {
