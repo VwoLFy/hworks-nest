@@ -4,7 +4,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class CommentLike {
-  @Prop({ default: new Date() })
+  @Prop({ default: Date.now })
   addedAt: Date;
 
   @Prop({ required: true })

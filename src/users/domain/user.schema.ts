@@ -6,8 +6,8 @@ import { randomUUID } from 'crypto';
 
 @Schema({ _id: false })
 export class AccountData {
-  @Prop()
-  createdAt: Date = new Date();
+  @Prop({ default: Date.now })
+  createdAt: Date;
 
   @Prop({ required: true })
   login: string;
@@ -57,6 +57,8 @@ export class User {
   }
 }
 
+export type AccountDataDocument = HydratedDocument<AccountData>;
+export type EmailConfirmationDocument = HydratedDocument<EmailConfirmation>;
 export type UserDocument = HydratedDocument<User>;
 
 export const UserSchema = SchemaFactory.createForClass(User);

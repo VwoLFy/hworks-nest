@@ -7,6 +7,8 @@ import {
   User,
   AccountData,
   UserDocument,
+  AccountDataDocument,
+  EmailConfirmationDocument,
 } from '../domain/user.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -17,9 +19,9 @@ export class UsersService {
   constructor(
     protected usersRepository: UsersRepository,
     @InjectModel(AccountData.name)
-    private UserAccountModel: Model<UserDocument>,
+    private AccountDataModel: Model<AccountDataDocument>,
     @InjectModel(EmailConfirmation.name)
-    private EmailConfirmationModel: Model<UserDocument>,
+    private EmailConfirmationModel: Model<EmailConfirmationDocument>,
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
@@ -34,7 +36,7 @@ export class UsersService {
 
     const passwordHash = await this.getPasswordHash(password);
 
-    const userAccount = new this.UserAccountModel({
+    const userAccount = new this.AccountDataModel({
       login,
       passwordHash,
       email,
