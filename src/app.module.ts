@@ -42,7 +42,7 @@ const dbName = 'Homework';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGOURI_A, { dbName }),
+    MongooseModule.forRoot(process.env.MONGOURI, { dbName }),
     MongooseModule.forFeature([
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
