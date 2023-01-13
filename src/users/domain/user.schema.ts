@@ -31,7 +31,7 @@ export class EmailConfirmation {
   isConfirmed: boolean;
 }
 
-export const UserAccountSchema = SchemaFactory.createForClass(AccountData);
+export const AccountDataSchema = SchemaFactory.createForClass(AccountData);
 export const EmailConfirmationSchema =
   SchemaFactory.createForClass(EmailConfirmation);
 
@@ -39,7 +39,7 @@ export const EmailConfirmationSchema =
 export class User {
   _id: ObjectId;
 
-  @Prop({ required: true, type: UserAccountSchema })
+  @Prop({ required: true, type: AccountDataSchema })
   accountData: AccountData;
 
   @Prop({ required: true, type: EmailConfirmationSchema })

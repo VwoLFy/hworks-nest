@@ -50,10 +50,6 @@ export class UsersQueryRepo {
         .limit(pageSize)
         .lean()
     ).map((foundBlog) => this.userWithReplaceId(foundBlog));
-    console.log(items[1].createdAt > items[2].createdAt);
-    console.log(items[1].createdAt);
-    console.log(items[2].createdAt);
-    console.log(items);
 
     return {
       pagesCount,

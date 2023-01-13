@@ -36,7 +36,7 @@ export class UsersService {
 
     const passwordHash = await this.getPasswordHash(password);
 
-    const userAccount = new this.AccountDataModel({
+    const accountData = new this.AccountDataModel({
       login,
       passwordHash,
       email,
@@ -45,7 +45,7 @@ export class UsersService {
       isConfirmed: true,
     });
     const user = new this.UserModel({
-      accountData: userAccount,
+      accountData,
       emailConfirmation,
     });
     await this.usersRepository.saveUser(user);

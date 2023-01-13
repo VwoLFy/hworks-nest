@@ -27,7 +27,7 @@ import {
   EmailConfirmationSchema,
   User,
   AccountData,
-  UserAccountSchema,
+  AccountDataSchema,
   UserSchema,
 } from './users/domain/user.schema';
 import { UsersQueryRepo } from './users/infrastructure/users-queryRepo';
@@ -49,7 +49,7 @@ const dbName = 'Homework';
       { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
-      { name: AccountData.name, schema: UserAccountSchema },
+      { name: AccountData.name, schema: AccountDataSchema },
       { name: EmailConfirmation.name, schema: EmailConfirmationSchema },
       { name: User.name, schema: UserSchema },
     ]),
