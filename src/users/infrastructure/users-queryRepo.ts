@@ -17,7 +17,6 @@ export class UsersQueryRepo {
     const pageSize = +dto.pageSize || 10;
     const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
     const sortDirection = dto.sortDirection || SortDirection.desc;
-
     let filterFind = {};
 
     if (searchLoginTerm && searchEmailTerm) {
@@ -46,11 +45,13 @@ export class UsersQueryRepo {
 
     const items = (
       await this.UserModel.find(filterFind)
+        .sort(optionsSort)
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
-        .sort(optionsSort)
         .lean()
     ).map((foundBlog) => this.userWithReplaceId(foundBlog));
+    console.log(items);
+
     return {
       pagesCount,
       page,
@@ -72,7 +73,7 @@ export class UsersQueryRepo {
       id: object._id.toString(),
       login: object.accountData.login,
       email: object.accountData.email,
-      createdAt: object.accountData.createdAt,
+      createdAt: object.accountData.createdAt.toISOString(),
     };
   }
 }

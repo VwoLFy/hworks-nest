@@ -117,13 +117,18 @@ export class PostsQueryRepo {
       if (status) myStatus = status.likeStatus;
     }
 
-    const newestLikes = await this.PostLikeModel.find({
+    const newestLikes1 = await this.PostLikeModel.find({
       postId: post._id,
       likeStatus: LikeStatus.Like,
     })
-      .limit(3)
       .sort('-addedAt')
-      .select({ _id: 0, addedAt: 1, userId: 1, login: 1 });
+      .limit(3)
+      .select({ _id: 0, addedAt: 1, userId: 1, login: 1 })
+      .lean();
+    const newestLikes = newestLikes1.map((l) => ({
+      ...l,
+      addedAt: l.addedAt.toISOString(),
+    }));
 
     return {
       id: post._id.toString(),
@@ -132,7 +137,7 @@ export class PostsQueryRepo {
       content: post.content,
       blogId: post.blogId,
       blogName: post.blogName,
-      createdAt: post.createdAt,
+      createdAt: post.createdAt.toISOString(),
       extendedLikesInfo: {
         likesCount: post.extendedLikesInfo.likesCount,
         dislikesCount: post.extendedLikesInfo.dislikesCount,

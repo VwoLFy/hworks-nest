@@ -9,8 +9,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class Post {
   _id: ObjectId;
 
-  @Prop({ default: new Date().toISOString() })
-  createdAt: string;
+  @Prop({ default: new Date() })
+  createdAt: Date;
 
   @Prop({
     default: {

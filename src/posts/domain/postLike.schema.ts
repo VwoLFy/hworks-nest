@@ -4,8 +4,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class PostLike {
-  @Prop({ default: new Date().toISOString() })
-  addedAt: string;
+  @Prop({ default: new Date() })
+  addedAt: Date;
 
   @Prop({ required: true })
   postId: string;

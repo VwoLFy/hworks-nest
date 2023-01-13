@@ -59,7 +59,7 @@ export class BlogsQueryRepo {
       name: object.name,
       description: object.description,
       websiteUrl: object.websiteUrl,
-      createdAt: object.createdAt,
+      createdAt: object.createdAt.toISOString(),
     };
   }
 }

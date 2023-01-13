@@ -6,8 +6,8 @@ import { randomUUID } from 'crypto';
 
 @Schema({ _id: false })
 export class AccountData {
-  @Prop({ default: new Date().toISOString() })
-  createdAt: string;
+  @Prop({ default: new Date() })
+  createdAt: Date;
 
   @Prop({ required: true })
   login: string;
@@ -40,10 +40,10 @@ export class User {
   _id: ObjectId;
 
   @Prop({ required: true, type: UserAccountSchema })
-  accountData;
+  accountData: AccountData;
 
   @Prop({ required: true, type: EmailConfirmationSchema })
-  emailConfirmation;
+  emailConfirmation: EmailConfirmation;
 
   confirmUser() {
     this.emailConfirmation.isConfirmed = true;

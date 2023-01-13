@@ -78,7 +78,7 @@ export class CommentsQueryRepo {
       content: comment.content,
       userId: comment.userId,
       userLogin: comment.userLogin,
-      createdAt: comment.createdAt,
+      createdAt: comment.createdAt.toISOString(),
       likesInfo,
     };
   }
