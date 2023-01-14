@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ZUsersService } from './z-users.service';
 import { ZUser } from './ZUserSchema';
 
@@ -16,9 +7,7 @@ export class ZUsersController {
   constructor(protected zUsersService: ZUsersService) {}
 
   @Get()
-  async getUsers(
-    @Query() query: { searchEmailTerm: string },
-  ): Promise<ZUser[] | null> {
+  async getUsers(@Query() query: { searchEmailTerm: string }): Promise<ZUser[] | null> {
     return await this.zUsersService.findUsers(query.searchEmailTerm);
   }
 

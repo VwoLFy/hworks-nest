@@ -13,10 +13,7 @@ import { PostsRepository } from './posts/infrastructure/posts-repository';
 import { PostLike, PostLikeSchema } from './posts/domain/postLike.schema';
 import { PostsService } from './posts/application/posts-service';
 import { PostsController } from './posts/api/posts-controller';
-import {
-  CommentLike,
-  CommentLikeSchema,
-} from './comments/domain/commentLike.schema';
+import { CommentLike, CommentLikeSchema } from './comments/domain/commentLike.schema';
 import { Comment, CommentSchema } from './comments/domain/comment.schema';
 import { CommentsQueryRepo } from './comments/infrastructure/comments-queryRepo';
 import { CommentsRepository } from './comments/infrastructure/comments-repository';

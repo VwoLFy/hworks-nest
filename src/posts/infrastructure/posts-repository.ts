@@ -17,10 +17,7 @@ export class PostsRepository {
   async savePost(newPost: PostDocument) {
     await newPost.save();
   }
-  async findPostLike(
-    postId: string,
-    userId: string,
-  ): Promise<PostLikeDocument | null> {
+  async findPostLike(postId: string, userId: string): Promise<PostLikeDocument | null> {
     return this.PostLikeModel.findOne({ postId, userId });
   }
   async savePostLike(like: PostLikeDocument) {

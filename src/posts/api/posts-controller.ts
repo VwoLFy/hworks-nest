@@ -9,18 +9,7 @@ import { CommentViewModelPage } from '../../comments/api/models/CommentViewModel
 import { CreatePostDto } from '../application/dto/CreatePostDto';
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { FindCommentsQueryModel } from './models/FindCommentsQueryModel';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from '@nestjs/common';
 
 @Controller('posts')
 export class PostsController {
@@ -31,9 +20,7 @@ export class PostsController {
   ) {}
 
   @Get()
-  async getPosts(
-    @Query() query: FindPostsQueryModel,
-  ): Promise<PostsViewModelPage> {
+  async getPosts(@Query() query: FindPostsQueryModel): Promise<PostsViewModelPage> {
     const userId = null;
     return await this.postsQueryRepo.findPosts(query, userId);
   }
@@ -42,8 +29,7 @@ export class PostsController {
   async getPost(@Param('id') postId): Promise<PostViewModel> {
     const userId = null;
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
-    if (!foundPost)
-      throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
+    if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
     return foundPost;
   }
@@ -52,8 +38,7 @@ export class PostsController {
   async createPost(@Body() body: CreatePostDto): Promise<PostViewModel> {
     const userId = null;
     const createdPostId = await this.postsService.createPost(body);
-    if (!createdPostId)
-      throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+    if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
 
     return await this.postsQueryRepo.findPostById(createdPostId, userId);
   }
@@ -68,10 +53,7 @@ export class PostsController {
   }
 
   @Get(':id/comments')
-  async getCommentsForPost(
-    @Param('id') postId,
-    @Query() query: FindCommentsQueryModel,
-  ): Promise<CommentViewModelPage> {
+  async getCommentsForPost(@Param('id') postId, @Query() query: FindCommentsQueryModel): Promise<CommentViewModelPage> {
     const userId = null;
     const foundComments = await this.commentsQueryRepo.findCommentsByPostId({
       postId,
@@ -81,8 +63,7 @@ export class PostsController {
       sortDirection: query.sortDirection,
       userId,
     });
-    if (!foundComments)
-      throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
+    if (!foundComments) throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
 
     return foundComments;
   }
@@ -91,7 +72,6 @@ export class PostsController {
   @HttpCode(204)
   async deletePost(@Param('id') postId) {
     const isDeletedPost = await this.postsService.deletePost(postId);
-    if (!isDeletedPost)
-      throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
+    if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }
 }

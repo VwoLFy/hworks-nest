@@ -16,10 +16,7 @@ export class CommentsQueryRepo {
     private CommentLikeModel: Model<CommentLikeDocument>,
   ) {}
 
-  async findCommentById(
-    _id: string,
-    userId: string | null,
-  ): Promise<CommentViewModel | null> {
+  async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
     const foundComment = await this.CommentModel.findById({
       _id,
     }).lean();
@@ -28,9 +25,7 @@ export class CommentsQueryRepo {
     return this.commentWithReplaceId(foundComment, userId);
   }
 
-  async findCommentsByPostId(
-    dto: FindCommentsByPostIdDto,
-  ): Promise<CommentViewModelPage | null> {
+  async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<CommentViewModelPage | null> {
     const { postId, page, pageSize, sortBy, sortDirection, userId } = dto;
 
     const sortByField = sortBy === 'id' ? '_id' : sortBy;
@@ -60,10 +55,7 @@ export class CommentsQueryRepo {
     };
   }
 
-  async commentWithReplaceId(
-    comment: Comment,
-    userId: string | null,
-  ): Promise<CommentViewModel> {
+  async commentWithReplaceId(comment: Comment, userId: string | null): Promise<CommentViewModel> {
     let myStatus: LikeStatus = LikeStatus.None;
     if (userId) {
       const status = await this.CommentLikeModel.findOne({

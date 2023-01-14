@@ -28,10 +28,7 @@ export class UsersService {
   async createUser(dto: CreateUserDto): Promise<string | null> {
     const { login, password, email } = dto;
 
-    const isFreeLoginAndEmail = await this.usersRepository.isFreeLoginAndEmail(
-      login,
-      email,
-    );
+    const isFreeLoginAndEmail = await this.usersRepository.isFreeLoginAndEmail(login, email);
     if (!isFreeLoginAndEmail) return null;
 
     const passwordHash = await this.getPasswordHash(password);

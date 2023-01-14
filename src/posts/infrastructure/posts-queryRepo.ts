@@ -15,10 +15,7 @@ export class PostsQueryRepo {
     @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
   ) {}
 
-  async findPosts(
-    dto: FindPostsQueryModel,
-    userId: string | null,
-  ): Promise<PostsViewModelPage> {
+  async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PostsViewModelPage> {
     //const { pageNumber, pageSize, sortBy, sortDirection } = dto;
     const pageNumber = +dto.pageNumber || 1;
     const pageSize = +dto.pageSize || 10;
@@ -53,10 +50,7 @@ export class PostsQueryRepo {
       items,
     };
   }
-  async findPostById(
-    _id: string,
-    userId: string | null,
-  ): Promise<PostViewModel | null> {
+  async findPostById(_id: string, userId: string | null): Promise<PostViewModel | null> {
     const foundPost = await this.PostModel.findById({ _id }).lean();
     if (!foundPost) return null;
 
@@ -78,9 +72,7 @@ export class PostsQueryRepo {
       [sortByField]: sortDirection,
     };
 
-    const totalCount = await this.PostModel.countDocuments()
-      .where('blogId')
-      .equals(blogId);
+    const totalCount = await this.PostModel.countDocuments().where('blogId').equals(blogId);
     if (totalCount == 0) return null;
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -107,10 +99,7 @@ export class PostsQueryRepo {
       items,
     };
   }
-  async postWithReplaceId(
-    post: Post,
-    userId: string | null,
-  ): Promise<PostViewModel> {
+  async postWithReplaceId(post: Post, userId: string | null): Promise<PostViewModel> {
     let myStatus: LikeStatus = LikeStatus.None;
 
     if (userId) {

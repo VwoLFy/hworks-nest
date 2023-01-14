@@ -10,12 +10,8 @@ export class CommentsController {
   @Get(':id')
   async getComment(@Param('id') commentId): Promise<CommentViewModel> {
     const userId = null;
-    const foundComment = await this.commentsQueryRepo.findCommentById(
-      commentId,
-      userId,
-    );
-    if (!foundComment)
-      throw new HttpException('comment not found', HTTP_Status.NOT_FOUND_404);
+    const foundComment = await this.commentsQueryRepo.findCommentById(commentId, userId);
+    if (!foundComment) throw new HttpException('comment not found', HTTP_Status.NOT_FOUND_404);
 
     return foundComment;
   }

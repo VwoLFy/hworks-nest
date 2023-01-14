@@ -17,10 +17,7 @@ export class ZUser {
     this.name = name;
   }
 
-  static createHZ(
-    ZUserModel: Model<ZUserDocument> & StaticsZUserType,
-    input: InputModelType,
-  ) {
+  static createHZ(ZUserModel: Model<ZUserDocument> & StaticsZUserType, input: InputModelType) {
     return new ZUserModel(input.age);
   }
   static createHZ2(input: InputModelType) {
@@ -29,10 +26,7 @@ export class ZUser {
 }
 export type ZUserDocument = HydratedDocument<ZUser>;
 export type StaticsZUserType = Model<ZUser> & {
-  createHZ(
-    UserModel: Model<ZUserDocument> & StaticsZUserType,
-    input: InputModelType,
-  );
+  createHZ(UserModel: Model<ZUserDocument> & StaticsZUserType, input: InputModelType);
   createHZ2(input: InputModelType);
 };
 

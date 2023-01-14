@@ -78,18 +78,12 @@ export class Post {
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
     if (likeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
       this.extendedLikesInfo.likesCount += 1;
-    } else if (
-      likeStatus === LikeStatus.Dislike &&
-      oldLikeStatus !== LikeStatus.Dislike
-    ) {
+    } else if (likeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
       this.extendedLikesInfo.dislikesCount += 1;
     }
     if (likeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
       this.extendedLikesInfo.likesCount -= 1;
-    } else if (
-      likeStatus !== LikeStatus.Dislike &&
-      oldLikeStatus === LikeStatus.Dislike
-    ) {
+    } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
       this.extendedLikesInfo.dislikesCount -= 1;
     }
   }

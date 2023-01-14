@@ -19,10 +19,7 @@ export class CommentsRepository {
   async saveComment(comment: CommentDocument): Promise<void> {
     await comment.save();
   }
-  async findLikeStatus(
-    commentId: string,
-    userId: string,
-  ): Promise<CommentLikeDocument | null> {
+  async findLikeStatus(commentId: string, userId: string): Promise<CommentLikeDocument | null> {
     return this.CommentLikeModel.findOne({ commentId, userId });
   }
   async saveLike(like: CommentLikeDocument): Promise<void> {

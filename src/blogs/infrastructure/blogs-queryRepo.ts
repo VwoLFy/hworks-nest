@@ -23,9 +23,7 @@ export class BlogsQueryRepo {
       [sortByField]: sortDirection,
     };
 
-    const totalCount = await this.BlogModel.countDocuments()
-      .where('name')
-      .regex(new RegExp(dto.searchNameTerm, 'i'));
+    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(dto.searchNameTerm, 'i'));
     const pagesCount = Math.ceil(totalCount / pageSize);
 
     const items: BlogViewModel[] = (

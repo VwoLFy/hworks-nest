@@ -23,9 +23,7 @@ export class PostsService {
   ) {}
 
   async createPost(dto: CreatePostDto): Promise<string | null> {
-    const foundBlogName = await this.blogsRepository.findBlogNameById(
-      dto.blogId,
-    );
+    const foundBlogName = await this.blogsRepository.findBlogNameById(dto.blogId);
     if (!foundBlogName) return null;
 
     const post = new this.PostModel({ ...dto, blogName: foundBlogName });
@@ -33,9 +31,7 @@ export class PostsService {
     return post.id;
   }
   async updatePost(_id: string, dto: UpdatePostDto): Promise<boolean> {
-    const foundBlogName = await this.blogsRepository.findBlogNameById(
-      dto.blogId,
-    );
+    const foundBlogName = await this.blogsRepository.findBlogNameById(dto.blogId);
     if (!foundBlogName) return false;
 
     const post = await this.postsRepository.findPostById(_id);
@@ -56,13 +52,7 @@ export class PostsService {
 
     const foundLike = await this.postsRepository.findPostLike(postId, userId);
 
-    const like = foundPost.setLikeStatus(
-      foundLike,
-      userId,
-      userLogin,
-      likeStatus,
-      this.PostLikeModel,
-    );
+    const like = foundPost.setLikeStatus(foundLike, userId, userLogin, likeStatus, this.PostLikeModel);
     await this.postsRepository.savePost(foundPost);
     await this.postsRepository.savePostLike(like);
 

@@ -32,8 +32,7 @@ export class EmailConfirmation {
 }
 
 export const AccountDataSchema = SchemaFactory.createForClass(AccountData);
-export const EmailConfirmationSchema =
-  SchemaFactory.createForClass(EmailConfirmation);
+export const EmailConfirmationSchema = SchemaFactory.createForClass(EmailConfirmation);
 
 @Schema()
 export class User {

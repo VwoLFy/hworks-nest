@@ -64,18 +64,12 @@ export class Comment {
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
     if (likeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
       this.likesInfo.likesCount += 1;
-    } else if (
-      likeStatus === LikeStatus.Dislike &&
-      oldLikeStatus !== LikeStatus.Dislike
-    ) {
+    } else if (likeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
       this.likesInfo.dislikesCount += 1;
     }
     if (likeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
       this.likesInfo.likesCount -= 1;
-    } else if (
-      likeStatus !== LikeStatus.Dislike &&
-      oldLikeStatus === LikeStatus.Dislike
-    ) {
+    } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
       this.likesInfo.dislikesCount -= 1;
     }
   }

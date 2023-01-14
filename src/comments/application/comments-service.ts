@@ -51,17 +51,9 @@ export class CommentsService {
     const foundComment = await this.commentsRepository.findComment(commentId);
     if (!foundComment) return false;
 
-    const foundLike = await this.commentsRepository.findLikeStatus(
-      commentId,
-      userId,
-    );
+    const foundLike = await this.commentsRepository.findLikeStatus(commentId, userId);
 
-    const like = foundComment.setLikeStatus(
-      foundLike,
-      userId,
-      likeStatus,
-      this.CommentLikeModel,
-    );
+    const like = foundComment.setLikeStatus(foundLike, userId, likeStatus, this.CommentLikeModel);
     await this.commentsRepository.saveComment(foundComment);
 
     if (likeStatus === LikeStatus.None) {
@@ -71,10 +63,7 @@ export class CommentsService {
     }
     return true;
   }
-  async deleteComment(
-    commentId: string,
-    userId: string,
-  ): Promise<number | null> {
+  async deleteComment(commentId: string, userId: string): Promise<number | null> {
     const foundComment = await this.commentsRepository.findComment(commentId);
     if (!foundComment) {
       return 404;

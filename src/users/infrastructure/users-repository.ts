@@ -8,9 +8,7 @@ import { Injectable } from '@nestjs/common';
 export class UsersRepository {
   constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
-  async findUserByLoginOrEmail(
-    loginOrEmail: string,
-  ): Promise<UserDocument | null> {
+  async findUserByLoginOrEmail(loginOrEmail: string): Promise<UserDocument | null> {
     const foundUser = await this.UserModel.findOne({
       $or: [
         { 'accountData.login': { $regex: loginOrEmail, $options: 'i' } },
@@ -24,9 +22,7 @@ export class UsersRepository {
     if (!result) return null;
     return result.accountData.login;
   }
-  async findUserByConfirmationCode(
-    confirmationCode: string,
-  ): Promise<UserDocument | null> {
+  async findUserByConfirmationCode(confirmationCode: string): Promise<UserDocument | null> {
     return this.UserModel.findOne({
       'emailConfirmation.confirmationCode': confirmationCode,
     });
