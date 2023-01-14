@@ -9,13 +9,25 @@ export class AccountData {
   @Prop({ default: Date.now })
   createdAt: Date;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    minlength: 3,
+    maxlength: 30,
+    validate: (val: string) => {
+      return val.match('^[a-zA-Z0-9_-]*$');
+    },
+  })
   login: string;
 
   @Prop({ required: true })
   passwordHash: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    validate: (val: string) => {
+      return val.match('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$');
+    },
+  })
   email: string;
 }
 

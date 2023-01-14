@@ -23,13 +23,13 @@ export class Comment {
     dislikesCount: number;
   };
 
-  @Prop({ required: true })
+  @Prop({ required: true, minlength: 20, maxlength: 300 })
   content: string;
 
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, minlength: 3, maxlength: 30 })
   userLogin: string;
 
   @Prop({ required: true })

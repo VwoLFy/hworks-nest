@@ -24,19 +24,19 @@ export class Post {
     dislikesCount: number;
   };
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 30 })
   title: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 100 })
   shortDescription: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 1000 })
   content: string;
 
   @Prop({ required: true })
   blogId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 15 })
   blogName: string;
 
   updatePost(dto: UpdatePostDto, blogName: string) {

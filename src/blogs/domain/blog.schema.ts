@@ -10,13 +10,17 @@ export class Blog {
   @Prop({ default: Date.now })
   createdAt: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 15 })
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxlength: 500 })
   description: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    maxlength: 100,
+    validate: (val: string) => val.match('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$'),
+  })
   websiteUrl: string;
 
   updateBlog(dto: UpdateBlogDto) {
