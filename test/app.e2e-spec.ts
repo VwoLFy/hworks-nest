@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { HttpException, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status } from '../src/main/types/enums';
 import { BlogViewModel } from '../src/blogs/api/models/BlogViewModel';
+import { HttpExceptionFilter } from '../src/exception.filter';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -14,6 +15,20 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        stopAtFirstError: true,
+        exceptionFactory: (errors) => {
+          const err = errors.map((e) => ({
+            field: e.property,
+            message: Object.values(e.constraints).toString(),
+          }));
+          throw new HttpException(err, HTTP_Status.BAD_REQUEST_400);
+        },
+      }),
+    );
+    app.useGlobalFilters(new HttpExceptionFilter());
+
     await app.init();
   });
   afterAll(() => {
@@ -71,9 +86,82 @@ describe('AppController (e2e)', () => {
         .post('/blogs')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
+          name: 1,
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'valid name',
+          description: 'description',
+          websiteUrl: 1,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'valid name',
+          description: 1,
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 1,
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'valid name',
+          description: 'description',
+          websiteUrl: 1,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'valid name',
+          description: 1,
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'a'.repeat(16),
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
           name: 'valid name',
           description: 'a'.repeat(501),
           websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'valid name',
+          description: 'description',
+          websiteUrl: 'https://localhost1.uuu/blogs' + 'a'.repeat(100),
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
 
@@ -91,7 +179,7 @@ describe('AppController (e2e)', () => {
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           name: ' NEW NAME   ',
-          description: 'description',
+          description: 'description  ',
           websiteUrl: ' https://localhost1.uuu/blogs  ',
         })
         .expect(HTTP_Status.CREATED_201);
@@ -113,6 +201,12 @@ describe('AppController (e2e)', () => {
           totalCount: 1,
           items: [blog1],
         });
+    });
+    it('GET blog by id should return 200', async function () {
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
+    });
+    it('GET blog by bad id should return 404', async function () {
+      await request(app.getHttpServer()).get(`/blogs/1`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('PUT shouldn`t update blog with incorrect data', async () => {
       await request(app.getHttpServer())

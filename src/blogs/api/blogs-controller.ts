@@ -13,6 +13,7 @@ import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
 import { FindPostsQueryModel } from '../../posts/api/models/FindPostsQueryModel';
 import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from '@nestjs/common';
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
+import { ParamForMongoDB } from '../../main/ParamForMongoDB';
 
 @Controller('blogs')
 export class BlogsController {
@@ -29,7 +30,7 @@ export class BlogsController {
   }
 
   @Get(':id')
-  async getBlog(@Param('id') blogId): Promise<BlogViewModel> {
+  async getBlog(@Param('id', new ParamForMongoDB()) blogId): Promise<BlogViewModel> {
     const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
     return blog;
@@ -43,13 +44,17 @@ export class BlogsController {
 
   @Put(':id')
   @HttpCode(204)
-  async updateBlog(@Param('id') blogId, @Body() body: UpdateBlogDto) {
+  async updateBlog(@Param('id', new ParamForMongoDB()) blogId, @Body() body: UpdateBlogDto) {
     const isUpdatedBlog = await this.blogsService.updateBlog(blogId, body);
+    console.log(isUpdatedBlog);
     if (!isUpdatedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }
 
   @Get(':id/posts')
-  async getPostsForBlog(@Param('id') blogId, @Query() query: FindPostsQueryModel): Promise<PostsViewModelPage> {
+  async getPostsForBlog(
+    @Param('id', new ParamForMongoDB()) blogId,
+    @Query() query: FindPostsQueryModel,
+  ): Promise<PostsViewModelPage> {
     const userId = null;
     const foundPost = await this.postsQueryRepo.findPostsByBlogId(blogId, userId, query);
     if (!foundPost) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
@@ -58,7 +63,10 @@ export class BlogsController {
   }
 
   @Post(':id/posts')
-  async createPostForBlog(@Param('id') blogId, @Body() body: BlogPostInputModel): Promise<PostViewModel> {
+  async createPostForBlog(
+    @Param('id', new ParamForMongoDB()) blogId,
+    @Body() body: BlogPostInputModel,
+  ): Promise<PostViewModel> {
     const userId = null;
     const createdPostId = await this.postsService.createPost({
       ...body,
@@ -71,7 +79,7 @@ export class BlogsController {
 
   @Delete(':id')
   @HttpCode(204)
-  async deleteBlog(@Param('id') blogId) {
+  async deleteBlog(@Param('id', new ParamForMongoDB()) blogId) {
     const isDeletedBlog = await this.blogsService.deleteBlog(blogId);
     if (!isDeletedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }
