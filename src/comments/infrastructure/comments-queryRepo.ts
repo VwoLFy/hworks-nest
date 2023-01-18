@@ -26,7 +26,7 @@ export class CommentsQueryRepo {
   }
 
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<CommentViewModelPage | null> {
-    const { postId, page, pageSize, sortBy, sortDirection, userId } = dto;
+    const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
     const sortByField = sortBy === 'id' ? '_id' : sortBy;
     const sortOptions = { [sortByField]: sortDirection };
@@ -35,7 +35,7 @@ export class CommentsQueryRepo {
 
     const pagesCount = Math.ceil(totalCount / pageSize);
     const commentsWith_id = await this.CommentModel.find({ postId })
-      .skip((page - 1) * pageSize)
+      .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .sort(sortOptions)
       .lean();
@@ -48,7 +48,7 @@ export class CommentsQueryRepo {
 
     return {
       pagesCount,
-      page,
+      page: pageNumber,
       pageSize,
       totalCount,
       items,

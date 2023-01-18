@@ -12,24 +12,18 @@ export class BlogsQueryRepo {
   constructor(@InjectModel(Blog.name) private BlogModel: Model<BlogDocument>) {}
 
   async findBlogs(dto: FindBlogsQueryModel): Promise<BlogsViewModelPage> {
-    //const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
-    const pageNumber = +dto.pageNumber || 1;
-    const pageSize = +dto.pageSize || 10;
-    const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
-    const sortDirection = dto.sortDirection || SortDirection.desc;
-
-    const sortByField = sortBy === 'id' ? '_id' : sortBy;
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
     const optionsSort: { [key: string]: SortDirection } = {
-      [sortByField]: sortDirection,
+      [sortBy]: sortDirection,
     };
 
-    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(dto.searchNameTerm, 'i'));
+    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(searchNameTerm, 'i'));
     const pagesCount = Math.ceil(totalCount / pageSize);
 
     const items: BlogViewModel[] = (
       await this.BlogModel.find()
         .where('name')
-        .regex(new RegExp(dto.searchNameTerm, 'i'))
+        .regex(new RegExp(searchNameTerm, 'i'))
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
         .sort(optionsSort)
@@ -46,7 +40,6 @@ export class BlogsQueryRepo {
   }
   async findBlogById(_id: string): Promise<BlogViewModel | null> {
     const foundBlog = await this.BlogModel.findById(_id);
-
     if (!foundBlog) return null;
 
     return this.blogWithReplaceId(foundBlog);

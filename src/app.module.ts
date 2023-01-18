@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -33,6 +33,24 @@ import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
 import { DeleteAllController } from './delete_all/delete_all.controller';
 import { ConfigModule } from '@nestjs/config';
+import { getUserIdAuthMiddleware } from './main/get-user-id-auth-middleware';
+import { AttemptsData, AttemptsDataSchema } from './auth/domain/attempts.schema';
+import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password-recovery.schema';
+import { AttemptsService } from './auth/application/attempts-service';
+import { AttemptsRepository } from './auth/infrastructure/attempts-repository';
+import { AuthService } from './auth/application/auth-service';
+import { EmailManager } from './auth/application/email-manager';
+import { EmailAdapter } from './auth/infrastructure/email-adapter';
+import { AppJwtService } from './auth/application/jwt-service';
+import { PasswordRecoveryRepository } from './auth/infrastructure/password-recovery-repository';
+import { AuthController } from './auth/api/auth-controller';
+import { SecurityService } from './security/application/security-service';
+import { SecurityRepository } from './security/infrastructure/security-repository';
+import { SecurityQueryRepo } from './security/infrastructure/security-queryRepo';
+import { SecurityController } from './security/api/security-controller';
+import { Session, SessionSchema } from './security/domain/session.schema';
+import { JwtService } from '@nestjs/jwt';
+import { IsBlogExistConstraint } from './posts/api/models/IsBlogExistDecorator';
 
 const dbName = 'Homework';
 
@@ -49,6 +67,9 @@ const dbName = 'Homework';
       { name: AccountData.name, schema: AccountDataSchema },
       { name: EmailConfirmation.name, schema: EmailConfirmationSchema },
       { name: User.name, schema: UserSchema },
+      { name: AttemptsData.name, schema: AttemptsDataSchema },
+      { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
+      { name: Session.name, schema: SessionSchema },
     ]),
   ],
   controllers: [
@@ -58,8 +79,11 @@ const dbName = 'Homework';
     CommentsController,
     UsersController,
     DeleteAllController,
+    AuthController,
+    SecurityController,
   ],
   providers: [
+    IsBlogExistConstraint,
     AppService,
     BlogsQueryRepo,
     BlogsRepository,
@@ -73,6 +97,27 @@ const dbName = 'Homework';
     UsersQueryRepo,
     UsersRepository,
     UsersService,
+    AttemptsService,
+    AttemptsRepository,
+    AuthService,
+    EmailManager,
+    EmailAdapter,
+    AppJwtService,
+    PasswordRecoveryRepository,
+    SecurityService,
+    SecurityRepository,
+    SecurityQueryRepo,
+    JwtService,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(getUserIdAuthMiddleware)
+      .forRoutes(
+        { path: 'blogs/*', method: RequestMethod.GET },
+        { path: 'posts*', method: RequestMethod.GET },
+        AuthController,
+      );
+  }
+}

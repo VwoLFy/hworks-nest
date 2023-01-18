@@ -2,18 +2,28 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/co
 import { Response } from 'express';
 import { HTTP_Status } from './main/types/enums';
 
-@Catch(HttpException)
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const status = exception.getStatus();
 
-    if (status === HTTP_Status.BAD_REQUEST_400) {
-      const errorsMessages = exception.getResponse();
-      response.status(status).json({ errorsMessages });
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+
+      if (status === HTTP_Status.BAD_REQUEST_400) {
+        const errorsMessages = exception.getResponse();
+        response.status(status).json({ errorsMessages });
+      } else {
+        response.status(status).json({ message: exception.message });
+      }
     } else {
-      response.status(status).json({ message: exception.message });
+      if (!!'production') {
+        console.log(`! ${exception.name} - ${exception.message}`);
+        response.status(500).json({ message: exception.message, field: exception.stack });
+      } else {
+        response.status(500).json('You crash the server! I`ll find You!');
+      }
     }
   }
 }

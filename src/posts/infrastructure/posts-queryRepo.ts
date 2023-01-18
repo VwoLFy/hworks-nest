@@ -61,15 +61,10 @@ export class PostsQueryRepo {
     userId: string | null,
     dto: FindPostsQueryModel,
   ): Promise<PostsViewModelPage | null> {
-    //const { pageNumber, pageSize, sortBy, sortDirection } = dto;
-    const pageNumber = +dto.pageNumber || 1;
-    const pageSize = +dto.pageSize || 10;
-    const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
-    const sortDirection = dto.sortDirection || SortDirection.desc;
+    const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const sortByField = sortBy === 'id' ? '_id' : sortBy;
     const optionsSort: { [key: string]: SortDirection } = {
-      [sortByField]: sortDirection,
+      [sortBy]: sortDirection,
     };
 
     const totalCount = await this.PostModel.countDocuments().where('blogId').equals(blogId);
