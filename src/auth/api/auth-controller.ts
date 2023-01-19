@@ -66,7 +66,7 @@ export class AuthController {
 
   @Post('refresh-token')
   @HttpCode(200)
-  async refreshToken(@Req() req: Request, @Res() res: Response): Promise<LoginSuccessViewModel> {
+  async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LoginSuccessViewModel> {
     const title = req.headers['user-agent'] || 'unknown';
 
     const { accessToken, refreshToken } = await this.jwtService.updateTokens(req.refreshTokenData, req.ip, title);
@@ -98,7 +98,7 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(204)
-  async logout(@Req() req: Request, @Res() res: Response) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     await this.jwtService.deleteRefreshToken(req.refreshTokenData);
     res.clearCookie('refreshToken');
   }

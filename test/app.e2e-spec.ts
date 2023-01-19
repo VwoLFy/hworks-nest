@@ -12,6 +12,7 @@ import { UserViewModel } from '../src/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/security/api/models/DeviceViewModel';
+import { settings } from '../src/main/settings';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -1552,219 +1553,216 @@ describe('AppController (e2e)', () => {
       expect(devices).not.toEqual(newDeviceList);
     });
     /*
-    
-            it('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.TOO_MANY_REQUESTS_429)
-    
-                await delay(10001)
-    
-                await request(app.getHttpServer())
-                    .post('/auth/registration')
-                    .send({
-                        login: "NewUser",
-                        password: "password",
-                        email: ""
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-            }, 35000)
-            it('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.TOO_MANY_REQUESTS_429)
-    
-                await delay(10000)
-    
-                await request(app.getHttpServer())
-                    .post('/auth/login')
-                    .send({
-                        loginOrEmail: "login0",
-                        password: "password0"
-                    })
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-    
-            }, 15000);
-            it('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.TOO_MANY_REQUESTS_429)
-    
-                await delay(10000)
-    
-                await request(app.getHttpServer())
-                    .post('/auth/registration-email-resending')
-                    .send({
-                        email: "stringx@sdf.eee"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-            }, 15000)
-            it('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
-                await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-               await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-               await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-               await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-               await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-               await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.TOO_MANY_REQUESTS_429)
-    
-                await delay(10000)
-    
-                await request(app.getHttpServer())
-                    .post('/auth/registration-confirmation')
-                    .send({
-                        code: "6"
-                    })
-                    .expect(HTTP_Status.BAD_REQUEST_400)
-            }, 15000)
-    
-    */
+    it('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.TOO_MANY_REQUESTS_429);
+
+      await delay(10001);
+
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: '',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    }, 35000);
+    it('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.TOO_MANY_REQUESTS_429);
+
+      await delay(10000);
+
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login0',
+          password: 'password0',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    }, 15000);
+    it('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.TOO_MANY_REQUESTS_429);
+
+      await delay(10000);
+
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'stringx@sdf.eee',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    }, 15000);
+    it('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.TOO_MANY_REQUESTS_429);
+
+      await delay(10000);
+
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    }, 15000);
+  */
   });
 
   describe('comment likes', () => {
@@ -3049,158 +3047,144 @@ describe('AppController (e2e)', () => {
     );
   });
 
-  /*
-  describe('test', () => {
-      beforeAll(async () => {
-          await request(app.getHttpServer())
-              .delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204)
-      })
-      it('POST should create blog, post, comment and 4 auth users', async () => {
+  describe('registration', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('POST should create user and send email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: settings.TEST_EMAIL,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('POST shouldn`t create user with valid login or email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser',
+          password: 'password',
+          email: 'test1@test.it',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser2',
+          password: 'password',
+          email: settings.TEST_EMAIL,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .post('/auth/registration')
+        .send({
+          login: 'NewUser2',
+          password: '',
+          email: 'test2@test.it',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST should resend email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: settings.TEST_EMAIL,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('POST shouldn`t resend email because time to resend isn`t come', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: settings.TEST_EMAIL,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST shouldn`t resend email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: 'test1@test.it',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST shouldn`t confirm registration because code is old', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: 'test',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('shouldn`t authenticate not confirmed user ', async function () {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'NewUser',
+          password: 'password',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('POST should confirm registration', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: 'testres',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('should authenticate confirmed user ', async function () {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'NewUser',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+    });
+    it('POST shouldn`t confirm registration if already confirm', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: 'test',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST shouldn`t confirm registration if valid code', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-confirmation')
+        .send({
+          code: '6',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST shouldn`t resend email if registration already confirmed', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/registration-email-resending')
+        .send({
+          email: settings.TEST_EMAIL,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('get 1 user', async () => {
+      const users = await request(app.getHttpServer()).get('/users').expect(200);
+      expect(users.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 1,
+        items: [
+          {
+            id: expect.any(String),
+            login: 'NewUser',
+            email: settings.TEST_EMAIL,
+            createdAt: expect.any(String),
+          },
+        ],
       });
-
-  })
-*/
-  /*
-      describe('registration', () => {
-          beforeAll(async () => {
-              await request(app.getHttpServer())
-                  .delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204)
-          })
-          it('POST should create user and send email', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration')
-                  .send({
-                      login: "NewUser",
-                      password: "password",
-                      email: settings.TEST_EMAIL
-                  })
-                  .expect(HTTP_Status.NO_CONTENT_204)
-          })
-          it('POST shouldn`t create user with valid login or email', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration')
-                  .send({
-                      login: "NewUser",
-                      password: "password",
-                      email: "test1@test.it"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-              await request(app.getHttpServer())
-                  .post('/auth/registration')
-                  .send({
-                      login: "NewUser2",
-                      password: "password",
-                      email: settings.TEST_EMAIL
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-              await request(app.getHttpServer())
-                  .post('/auth/registration')
-                  .send({
-                      login: "NewUser2",
-                      password: "",
-                      email: "test2@test.it"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('POST should resend email', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-email-resending')
-                  .send({
-                      email: settings.TEST_EMAIL
-                  })
-                  .expect(HTTP_Status.NO_CONTENT_204)
-          })
-          it('POST shouldn`t resend email because time to resend isn`t come', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-email-resending')
-                  .send({
-                      email: settings.TEST_EMAIL
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('POST shouldn`t resend email', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-email-resending')
-                  .send({
-                      email: "test1@test.it"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('POST shouldn`t confirm registration because code is old', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-confirmation')
-                  .send({
-                      code: "test"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('shouldn`t authenticate not confirmed user ', async function () {
-              await request(app.getHttpServer())
-                  .post('/auth/login')
-                  .send({
-                      loginOrEmail: "NewUser",
-                      password: "password",
-                  })
-                  .expect(HTTP_Status.UNAUTHORIZED_401)
-          });
-          it('POST should confirm registration', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-confirmation')
-                  .send({
-                      code: "testres"
-                  })
-                  .expect(HTTP_Status.NO_CONTENT_204)
-          })
-          it('should authenticate confirmed user ', async function () {
-              await request(app.getHttpServer())
-                  .post('/auth/login')
-                  .send({
-                      loginOrEmail: "NewUser",
-                      password: "password",
-                  })
-                  .expect(HTTP_Status.OK_200)
-          });
-          it('POST shouldn`t confirm registration if already confirm', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-confirmation')
-                  .send({
-                      code: "test"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('POST shouldn`t confirm registration if valid code', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-confirmation')
-                  .send({
-                      code: "6"
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('POST shouldn`t resend email if registration already confirmed', async () => {
-              await request(app.getHttpServer())
-                  .post('/auth/registration-email-resending')
-                  .send({
-                      email: settings.TEST_EMAIL
-                  })
-                  .expect(HTTP_Status.BAD_REQUEST_400)
-          })
-          it('get 1 user', async () => {
-              const users = await request(app.getHttpServer())
-                  .get('/users')
-                  .expect(200)
-              expect(users.body).toEqual({
-                  pagesCount: 1,
-                  page: 1,
-                  pageSize: 10,
-                  totalCount: 1,
-                  items: [{
-                      id: expect.any(String),
-                      login: "NewUser",
-                      email: settings.TEST_EMAIL,
-                      createdAt: expect.any(String),
-                  }]
-              })
-          })
-      })
-  */
+    });
+  });
 });
