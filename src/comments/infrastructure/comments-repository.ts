@@ -32,10 +32,10 @@ export class CommentsRepository {
   async deleteLike(_id: ObjectId): Promise<void> {
     await this.CommentLikeModel.deleteOne({ _id });
   }
-  async deleteComment(_id: ObjectId): Promise<number | null> {
+  async deleteComment(_id: ObjectId): Promise<number> {
     const result = await this.CommentModel.deleteOne({ _id });
     if (!result.deletedCount) {
-      return null;
+      return 404;
     } else {
       await this.CommentLikeModel.deleteMany({ commentId: _id });
       return 204;

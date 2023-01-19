@@ -1,5 +1,7 @@
 import { LikeStatus } from '../../../main/types/enums';
+import { IsEnum } from 'class-validator';
 
-export type CommentLikeInputModel = {
+export class CommentLikeInputModel {
+  @IsEnum(LikeStatus)
   likeStatus: LikeStatus;
-};
+}

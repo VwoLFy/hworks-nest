@@ -21,8 +21,10 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { AuthGuard } from '../../auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -58,8 +60,6 @@ export class AuthController {
   @Post('new-password')
   @HttpCode(204)
   async newPassword(@Body() body: NewPasswordRecoveryDto) {
-    if (!body.newPassword || !body.recoveryCode) throw new BadRequestException();
-
     const isChangedPassword = await this.authService.changePassword(body);
     if (!isChangedPassword) throw new BadRequestException();
   }
@@ -67,10 +67,9 @@ export class AuthController {
   @Post('refresh-token')
   @HttpCode(200)
   async refreshToken(@Req() req: Request, @Res() res: Response): Promise<LoginSuccessViewModel> {
-    const ip = req.ip;
     const title = req.headers['user-agent'] || 'unknown';
 
-    const { accessToken, refreshToken } = await this.jwtService.updateTokens(req.refreshTokenData, ip, title);
+    const { accessToken, refreshToken } = await this.jwtService.updateTokens(req.refreshTokenData, req.ip, title);
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -105,6 +104,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @UseGuards(AuthGuard)
   async getMyInfo(@Req() req: Request): Promise<MeViewModel> {
     const userId = req.userId;
     const userData = await this.usersQueryRepo.findUserById(userId);

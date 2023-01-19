@@ -27,11 +27,13 @@ export class CommentsService {
     const userLogin = await this.usersRepository.findUserLoginById(dto.userId);
     if (!isPostExist || !userLogin) return null;
 
-    const comment = new this.CommentModel({ ...dto }, userLogin);
+    const comment = new this.CommentModel({ ...dto, userLogin });
+
     await this.commentsRepository.saveComment(comment);
     return comment.id;
   }
-  async updateComment(dto: UpdateCommentDto): Promise<number | null> {
+
+  async updateComment(dto: UpdateCommentDto): Promise<number> {
     const { commentId, content, userId } = dto;
 
     const foundComment = await this.commentsRepository.findComment(commentId);
@@ -45,6 +47,7 @@ export class CommentsService {
     await this.commentsRepository.saveComment(foundComment);
     return 204;
   }
+
   async likeComment(dto: LikeCommentDto): Promise<boolean> {
     const { commentId, userId, likeStatus } = dto;
 
@@ -63,7 +66,8 @@ export class CommentsService {
     }
     return true;
   }
-  async deleteComment(commentId: string, userId: string): Promise<number | null> {
+
+  async deleteComment(commentId: string, userId: string): Promise<number> {
     const foundComment = await this.commentsRepository.findComment(commentId);
     if (!foundComment) {
       return 404;
@@ -72,6 +76,7 @@ export class CommentsService {
     }
     return await this.commentsRepository.deleteComment(foundComment._id);
   }
+
   async deleteAll() {
     await this.commentsRepository.deleteAll();
   }

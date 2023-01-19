@@ -26,7 +26,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
-import { paramForMongoDB } from '../../main/ParamForMongoDB';
+import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { findBlogsOfPostQueryPipe } from './models/FindBlogsOfPostQueryPipe';
 import { AuthGuard } from '../../auth.guard';
@@ -47,7 +47,7 @@ export class BlogsController {
   }
 
   @Get(':id')
-  async getBlog(@Param('id', paramForMongoDB) blogId: string): Promise<BlogViewModel> {
+  async getBlog(@Param('id', paramForMongoDBPipe) blogId: string): Promise<BlogViewModel> {
     const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
     return blog;
@@ -63,14 +63,14 @@ export class BlogsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updateBlog(@Param('id', paramForMongoDB) blogId: string, @Body() body: UpdateBlogDto) {
+  async updateBlog(@Param('id', paramForMongoDBPipe) blogId: string, @Body() body: UpdateBlogDto) {
     const isUpdatedBlog = await this.blogsService.updateBlog(blogId, body);
     if (!isUpdatedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }
 
   @Get(':id/posts')
   async getPostsForBlog(
-    @Param('id', paramForMongoDB) blogId: string,
+    @Param('id', paramForMongoDBPipe) blogId: string,
     @Query(findBlogsOfPostQueryPipe) query: FindPostsQueryModel,
     @Req() req: Request,
   ): Promise<PostsViewModelPage> {
@@ -84,7 +84,7 @@ export class BlogsController {
   @Post(':id/posts')
   @UseGuards(AuthGuard)
   async createPostForBlog(
-    @Param('id', paramForMongoDB) blogId: string,
+    @Param('id', paramForMongoDBPipe) blogId: string,
     @Body() body: BlogPostInputModel,
     @Req() req: Request,
   ): Promise<PostViewModel> {
@@ -101,7 +101,7 @@ export class BlogsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteBlog(@Param('id', paramForMongoDB) blogId: string) {
+  async deleteBlog(@Param('id', paramForMongoDBPipe) blogId: string) {
     const isDeletedBlog = await this.blogsService.deleteBlog(blogId);
     if (!isDeletedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }

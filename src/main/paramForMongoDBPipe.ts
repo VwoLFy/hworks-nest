@@ -11,4 +11,4 @@ class ParamForMongoDBPipe implements PipeTransform<string, string> {
   }
 }
 
-export const paramForMongoDB = new ParamForMongoDBPipe();
+export const paramForMongoDBPipe = new ParamForMongoDBPipe();

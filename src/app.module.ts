@@ -33,7 +33,7 @@ import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
 import { DeleteAllController } from './delete_all/delete_all.controller';
 import { ConfigModule } from '@nestjs/config';
-import { getUserIdAuthMiddleware } from './main/get-user-id-auth-middleware';
+import { GetUserIdAuthMiddleware } from './main/getUserId.auth.middleware';
 import { AttemptsData, AttemptsDataSchema } from './auth/domain/attempts.schema';
 import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password-recovery.schema';
 import { AttemptsService } from './auth/application/attempts-service';
@@ -50,7 +50,12 @@ import { SecurityQueryRepo } from './security/infrastructure/security-queryRepo'
 import { SecurityController } from './security/api/security-controller';
 import { Session, SessionSchema } from './security/domain/session.schema';
 import { JwtService } from '@nestjs/jwt';
-import { IsBlogExistConstraint } from './posts/api/models/IsBlogExistDecorator';
+import { IsBlogExistConstraint } from './main/Decorators/IsBlogExistDecorator';
+import { RefreshTokenValidationMiddleware } from './main/refreshToken.validation.middleware';
+import { AttemptsValidationMiddleware } from './main/attempts.validation.middleware';
+import { IsFreeLoginOrEmailConstraint } from './main/Decorators/IsFreeLoginOrEmailDecorator';
+import { IsConfirmCodeValidConstraint } from './main/Decorators/IsConfirmCodeValidDecorator';
+import { IsEmailValidForConfirmConstraint } from './main/Decorators/IsEmailValidForConfirmDecorator';
 
 const dbName = 'Homework';
 
@@ -83,7 +88,10 @@ const dbName = 'Homework';
     SecurityController,
   ],
   providers: [
+    IsConfirmCodeValidConstraint,
+    IsEmailValidForConfirmConstraint,
     IsBlogExistConstraint,
+    IsFreeLoginOrEmailConstraint,
     AppService,
     BlogsQueryRepo,
     BlogsRepository,
@@ -113,11 +121,17 @@ const dbName = 'Homework';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(getUserIdAuthMiddleware)
+      .apply(GetUserIdAuthMiddleware)
       .forRoutes(
         { path: 'blogs/*', method: RequestMethod.GET },
+        { path: 'comments/*', method: RequestMethod.GET },
         { path: 'posts*', method: RequestMethod.GET },
         AuthController,
-      );
+      )
+      .apply(RefreshTokenValidationMiddleware)
+      .forRoutes(SecurityController, 'auth/refresh-token', 'auth/logout')
+      .apply(AttemptsValidationMiddleware)
+      .exclude('auth/me')
+      .forRoutes(AuthController);
   }
 }

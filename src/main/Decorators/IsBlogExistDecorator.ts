@@ -4,7 +4,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { BlogsQueryRepo } from '../../../blogs/infrastructure/blogs-queryRepo';
+import { BlogsQueryRepo } from '../../blogs/infrastructure/blogs-queryRepo';
 import { Injectable } from '@nestjs/common';
 
 @ValidatorConstraint({ async: true })

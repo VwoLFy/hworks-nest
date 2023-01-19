@@ -12,6 +12,7 @@ export class Comment {
   createdAt: Date;
 
   @Prop({
+    _id: false,
     default: {
       likesCount: 0,
       dislikesCount: 0,

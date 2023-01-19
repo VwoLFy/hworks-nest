@@ -3,7 +3,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { AppJwtService } from '../auth/application/jwt-service';
 
 @Injectable()
-export class getUserIdAuthMiddleware implements NestMiddleware {
+export class GetUserIdAuthMiddleware implements NestMiddleware {
   constructor(protected jwtService: AppJwtService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {

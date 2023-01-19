@@ -3,20 +3,19 @@ import { SecurityService } from '../application/security-service';
 import { DeviceViewModel } from './models/DeviceViewModel';
 import { Controller, Delete, Get, HttpCode, HttpException, Param, Req, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
-import { paramForMongoDB } from '../../main/ParamForMongoDB';
 
-@Controller('security')
+@Controller('security/devices')
 export class SecurityController {
   constructor(protected securityQueryRepo: SecurityQueryRepo, protected securityService: SecurityService) {}
 
-  @Get('devices')
+  @Get()
   async getDevices(@Req() req: Request): Promise<DeviceViewModel[]> {
     const foundActiveDevices = await this.securityQueryRepo.findUserSessions(req.refreshTokenData.userId);
     if (!foundActiveDevices) throw new UnauthorizedException();
     return foundActiveDevices;
   }
 
-  @Delete('devices')
+  @Delete()
   @HttpCode(204)
   async deleteDevices(@Req() req: Request) {
     const isDeletedSessions = await this.securityService.deleteSessionsOfUser(
@@ -26,9 +25,9 @@ export class SecurityController {
     if (!isDeletedSessions) throw new UnauthorizedException();
   }
 
-  @Delete('devices/:id')
+  @Delete(':id')
   @HttpCode(204)
-  async deleteDevice(@Param('id', paramForMongoDB) deviceId: string, @Req() req: Request) {
+  async deleteDevice(@Param('id') deviceId: string, @Req() req: Request) {
     const result = await this.securityService.deleteSessionByDeviceId(req.refreshTokenData.userId, deviceId);
     if (result !== 204) throw new HttpException('Error delete', result);
   }
