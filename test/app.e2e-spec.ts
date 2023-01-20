@@ -822,7 +822,7 @@ describe('AppController (e2e)', () => {
         .post('/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
-          login: 'SERaa',
+          login: 'aSERaa',
           password: 'password',
           email: 'string4@sdf.eqe',
         })
@@ -833,7 +833,7 @@ describe('AppController (e2e)', () => {
         .post('/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
-          login: 'poker',
+          login: 'zoker',
           password: 'password',
           email: 'string5@sdf.ee',
         })
@@ -847,7 +847,7 @@ describe('AppController (e2e)', () => {
           page: 1,
           pageSize: 15,
           totalCount: 3,
-          items: [user2, user4, user5],
+          items: [user4, user2, user5],
         });
     });
   });
