@@ -14,7 +14,7 @@ class FindUsersQueryPipe implements PipeTransform<any, FindUsersQueryModel> {
     pageSize = pageSize < 1 ? 10 : pageSize;
 
     let sortBy = query.sortBy || 'createdAt';
-    const fields = ['id', 'name', 'websiteUrl', 'createdAt'];
+    const fields = ['id', 'login', 'email', 'createdAt'];
     sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? '_id' : sortBy;
 
     let sortDirection = query.sortDirection || SortDirection.desc;
