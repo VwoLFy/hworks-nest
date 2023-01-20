@@ -2,7 +2,7 @@ import { EmailAdapter } from '../infrastructure/email-adapter';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class EmailManager {
+export class EmailService {
   constructor(protected emailAdapter: EmailAdapter) {}
 
   async sendEmailConfirmationMessage(email: string, code: string) {

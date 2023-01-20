@@ -39,8 +39,7 @@ import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password
 import { AttemptsService } from './auth/application/attempts-service';
 import { AttemptsRepository } from './auth/infrastructure/attempts-repository';
 import { AuthService } from './auth/application/auth-service';
-import { EmailManager } from './auth/application/email-manager';
-import { EmailAdapter } from './auth/infrastructure/email-adapter';
+import { EmailService } from './auth/application/email.service';
 import { AppJwtService } from './auth/application/jwt-service';
 import { PasswordRecoveryRepository } from './auth/infrastructure/password-recovery-repository';
 import { AuthController } from './auth/api/auth-controller';
@@ -56,6 +55,10 @@ import { AttemptsValidationMiddleware } from './main/attempts.validation.middlew
 import { IsFreeLoginOrEmailConstraint } from './main/Decorators/IsFreeLoginOrEmailDecorator';
 import { IsConfirmCodeValidConstraint } from './main/Decorators/IsConfirmCodeValidDecorator';
 import { IsEmailValidForConfirmConstraint } from './main/Decorators/IsEmailValidForConfirmDecorator';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { settings } from './main/settings';
+import { EmailAdapter } from './auth/infrastructure/email-adapter';
 
 const dbName = 'Homework';
 
@@ -76,6 +79,29 @@ const dbName = 'Homework';
       { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
       { name: Session.name, schema: SessionSchema },
     ]),
+    MailerModule.forRootAsync({
+      useFactory: () => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: {
+            user: process.env.EMAIL,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        },
+        defaults: {
+          from: `CodevwolF <${settings.E_MAIL}>`,
+        },
+        template: {
+          dir: __dirname + '/templates',
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+    }),
   ],
   controllers: [
     AppController,
@@ -108,7 +134,7 @@ const dbName = 'Homework';
     AttemptsService,
     AttemptsRepository,
     AuthService,
-    EmailManager,
+    EmailService,
     EmailAdapter,
     AppJwtService,
     PasswordRecoveryRepository,

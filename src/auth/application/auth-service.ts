@@ -1,6 +1,6 @@
 import { UsersRepository } from '../../users/infrastructure/users-repository';
 import * as bcrypt from 'bcrypt';
-import { EmailManager } from './email-manager';
+import { EmailService } from './email.service';
 import { AppJwtService } from './jwt-service';
 import { SecurityService } from '../../security/application/security-service';
 import { CreateUserDto } from '../../users/application/dto/CreateUserDto';
@@ -25,7 +25,7 @@ export class AuthService {
   constructor(
     protected jwtService: AppJwtService,
     protected usersRepository: UsersRepository,
-    protected emailManager: EmailManager,
+    protected emailManager: EmailService,
     protected passwordRepository: PasswordRecoveryRepository,
     protected securityService: SecurityService,
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
@@ -46,6 +46,7 @@ export class AuthService {
       return null;
     return foundUser.id;
   }
+
   async createUser(dto: CreateUserDto): Promise<boolean> {
     const { login, password, email } = dto;
     const passwordHash = await this.getPasswordHash(password);
@@ -73,6 +74,7 @@ export class AuthService {
     await this.usersRepository.saveUser(user);
     return true;
   }
+
   async confirmEmail(confirmationCode: string): Promise<boolean> {
     const foundUser = await this.usersRepository.findUserByConfirmationCode(confirmationCode);
     if (!foundUser) return false;
@@ -81,9 +83,10 @@ export class AuthService {
     await this.usersRepository.saveUser(foundUser);
     return true;
   }
+
   async registrationResendEmail(email: string): Promise<boolean> {
     const foundUser = await this.usersRepository.findUserByLoginOrEmail(email);
-    if (!foundUser || !foundUser.emailConfirmation) return false;
+    if (!foundUser || foundUser.emailConfirmation.isConfirmed) return false;
 
     foundUser.updateEmailConfirmation();
 
@@ -97,16 +100,19 @@ export class AuthService {
     }
     return true;
   }
+
   async getPasswordHash(password: string): Promise<string> {
     const passwordSalt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, passwordSalt);
   }
+
   async loginUser(userId: string, ip: string, title: string) {
     const tokens = await this.jwtService.createJWT(userId, null);
     const refreshTokenData = await this.jwtService.getRefreshTokenData(tokens.refreshToken);
     await this.securityService.saveSession({ ...refreshTokenData, ip, title });
     return tokens;
   }
+
   async passwordRecoverySendEmail(email: string) {
     const isUserExist = await this.usersRepository.findUserByLoginOrEmail(email);
     if (!isUserExist) return;
@@ -120,6 +126,7 @@ export class AuthService {
       console.log(e);
     }
   }
+
   async changePassword(dto: NewPasswordRecoveryDto): Promise<boolean> {
     const { newPassword, recoveryCode } = dto;
 
