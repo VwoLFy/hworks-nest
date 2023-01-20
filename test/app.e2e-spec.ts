@@ -784,6 +784,72 @@ describe('AppController (e2e)', () => {
         items: [],
       });
     });
+    it('GET users array with pagination after post 5 users should return 200', async function () {
+      let result = await request(app.getHttpServer())
+        .post('/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string1@sdf.eqe',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user1 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'loser',
+          password: 'password',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      const user2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login3',
+          password: 'password',
+          email: 'string3@sdf.eqe',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      const user3 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'SERaa',
+          password: 'password',
+          email: 'string4@sdf.eqe',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      const user4 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'poker',
+          password: 'password',
+          email: 'string5@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      const user5 = result.body;
+
+      await request(app.getHttpServer())
+        .get('/users?pageSize=15&pageNumber=1&searchLoginTerm=seR&searchEmailTerm=.ee&sortDirection=asc&sortBy=login')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 15,
+          totalCount: 3,
+          items: [user2, user4, user5],
+        });
+    });
   });
 
   describe('/auth', () => {

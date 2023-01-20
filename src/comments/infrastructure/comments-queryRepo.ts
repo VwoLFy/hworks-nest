@@ -28,8 +28,7 @@ export class CommentsQueryRepo {
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<CommentViewModelPage | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
-    const sortByField = sortBy === 'id' ? '_id' : sortBy;
-    const sortOptions = { [sortByField]: sortDirection };
+    const sortOptions = { [sortBy]: sortDirection };
     const totalCount = await this.CommentModel.countDocuments({ postId });
     if (!totalCount) return null;
 

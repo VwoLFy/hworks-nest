@@ -5,18 +5,13 @@ import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SortDirection } from '../../main/types/enums';
 
 @Injectable()
 export class UsersQueryRepo {
   constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<UserViewModelPage> {
-    const { searchLoginTerm, searchEmailTerm } = dto;
-    const pageNumber = +dto.pageNumber || 1;
-    const pageSize = +dto.pageSize || 10;
-    const sortBy = dto.sortBy === 'id' ? '_id' : dto.sortBy || 'createdAt';
-    const sortDirection = dto.sortDirection || SortDirection.desc;
+    const { searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
     let filterFind = {};
 
     if (searchLoginTerm && searchEmailTerm) {
@@ -36,8 +31,7 @@ export class UsersQueryRepo {
       };
     }
 
-    const sortByField = sortBy === 'id' ? '_id' : sortBy;
-    const optionsSort = { [`accountData.${sortByField}`]: sortDirection };
+    const optionsSort = { [`accountData.${sortBy}`]: sortDirection };
 
     const totalCount = await this.UserModel.countDocuments(filterFind);
     const pagesCount = Math.ceil(totalCount / pageSize);

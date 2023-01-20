@@ -94,7 +94,7 @@ const dbName = 'Homework';
           from: `${settings.EMAIL_FROM} <${settings.E_MAIL}>`,
         },
         template: {
-          dir: 'src/auth/application/templates/',
+          dir: __dirname + '/auth/application/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
