@@ -117,7 +117,7 @@ export class AuthService {
     const isUserExist = await this.usersRepository.findUserByLoginOrEmail(email);
     if (!isUserExist) return;
 
-    const passwordRecovery = new this.PasswordRecoveryModel(email);
+    const passwordRecovery = new this.PasswordRecoveryModel({ email });
     await this.passwordRepository.savePassRecovery(passwordRecovery);
 
     try {

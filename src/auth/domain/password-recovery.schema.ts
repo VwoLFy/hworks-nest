@@ -3,7 +3,7 @@ import { add } from 'date-fns';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { randomUUID } from 'crypto';
 
-@Schema({ _id: false })
+@Schema()
 export class PasswordRecovery {
   @Prop({ default: randomUUID() })
   recoveryCode: string;

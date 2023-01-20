@@ -91,10 +91,10 @@ const dbName = 'Homework';
           },
         },
         defaults: {
-          from: `CodevwolF <${settings.E_MAIL}>`,
+          from: `${settings.EMAIL_FROM} <${settings.E_MAIL}>`,
         },
         template: {
-          dir: __dirname + '/templates',
+          dir: 'src/auth/application/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
