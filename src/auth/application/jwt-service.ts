@@ -20,11 +20,11 @@ export class AppJwtService {
   constructor(protected securityService: SecurityService, private jwtService: JwtService) {}
 
   async createJWT(userId: string, deviceId: string | null): Promise<TokensType> {
-    const accessToken = this.jwtService.sign({ userId }, { secret: settings.JWT_SECRET, expiresIn: '10m' });
+    const accessToken = this.jwtService.sign({ userId }, { secret: settings.JWT_SECRET, expiresIn: '10s' });
     deviceId = deviceId ? deviceId : await this.securityService.newDeviceId();
     const refreshToken = this.jwtService.sign(
       { userId, deviceId },
-      { secret: settings.JWT_SECRET_FOR_REFRESHTOKEN, expiresIn: '1d' },
+      { secret: settings.JWT_SECRET_FOR_REFRESHTOKEN, expiresIn: '20s' },
     );
     return { accessToken, refreshToken };
   }

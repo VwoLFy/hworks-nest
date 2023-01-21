@@ -39,10 +39,11 @@ export class AuthController {
   async loginUser(
     @Body() body: CredentialsDto,
     @Ip() ip,
-    @Headers() headers,
+    @Headers('user-agent') title,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
-    const title = headers['user-agent'] || 'unknown';
+    console.log(ip);
+    title = title || 'unknown';
     const userId = await this.authService.checkCredentials(body);
     if (!userId) throw new UnauthorizedException();
 
