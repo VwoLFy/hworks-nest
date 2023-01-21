@@ -2,7 +2,7 @@ import { PipeTransform } from '@nestjs/common';
 import { SortDirection } from '../../../main/types/enums';
 import { FindPostsQueryModel } from '../../../posts/api/models/FindPostsQueryModel';
 
-class FindBlogsOfPostQueryPipe implements PipeTransform<any, FindPostsQueryModel> {
+class FindPostsOfBlogQueryPipe implements PipeTransform<any, FindPostsQueryModel> {
   transform(query: any): FindPostsQueryModel {
     let pageNumber = +query.pageNumber || 1;
     pageNumber = pageNumber < 1 ? 1 : pageNumber;
@@ -11,7 +11,7 @@ class FindBlogsOfPostQueryPipe implements PipeTransform<any, FindPostsQueryModel
     pageSize = pageSize < 1 ? 10 : pageSize;
 
     let sortBy = query.sortBy || 'createdAt';
-    const fields = ['id', 'name', 'websiteUrl', 'createdAt'];
+    const fields = ['id', 'title', 'shortDescription', 'content', 'blogId', 'blogName', 'createdAt'];
     sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? '_id' : sortBy;
 
     let sortDirection = query.sortDirection || SortDirection.desc;
@@ -21,4 +21,4 @@ class FindBlogsOfPostQueryPipe implements PipeTransform<any, FindPostsQueryModel
   }
 }
 
-export const findBlogsOfPostQueryPipe = new FindBlogsOfPostQueryPipe();
+export const findPostsOfBlogQueryPipe = new FindPostsOfBlogQueryPipe();

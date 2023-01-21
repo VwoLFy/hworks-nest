@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
 import { BlogViewModel } from '../src/blogs/api/models/BlogViewModel';
 import { HttpExceptionFilter } from '../src/exception.filter';
 import { PostViewModel } from '../src/posts/api/models/PostViewModel';
 import { useContainer } from 'class-validator';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { UserViewModel } from '../src/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/comments/api/models/CommentViewModel';
@@ -384,6 +384,16 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
 
+      await request(app.getHttpServer())
+        .post('/posts')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+          blogId: `${blog1.id}`,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
       await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
         pagesCount: 0,
         page: 1,
@@ -533,13 +543,42 @@ describe('AppController (e2e)', () => {
         .send({
           title: 'valid',
           content: 'valid',
-          blogId: `${blog2.id}`,
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.CREATED_201);
       post3 = resultPost.body;
 
       expect(post3.blogId).toBe(blog2.id);
+    });
+    it('POST shouldn`t create post for new blog with bad data', async () => {
+      const resultBlog = await request(app.getHttpServer())
+        .post('/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          name: 'blogName',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      const blog2 = resultBlog.body;
+
+      await request(app.getHttpServer())
+        .post(`/blogs/${blog2.id}/posts`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .post(`/blogs/${blog2.id}/posts`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          title: 'valid',
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('GET all posts for specific blog should return 200', async function () {
       const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.OK_200);

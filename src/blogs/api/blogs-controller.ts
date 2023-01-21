@@ -28,7 +28,7 @@ import {
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
 import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
-import { findBlogsOfPostQueryPipe } from './models/FindBlogsOfPostQueryPipe';
+import { findPostsOfBlogQueryPipe } from './models/FindPostsOfBlogQueryPipe';
 import { AuthGuard } from '../../auth.guard';
 import { Request } from 'express';
 
@@ -71,7 +71,7 @@ export class BlogsController {
   @Get(':id/posts')
   async getPostsForBlog(
     @Param('id', paramForMongoDBPipe) blogId: string,
-    @Query(findBlogsOfPostQueryPipe) query: FindPostsQueryModel,
+    @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
     @Req() req: Request,
   ): Promise<PostsViewModelPage> {
     const userId = req.userId ? req.userId : null;

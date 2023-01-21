@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { HttpException, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './exception.filter';
 import { HTTP_Status } from './main/types/enums';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { useContainer } from 'class-validator';
 
 const PORT = process.env.PORT || 5000;
@@ -17,6 +17,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       stopAtFirstError: true,
+      whitelist: true,
       exceptionFactory: (errors) => {
         const err = [];
         errors.forEach((e) => {
