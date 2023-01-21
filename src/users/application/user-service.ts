@@ -2,14 +2,7 @@ import { UsersRepository } from '../infrastructure/users-repository';
 import * as bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import { CreateUserDto } from './dto/CreateUserDto';
-import {
-  EmailConfirmation,
-  User,
-  AccountData,
-  UserDocument,
-  AccountDataDocument,
-  EmailConfirmationDocument,
-} from '../domain/user.schema';
+import { User, AccountData, UserDocument, EmailConfirmation } from '../domain/user.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -18,10 +11,6 @@ import { Model } from 'mongoose';
 export class UsersService {
   constructor(
     protected usersRepository: UsersRepository,
-    @InjectModel(AccountData.name)
-    private AccountDataModel: Model<AccountDataDocument>,
-    @InjectModel(EmailConfirmation.name)
-    private EmailConfirmationModel: Model<EmailConfirmationDocument>,
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
@@ -33,18 +22,10 @@ export class UsersService {
 
     const passwordHash = await this.getPasswordHash(password);
 
-    const accountData = new this.AccountDataModel({
-      login,
-      passwordHash,
-      email,
-    });
-    const emailConfirmation = new this.EmailConfirmationModel({
-      isConfirmed: true,
-    });
-    const user = new this.UserModel({
-      accountData,
-      emailConfirmation,
-    });
+    const accountData = new AccountData(login, passwordHash, email);
+    const emailConfirmation = new EmailConfirmation(true);
+    const user = new this.UserModel({ accountData, emailConfirmation });
+
     await this.usersRepository.saveUser(user);
     return user.id;
   }

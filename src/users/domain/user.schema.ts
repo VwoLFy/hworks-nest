@@ -4,56 +4,31 @@ import { ObjectId } from 'mongodb';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { randomUUID } from 'crypto';
 
-@Schema({ _id: false })
 export class AccountData {
-  @Prop({ default: Date.now })
   createdAt: Date;
 
-  @Prop({
-    required: true,
-    minlength: 3,
-    maxlength: 30,
-    validate: (val: string) => {
-      return val.match('^[a-zA-Z0-9_-]*$');
-    },
-  })
-  login: string;
-
-  @Prop({ required: true })
-  passwordHash: string;
-
-  @Prop({
-    required: true,
-    validate: (val: string) => {
-      return val.match('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$');
-    },
-  })
-  email: string;
+  constructor(public login: string, public passwordHash: string, public email: string) {
+    this.createdAt = new Date();
+  }
 }
-
-@Schema({ _id: false })
 export class EmailConfirmation {
-  @Prop({ default: randomUUID() })
   confirmationCode: string;
-
-  @Prop({ default: add(new Date(), { hours: 1 }) })
   expirationDate: Date;
 
-  @Prop({ required: true })
-  isConfirmed: boolean;
+  constructor(public isConfirmed: boolean) {
+    this.confirmationCode = randomUUID();
+    this.expirationDate = add(new Date(), { hours: 1 });
+  }
 }
-
-export const AccountDataSchema = SchemaFactory.createForClass(AccountData);
-export const EmailConfirmationSchema = SchemaFactory.createForClass(EmailConfirmation);
 
 @Schema()
 export class User {
   _id: ObjectId;
 
-  @Prop({ required: true, type: AccountDataSchema })
+  @Prop({ required: true, type: AccountData })
   accountData: AccountData;
 
-  @Prop({ required: true, type: EmailConfirmationSchema })
+  @Prop({ required: true, type: EmailConfirmation })
   emailConfirmation: EmailConfirmation;
 
   confirmUser() {
@@ -68,8 +43,6 @@ export class User {
   }
 }
 
-export type AccountDataDocument = HydratedDocument<AccountData>;
-export type EmailConfirmationDocument = HydratedDocument<EmailConfirmation>;
 export type UserDocument = HydratedDocument<User>;
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,6 +1,5 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common';
+import { AppController } from './_Test/app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BlogsQueryRepo } from './blogs/infrastructure/blogs-queryRepo';
 import { Blog, BlogSchema } from './blogs/domain/blog.schema';
@@ -19,21 +18,13 @@ import { CommentsQueryRepo } from './comments/infrastructure/comments-queryRepo'
 import { CommentsRepository } from './comments/infrastructure/comments-repository';
 import { CommentsService } from './comments/application/comments-service';
 import { CommentsController } from './comments/api/comments-controller';
-import {
-  EmailConfirmation,
-  EmailConfirmationSchema,
-  User,
-  AccountData,
-  AccountDataSchema,
-  UserSchema,
-} from './users/domain/user.schema';
+import { User, UserSchema } from './users/domain/user.schema';
 import { UsersQueryRepo } from './users/infrastructure/users-queryRepo';
 import { UsersRepository } from './users/infrastructure/users-repository';
 import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
 import { DeleteAllController } from './delete_all/delete_all.controller';
 import { ConfigModule } from '@nestjs/config';
-import { GetUserIdAuthMiddleware } from './main/getUserId.auth.middleware';
 import { AttemptsData, AttemptsDataSchema } from './auth/domain/attempts.schema';
 import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password-recovery.schema';
 import { AttemptsService } from './auth/application/attempts-service';
@@ -50,8 +41,6 @@ import { SecurityController } from './security/api/security-controller';
 import { Session, SessionSchema } from './security/domain/session.schema';
 import { JwtService } from '@nestjs/jwt';
 import { IsBlogExistConstraint } from './main/Decorators/IsBlogExistDecorator';
-import { RefreshTokenValidationMiddleware } from './main/refreshToken.validation.middleware';
-import { AttemptsValidationMiddleware } from './main/attempts.validation.middleware';
 import { IsFreeLoginOrEmailConstraint } from './main/Decorators/IsFreeLoginOrEmailDecorator';
 import { IsConfirmCodeValidConstraint } from './main/Decorators/IsConfirmCodeValidDecorator';
 import { IsEmailValidForConfirmConstraint } from './main/Decorators/IsEmailValidForConfirmDecorator';
@@ -72,8 +61,6 @@ const dbName = 'Homework';
       { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
-      { name: AccountData.name, schema: AccountDataSchema },
-      { name: EmailConfirmation.name, schema: EmailConfirmationSchema },
       { name: User.name, schema: UserSchema },
       { name: AttemptsData.name, schema: AttemptsDataSchema },
       { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
@@ -118,7 +105,6 @@ const dbName = 'Homework';
     IsEmailValidForConfirmConstraint,
     IsBlogExistConstraint,
     IsFreeLoginOrEmailConstraint,
-    AppService,
     BlogsQueryRepo,
     BlogsRepository,
     BlogsService,
@@ -144,20 +130,4 @@ const dbName = 'Homework';
     JwtService,
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(GetUserIdAuthMiddleware)
-      .forRoutes(
-        { path: 'blogs/*', method: RequestMethod.GET },
-        { path: 'comments/*', method: RequestMethod.GET },
-        { path: 'posts*', method: RequestMethod.GET },
-        AuthController,
-      )
-      .apply(RefreshTokenValidationMiddleware)
-      .forRoutes(SecurityController, 'auth/refresh-token', 'auth/logout')
-      .apply(AttemptsValidationMiddleware)
-      .exclude('auth/me')
-      .forRoutes(AuthController);
-  }
-}
+export class AppModule {}

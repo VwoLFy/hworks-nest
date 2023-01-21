@@ -5,14 +5,7 @@ import { AppJwtService } from './jwt-service';
 import { SecurityService } from '../../security/application/security-service';
 import { CreateUserDto } from '../../users/application/dto/CreateUserDto';
 import { PasswordRecovery, PasswordRecoveryDocument } from '../domain/password-recovery.schema';
-import {
-  AccountData,
-  AccountDataDocument,
-  EmailConfirmation,
-  EmailConfirmationDocument,
-  User,
-  UserDocument,
-} from '../../users/domain/user.schema';
+import { AccountData, EmailConfirmation, User, UserDocument } from '../../users/domain/user.schema';
 import { CredentialsDto } from './dto/CredentialsDto';
 import { NewPasswordRecoveryDto } from './dto/NewPasswordRecoveryDto';
 import { PasswordRecoveryRepository } from '../infrastructure/password-recovery-repository';
@@ -29,10 +22,6 @@ export class AuthService {
     protected passwordRepository: PasswordRecoveryRepository,
     protected securityService: SecurityService,
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
-    @InjectModel(AccountData.name)
-    private AccountDataModel: Model<AccountDataDocument>,
-    @InjectModel(EmailConfirmation.name)
-    private EmailConfirmationModel: Model<EmailConfirmationDocument>,
     @InjectModel(PasswordRecovery.name) private PasswordRecoveryModel: Model<PasswordRecoveryDocument>,
   ) {}
 
@@ -51,18 +40,9 @@ export class AuthService {
     const { login, password, email } = dto;
     const passwordHash = await this.getPasswordHash(password);
 
-    const accountData = new this.AccountDataModel({
-      login,
-      passwordHash,
-      email,
-    });
-    const emailConfirmation = new this.EmailConfirmationModel({
-      isConfirmed: false,
-    });
-    const user = new this.UserModel({
-      accountData,
-      emailConfirmation,
-    });
+    const accountData = new AccountData(login, passwordHash, email);
+    const emailConfirmation = new EmailConfirmation(false);
+    const user = new this.UserModel({ accountData, emailConfirmation });
 
     try {
       await this.emailManager.sendEmailConfirmationMessage(email, user.emailConfirmation.confirmationCode);

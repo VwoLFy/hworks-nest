@@ -20,18 +20,18 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { CommentsService } from '../../comments/application/comments-service';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
-import { AuthGuard } from '../../auth.guard';
+import { AuthGuard } from '../../main/auth.guard';
 import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
 import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
+import { UserId } from '../../main/Decorators/user.decorator';
+import { GetUserIdGuard } from '../../main/getUserId.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -43,17 +43,14 @@ export class PostsController {
   ) {}
 
   @Get()
-  async getPosts(
-    @Query(findPostsQueryPipe) query: FindPostsQueryModel,
-    @Req() req: Request,
-  ): Promise<PostsViewModelPage> {
-    const userId = req.userId ? req.userId : null;
+  @UseGuards(GetUserIdGuard)
+  async getPosts(@Query(findPostsQueryPipe) query: FindPostsQueryModel, @UserId() userId): Promise<PostsViewModelPage> {
     return await this.postsQueryRepo.findPosts(query, userId);
   }
 
   @Get(':id')
-  async getPost(@Param('id', paramForMongoDBPipe) postId, @Req() req: Request): Promise<PostViewModel> {
-    const userId = req.userId ? req.userId : null;
+  @UseGuards(GetUserIdGuard)
+  async getPost(@Param('id', paramForMongoDBPipe) postId, @UserId() userId): Promise<PostViewModel> {
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
     if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
@@ -62,8 +59,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async createPost(@Body() body: CreatePostDto, @Req() req: Request): Promise<PostViewModel> {
-    const userId = req.userId ? req.userId : null;
+  async createPost(@Body() body: CreatePostDto, @UserId() userId): Promise<PostViewModel> {
     const createdPostId = await this.postsService.createPost(body);
     if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
 
@@ -81,12 +77,12 @@ export class PostsController {
   }
 
   @Get(':id/comments')
+  @UseGuards(GetUserIdGuard)
   async getCommentsForPost(
     @Param('id', paramForMongoDBPipe) postId,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
-    @Req() req: Request,
+    @UserId() userId,
   ): Promise<CommentViewModelPage> {
-    const userId = req.userId ? req.userId : null;
     const foundComments = await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
     if (!foundComments) throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
 
@@ -98,9 +94,8 @@ export class PostsController {
   async createCommentForPost(
     @Param('id', paramForMongoDBPipe) postId,
     @Body() body: CommentInputModel,
-    @Req() req: Request,
+    @UserId() userId,
   ): Promise<CommentViewModel> {
-    const userId = req.userId;
     const createdCommentId = await this.commentsService.createComment({ postId, content: body.content, userId });
     if (!createdCommentId) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
@@ -111,10 +106,10 @@ export class PostsController {
   @Put(':id/like-status')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async likePost(@Param('id', paramForMongoDBPipe) postId, @Body() body: PostLikeInputModel, @Req() req: Request) {
+  async likePost(@Param('id', paramForMongoDBPipe) postId, @Body() body: PostLikeInputModel, @UserId() userId) {
     const result = await this.postsService.likePost({
       postId,
-      userId: req.userId,
+      userId,
       likeStatus: body.likeStatus,
     });
     if (!result) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);

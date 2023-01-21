@@ -22,15 +22,15 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
 import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { findPostsOfBlogQueryPipe } from './models/FindPostsOfBlogQueryPipe';
-import { AuthGuard } from '../../auth.guard';
-import { Request } from 'express';
+import { AuthGuard } from '../../main/auth.guard';
+import { UserId } from '../../main/Decorators/user.decorator';
+import { GetUserIdGuard } from '../../main/getUserId.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -69,12 +69,12 @@ export class BlogsController {
   }
 
   @Get(':id/posts')
+  @UseGuards(GetUserIdGuard)
   async getPostsForBlog(
     @Param('id', paramForMongoDBPipe) blogId: string,
     @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
-    @Req() req: Request,
+    @UserId() userId,
   ): Promise<PostsViewModelPage> {
-    const userId = req.userId ? req.userId : null;
     const foundPost = await this.postsQueryRepo.findPostsByBlogId(blogId, userId, query);
     if (!foundPost) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
 
@@ -86,9 +86,8 @@ export class BlogsController {
   async createPostForBlog(
     @Param('id', paramForMongoDBPipe) blogId: string,
     @Body() body: BlogPostInputModel,
-    @Req() req: Request,
+    @UserId() userId,
   ): Promise<PostViewModel> {
-    const userId = req.userId ? req.userId : null;
     const createdPostId = await this.postsService.createPost({
       ...body,
       blogId,

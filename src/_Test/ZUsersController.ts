@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { ZUsersService } from './z-users.service';
 import { ZUser } from './ZUserSchema';
 
-@Controller('Zusers')
+@Controller('Test')
 export class ZUsersController {
   constructor(protected zUsersService: ZUsersService) {}
 

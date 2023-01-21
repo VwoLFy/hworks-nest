@@ -24,7 +24,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AuthGuard } from '../../auth.guard';
+import { AuthGuard } from '../../main/auth.guard';
+import { UserId } from '../../main/Decorators/user.decorator';
+import { AttemptsGuard } from '../../main/attempts.guard';
+import { RefreshTokenGuard } from '../../main/refreshToken.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +38,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @UseGuards(AttemptsGuard)
   @HttpCode(200)
   async loginUser(
     @Body() body: CredentialsDto,
@@ -42,7 +46,6 @@ export class AuthController {
     @Headers('user-agent') title,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
-    console.log(ip);
     title = title || 'unknown';
     const userId = await this.authService.checkCredentials(body);
     if (!userId) throw new UnauthorizedException();
@@ -53,12 +56,14 @@ export class AuthController {
   }
 
   @Post('password-recovery')
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async passwordRecovery(@Body() body: PasswordRecoveryInputModel) {
     await this.authService.passwordRecoverySendEmail(body.email);
   }
 
   @Post('new-password')
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async newPassword(@Body() body: NewPasswordRecoveryDto) {
     const isChangedPassword = await this.authService.changePassword(body);
@@ -66,6 +71,8 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @UseGuards(RefreshTokenGuard)
+  @UseGuards(AttemptsGuard)
   @HttpCode(200)
   async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LoginSuccessViewModel> {
     const title = req.headers['user-agent'] || 'unknown';
@@ -77,6 +84,7 @@ export class AuthController {
   }
 
   @Post('registration')
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registration(@Body() body: CreateUserDto) {
     const isRegistered = await this.authService.createUser(body);
@@ -84,6 +92,7 @@ export class AuthController {
   }
 
   @Post('registration-confirmation')
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registrationConfirmation(@Body() body: RegistrationConfirmationCodeModel) {
     const isConfirm = await this.authService.confirmEmail(body.code);
@@ -91,6 +100,7 @@ export class AuthController {
   }
 
   @Post('registration-email-resending')
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registrationEmailResending(@Body() body: RegistrationEmailResendingModel) {
     const isResendEmail = await this.authService.registrationResendEmail(body.email);
@@ -98,6 +108,8 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(RefreshTokenGuard)
+  @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     await this.jwtService.deleteRefreshToken(req.refreshTokenData);
@@ -106,8 +118,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async getMyInfo(@Req() req: Request): Promise<MeViewModel> {
-    const userId = req.userId;
+  async getMyInfo(@UserId() userId): Promise<MeViewModel> {
     const userData = await this.usersQueryRepo.findUserById(userId);
     if (!userData) throw new UnauthorizedException();
     return {
