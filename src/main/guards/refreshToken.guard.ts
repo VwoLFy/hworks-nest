@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AppJwtService, RefreshTokenDataType } from '../auth/application/jwt-service';
+import { AppJwtService, RefreshTokenDataType } from '../../auth/application/jwt-service';
 import { Request } from 'express';
 
 @Injectable()

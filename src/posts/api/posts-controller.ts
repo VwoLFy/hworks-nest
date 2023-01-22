@@ -26,12 +26,12 @@ import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { CommentsService } from '../../comments/application/comments-service';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
-import { AuthGuard } from '../../main/auth.guard';
-import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
+import { AuthGuard } from '../../main/guards/auth.guard';
+import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
 import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
-import { UserId } from '../../main/Decorators/user.decorator';
-import { GetUserIdGuard } from '../../main/getUserId.guard';
+import { UserId } from '../../main/decorators/user.decorator';
+import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -50,7 +50,7 @@ export class PostsController {
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getPost(@Param('id', paramForMongoDBPipe) postId, @UserId() userId): Promise<PostViewModel> {
+  async getPost(@Param('id', checkObjectIdPipe) postId, @UserId() userId): Promise<PostViewModel> {
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
     if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
@@ -69,7 +69,7 @@ export class PostsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updatePost(@Param('id', paramForMongoDBPipe) postId, @Body() body: UpdatePostDto) {
+  async updatePost(@Param('id', checkObjectIdPipe) postId, @Body() body: UpdatePostDto) {
     const isUpdatedPost = await this.postsService.updatePost(postId, body);
     if (!isUpdatedPost) {
       throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
@@ -79,7 +79,7 @@ export class PostsController {
   @Get(':id/comments')
   @UseGuards(GetUserIdGuard)
   async getCommentsForPost(
-    @Param('id', paramForMongoDBPipe) postId,
+    @Param('id', checkObjectIdPipe) postId,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId,
   ): Promise<CommentViewModelPage> {
@@ -92,7 +92,7 @@ export class PostsController {
   @Post(':id/comments')
   @UseGuards(AuthGuard)
   async createCommentForPost(
-    @Param('id', paramForMongoDBPipe) postId,
+    @Param('id', checkObjectIdPipe) postId,
     @Body() body: CommentInputModel,
     @UserId() userId,
   ): Promise<CommentViewModel> {
@@ -106,7 +106,7 @@ export class PostsController {
   @Put(':id/like-status')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async likePost(@Param('id', paramForMongoDBPipe) postId, @Body() body: PostLikeInputModel, @UserId() userId) {
+  async likePost(@Param('id', checkObjectIdPipe) postId, @Body() body: PostLikeInputModel, @UserId() userId) {
     const result = await this.postsService.likePost({
       postId,
       userId,
@@ -118,7 +118,7 @@ export class PostsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deletePost(@Param('id', paramForMongoDBPipe) postId) {
+  async deletePost(@Param('id', checkObjectIdPipe) postId) {
     const isDeletedPost = await this.postsService.deletePost(postId);
     if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }

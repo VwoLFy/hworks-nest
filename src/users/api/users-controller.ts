@@ -7,8 +7,8 @@ import { HTTP_Status } from '../../main/types/enums';
 import { CreateUserDto } from '../application/dto/CreateUserDto';
 import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { findUsersQueryPipe } from './models/FindUsersQueryPipe';
-import { AuthGuard } from '../../main/auth.guard';
-import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
+import { AuthGuard } from '../../main/guards/auth.guard';
+import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 
 @Controller('users')
 export class UsersController {
@@ -31,7 +31,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteUser(@Param('id', paramForMongoDBPipe) userId) {
+  async deleteUser(@Param('id', checkObjectIdPipe) userId) {
     const isDeletedUser = await this.usersService.deleteUser(userId);
     if (!isDeletedUser) throw new HttpException('user not found', HTTP_Status.NOT_FOUND_404);
   }

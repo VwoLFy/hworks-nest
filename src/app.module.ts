@@ -40,10 +40,10 @@ import { SecurityQueryRepo } from './security/infrastructure/security-queryRepo'
 import { SecurityController } from './security/api/security-controller';
 import { Session, SessionSchema } from './security/domain/session.schema';
 import { JwtService } from '@nestjs/jwt';
-import { IsBlogExistConstraint } from './main/Decorators/IsBlogExistDecorator';
-import { IsFreeLoginOrEmailConstraint } from './main/Decorators/IsFreeLoginOrEmailDecorator';
-import { IsConfirmCodeValidConstraint } from './main/Decorators/IsConfirmCodeValidDecorator';
-import { IsEmailValidForConfirmConstraint } from './main/Decorators/IsEmailValidForConfirmDecorator';
+import { IsBlogExistConstraint } from './main/decorators/IsBlogExistDecorator';
+import { IsFreeLoginOrEmailConstraint } from './main/decorators/IsFreeLoginOrEmailDecorator';
+import { IsConfirmCodeValidConstraint } from './main/decorators/IsConfirmCodeValidDecorator';
+import { IsEmailValidForConfirmConstraint } from './main/decorators/IsEmailValidForConfirmDecorator';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { settings } from './main/settings';

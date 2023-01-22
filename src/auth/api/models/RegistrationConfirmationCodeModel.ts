@@ -1,4 +1,4 @@
-import { IsConfirmCodeValid } from '../../../main/Decorators/IsConfirmCodeValidDecorator';
+import { IsConfirmCodeValid } from '../../../main/decorators/IsConfirmCodeValidDecorator';
 
 export class RegistrationConfirmationCodeModel {
   @IsConfirmCodeValid()

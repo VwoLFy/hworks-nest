@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AppJwtService } from '../auth/application/jwt-service';
+import { AppJwtService } from '../../auth/application/jwt-service';
 import { Request } from 'express';
 
 @Injectable()

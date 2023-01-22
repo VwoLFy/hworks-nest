@@ -25,12 +25,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BlogsViewModelPage } from './models/BlogsViewModelPage';
-import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
+import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { findPostsOfBlogQueryPipe } from './models/FindPostsOfBlogQueryPipe';
-import { AuthGuard } from '../../main/auth.guard';
-import { UserId } from '../../main/Decorators/user.decorator';
-import { GetUserIdGuard } from '../../main/getUserId.guard';
+import { AuthGuard } from '../../main/guards/auth.guard';
+import { UserId } from '../../main/decorators/user.decorator';
+import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -47,7 +47,7 @@ export class BlogsController {
   }
 
   @Get(':id')
-  async getBlog(@Param('id', paramForMongoDBPipe) blogId: string): Promise<BlogViewModel> {
+  async getBlog(@Param('id', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
     const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
     return blog;
@@ -63,7 +63,7 @@ export class BlogsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updateBlog(@Param('id', paramForMongoDBPipe) blogId: string, @Body() body: UpdateBlogDto) {
+  async updateBlog(@Param('id', checkObjectIdPipe) blogId: string, @Body() body: UpdateBlogDto) {
     const isUpdatedBlog = await this.blogsService.updateBlog(blogId, body);
     if (!isUpdatedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }
@@ -71,7 +71,7 @@ export class BlogsController {
   @Get(':id/posts')
   @UseGuards(GetUserIdGuard)
   async getPostsForBlog(
-    @Param('id', paramForMongoDBPipe) blogId: string,
+    @Param('id', checkObjectIdPipe) blogId: string,
     @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
     @UserId() userId,
   ): Promise<PostsViewModelPage> {
@@ -84,7 +84,7 @@ export class BlogsController {
   @Post(':id/posts')
   @UseGuards(AuthGuard)
   async createPostForBlog(
-    @Param('id', paramForMongoDBPipe) blogId: string,
+    @Param('id', checkObjectIdPipe) blogId: string,
     @Body() body: BlogPostInputModel,
     @UserId() userId,
   ): Promise<PostViewModel> {
@@ -100,7 +100,7 @@ export class BlogsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteBlog(@Param('id', paramForMongoDBPipe) blogId: string) {
+  async deleteBlog(@Param('id', checkObjectIdPipe) blogId: string) {
     const isDeletedBlog = await this.blogsService.deleteBlog(blogId);
     if (!isDeletedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
   }

@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { RefreshTokenGuard } from '../../main/refreshToken.guard';
+import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
 
 @Controller('security/devices')
 export class SecurityController {

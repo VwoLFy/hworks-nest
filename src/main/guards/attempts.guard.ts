@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { AttemptsDataDto } from '../auth/application/dto/AttemptsDataDto';
-import { HTTP_Status } from './types/enums';
-import { AttemptsService } from '../auth/application/attempts-service';
+import { AttemptsDataDto } from '../../auth/application/dto/AttemptsDataDto';
+import { HTTP_Status } from '../types/enums';
+import { AttemptsService } from '../../auth/application/attempts-service';
 
 @Injectable()
 export class AttemptsGuard implements CanActivate {

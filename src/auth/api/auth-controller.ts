@@ -24,10 +24,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AuthGuard } from '../../main/auth.guard';
-import { UserId } from '../../main/Decorators/user.decorator';
-import { AttemptsGuard } from '../../main/attempts.guard';
-import { RefreshTokenGuard } from '../../main/refreshToken.guard';
+import { AuthGuard } from '../../main/guards/auth.guard';
+import { UserId } from '../../main/decorators/user.decorator';
+import { AttemptsGuard } from '../../main/guards/attempts.guard';
+import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
 
 @Controller('auth')
 export class AuthController {

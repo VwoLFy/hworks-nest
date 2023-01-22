@@ -15,11 +15,11 @@ import {
 } from '@nestjs/common';
 import { CommentsService } from '../application/comments-service';
 import { CommentInputModel } from './models/CommentInputModel';
-import { paramForMongoDBPipe } from '../../main/paramForMongoDBPipe';
+import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { CommentLikeInputModel } from './models/CommentLikeInputModel';
-import { AuthGuard } from '../../main/auth.guard';
-import { UserId } from '../../main/Decorators/user.decorator';
-import { GetUserIdGuard } from '../../main/getUserId.guard';
+import { AuthGuard } from '../../main/guards/auth.guard';
+import { UserId } from '../../main/decorators/user.decorator';
+import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
 
 @Controller('comments')
 export class CommentsController {
@@ -27,7 +27,7 @@ export class CommentsController {
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getComment(@Param('id', paramForMongoDBPipe) commentId, @UserId() userId): Promise<CommentViewModel> {
+  async getComment(@Param('id', checkObjectIdPipe) commentId, @UserId() userId): Promise<CommentViewModel> {
     const foundComment = await this.commentsQueryRepo.findCommentById(commentId, userId);
     if (!foundComment) throw new HttpException('comment not found', HTTP_Status.NOT_FOUND_404);
 
@@ -37,7 +37,7 @@ export class CommentsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updateComment(@Param('id', paramForMongoDBPipe) commentId, @Body() body: CommentInputModel, @UserId() userId) {
+  async updateComment(@Param('id', checkObjectIdPipe) commentId, @Body() body: CommentInputModel, @UserId() userId) {
     const updateStatus = await this.commentsService.updateComment({
       commentId,
       content: body.content,
@@ -49,11 +49,7 @@ export class CommentsController {
   @Put(':id/like-status')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async likeComment(
-    @Param('id', paramForMongoDBPipe) commentId,
-    @Body() body: CommentLikeInputModel,
-    @UserId() userId,
-  ) {
+  async likeComment(@Param('id', checkObjectIdPipe) commentId, @Body() body: CommentLikeInputModel, @UserId() userId) {
     const result = await this.commentsService.likeComment({
       commentId,
       userId,
@@ -65,7 +61,7 @@ export class CommentsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteComment(@Param('id', paramForMongoDBPipe) commentId, @UserId() userId) {
+  async deleteComment(@Param('id', checkObjectIdPipe) commentId, @UserId() userId) {
     const deleteStatus = await this.commentsService.deleteComment(commentId, userId);
     if (deleteStatus !== 204) throw new HttpException('Error', deleteStatus);
   }

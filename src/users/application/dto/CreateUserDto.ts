@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsString, Length, Matches } from 'class-validator';
-import { IsFreeLoginOrEmail } from '../../../main/Decorators/IsFreeLoginOrEmailDecorator';
+import { IsFreeLoginOrEmail } from '../../../main/decorators/IsFreeLoginOrEmailDecorator';
 
 export class CreateUserDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
