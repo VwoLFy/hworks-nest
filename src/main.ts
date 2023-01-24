@@ -5,8 +5,7 @@ import { HttpExceptionFilter } from './exception.filter';
 import { HTTP_Status } from './main/types/enums';
 import cookieParser from 'cookie-parser';
 import { useContainer } from 'class-validator';
-
-const PORT = process.env.PORT || 5000;
+import { ApiConfigService } from './main/configuration/api.config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +13,7 @@ async function bootstrap() {
 
   app.enableCors();
   app.use(cookieParser());
+
   app.useGlobalPipes(
     new ValidationPipe({
       stopAtFirstError: true,
@@ -34,8 +34,11 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(PORT, () => {
-    console.log(`Server listening ${PORT}`);
+  const apiConfigService = app.get(ApiConfigService);
+  const port = apiConfigService.PORT;
+
+  await app.listen(port, () => {
+    console.log(`Server listening ${port}`);
   });
 }
 bootstrap();

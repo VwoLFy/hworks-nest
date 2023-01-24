@@ -24,7 +24,6 @@ import { UsersRepository } from './users/infrastructure/users-repository';
 import { UsersService } from './users/application/user-service';
 import { UsersController } from './users/api/users-controller';
 import { DeleteAllController } from './delete_all/delete_all.controller';
-import { ConfigModule } from '@nestjs/config';
 import { AttemptsData, AttemptsDataSchema } from './auth/domain/attempts.schema';
 import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password-recovery.schema';
 import { AttemptsService } from './auth/application/attempts-service';
@@ -46,15 +45,41 @@ import { IsConfirmCodeValidConstraint } from './main/decorators/IsConfirmCodeVal
 import { IsEmailValidForConfirmConstraint } from './main/decorators/IsEmailValidForConfirmDecorator';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { settings } from './main/settings';
 import { EmailAdapter } from './auth/infrastructure/email-adapter';
-
-const dbName = 'Homework';
+import { ApiConfigService } from './main/configuration/api.config.service';
+import { ApiConfigModule } from './main/configuration/api.config.module';
+import { ConfigModule } from '@nestjs/config';
+import { configuration } from './main/configuration/configuration';
+import Joi from 'joi';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGOURI, { dbName }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+
+      validationSchema: Joi.object({
+        //NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development'),
+        PORT: Joi.number(),
+
+        JWT_SECRET: Joi.string().required(),
+        JWT_SECRET_FOR_REFRESHTOKEN: Joi.string().required(),
+
+        EMAIL_PASSWORD: Joi.string().required(),
+        EMAIL: Joi.string().email().required(),
+        EMAIL_FROM: Joi.string().required(),
+        MY_EMAIL: Joi.string().email().required(),
+      }),
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ApiConfigModule],
+      inject: [ApiConfigService],
+      useFactory: (apiConfigService: ApiConfigService) => {
+        const uri = apiConfigService.MONGO_URI;
+        const dbName = 'Homework';
+        return { uri, dbName };
+      },
+    }),
     MongooseModule.forFeature([
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
@@ -67,27 +92,31 @@ const dbName = 'Homework';
       { name: Session.name, schema: SessionSchema },
     ]),
     MailerModule.forRootAsync({
-      useFactory: () => ({
-        transport: {
-          host: 'smtp.gmail.com',
-          port: 465,
-          secure: true,
-          auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASSWORD,
+      imports: [ApiConfigModule],
+      inject: [ApiConfigService],
+      useFactory: (apiConfigService: ApiConfigService) => {
+        const user = apiConfigService.EMAIL;
+        const pass = apiConfigService.EMAIL_PASSWORD;
+        const sender = apiConfigService.EMAIL_FROM;
+        return {
+          transport: {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: { user, pass },
           },
-        },
-        defaults: {
-          from: `${settings.EMAIL_FROM} <${settings.E_MAIL}>`,
-        },
-        template: {
-          dir: __dirname + '/auth/application/templates/',
-          adapter: new HandlebarsAdapter(),
-          options: {
-            strict: true,
+          defaults: {
+            from: `${sender} <${user}>`,
           },
-        },
-      }),
+          template: {
+            dir: __dirname + '/auth/application/templates/',
+            adapter: new HandlebarsAdapter(),
+            options: {
+              strict: true,
+            },
+          },
+        };
+      },
     }),
   ],
   controllers: [
@@ -128,6 +157,7 @@ const dbName = 'Homework';
     SecurityRepository,
     SecurityQueryRepo,
     JwtService,
+    ApiConfigService,
   ],
 })
 export class AppModule {}

@@ -47,11 +47,17 @@ describe('AppController (e2e)', () => {
     app.useGlobalPipes(
       new ValidationPipe({
         stopAtFirstError: true,
+        whitelist: true,
         exceptionFactory: (errors) => {
-          const err = errors.map((e) => ({
-            field: e.property,
-            message: Object.values(e.constraints).toString(),
-          }));
+          const err = [];
+          errors.forEach((e) => {
+            for (const eKey in e.constraints) {
+              err.push({
+                field: e.property,
+                message: e.constraints[eKey],
+              });
+            }
+          });
           throw new HttpException(err, HTTP_Status.BAD_REQUEST_400);
         },
       }),

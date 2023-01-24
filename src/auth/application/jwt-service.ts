@@ -1,7 +1,7 @@
-import { settings } from '../../main/settings';
 import { SecurityService } from '../../security/application/security-service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ApiConfigService } from '../../main/configuration/api.config.service';
 
 type AccessTokenDataType = { userId: string };
 export type RefreshTokenDataType = {
@@ -17,15 +17,21 @@ type TokensType = {
 
 @Injectable()
 export class AppJwtService {
-  constructor(protected securityService: SecurityService, private jwtService: JwtService) {}
+  constructor(
+    protected securityService: SecurityService,
+    private jwtService: JwtService,
+    private apiConfigService: ApiConfigService,
+  ) {}
 
   async createJWT(userId: string, deviceId: string | null): Promise<TokensType> {
-    const accessToken = this.jwtService.sign({ userId }, { secret: settings.JWT_SECRET, expiresIn: '10m' });
+    const secret = this.apiConfigService.JWT_SECRET;
+    const secretRT = this.apiConfigService.JWT_SECRET_FOR_REFRESHTOKEN;
+
+    const accessToken = this.jwtService.sign({ userId }, { secret, expiresIn: '10m' });
+
     deviceId = deviceId ? deviceId : await this.securityService.newDeviceId();
-    const refreshToken = this.jwtService.sign(
-      { userId, deviceId },
-      { secret: settings.JWT_SECRET_FOR_REFRESHTOKEN, expiresIn: '1d' },
-    );
+    const refreshToken = this.jwtService.sign({ userId, deviceId }, { secret: secretRT, expiresIn: '1d' });
+
     return { accessToken, refreshToken };
   }
 
@@ -43,9 +49,9 @@ export class AppJwtService {
 
   async checkAndGetRefreshTokenData(refreshToken: string): Promise<RefreshTokenDataType | null> {
     try {
-      const refreshTokenData = this.jwtService.verify(refreshToken, {
-        secret: settings.JWT_SECRET_FOR_REFRESHTOKEN,
-      }) as RefreshTokenDataType;
+      const secretRT = this.apiConfigService.JWT_SECRET_FOR_REFRESHTOKEN;
+      const refreshTokenData = this.jwtService.verify(refreshToken, { secret: secretRT }) as RefreshTokenDataType;
+
       const isActiveRefreshToken = await this.securityService.isValidSession({ ...refreshTokenData });
       return isActiveRefreshToken ? refreshTokenData : null;
     } catch (e) {
@@ -59,7 +65,9 @@ export class AppJwtService {
 
   async getUserIdByAccessToken(accessToken: string): Promise<string | null> {
     try {
-      const result = this.jwtService.verify(accessToken, { secret: settings.JWT_SECRET }) as AccessTokenDataType;
+      const secret = this.apiConfigService.JWT_SECRET;
+
+      const result = this.jwtService.verify(accessToken, { secret }) as AccessTokenDataType;
       return result.userId;
     } catch (e) {
       return null;
