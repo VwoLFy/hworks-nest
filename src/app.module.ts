@@ -30,7 +30,7 @@ import { AttemptsService } from './auth/application/attempts-service';
 import { AttemptsRepository } from './auth/infrastructure/attempts-repository';
 import { AuthService } from './auth/application/auth-service';
 import { EmailService } from './auth/application/email.service';
-import { AppJwtService } from './auth/application/jwt-service';
+import { ApiJwtService } from './auth/application/jwt-service';
 import { PasswordRecoveryRepository } from './auth/infrastructure/password-recovery-repository';
 import { AuthController } from './auth/api/auth-controller';
 import { SecurityService } from './security/application/security-service';
@@ -151,7 +151,7 @@ import Joi from 'joi';
     AuthService,
     EmailService,
     EmailAdapter,
-    AppJwtService,
+    ApiJwtService,
     PasswordRecoveryRepository,
     SecurityService,
     SecurityRepository,

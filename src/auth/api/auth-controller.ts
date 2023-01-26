@@ -1,5 +1,5 @@
 import { AuthService } from '../application/auth-service';
-import { AppJwtService } from '../application/jwt-service';
+import { ApiJwtService, RefreshTokenDataType } from '../application/jwt-service';
 import { UsersQueryRepo } from '../../users/infrastructure/users-queryRepo';
 import { CredentialsDto } from '../application/dto/CredentialsDto';
 import { LoginSuccessViewModel } from './models/LoginSuccessViewModel';
@@ -18,22 +18,22 @@ import {
   HttpCode,
   Ip,
   Post,
-  Req,
   Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthGuard } from '../../main/guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
 import { AttemptsGuard } from '../../main/guards/attempts.guard';
 import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
+import { Refreshtoken } from '../../main/decorators/refreshtoken.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     protected authService: AuthService,
-    protected jwtService: AppJwtService,
+    protected jwtService: ApiJwtService,
     protected usersQueryRepo: UsersQueryRepo,
   ) {}
 
@@ -42,8 +42,8 @@ export class AuthController {
   @HttpCode(200)
   async loginUser(
     @Body() body: CredentialsDto,
-    @Ip() ip,
-    @Headers('user-agent') title,
+    @Ip() ip: string,
+    @Headers('user-agent') title: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
     title = title || 'unknown';
@@ -74,10 +74,15 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @UseGuards(AttemptsGuard)
   @HttpCode(200)
-  async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LoginSuccessViewModel> {
-    const title = req.headers['user-agent'] || 'unknown';
+  async refreshToken(
+    @Refreshtoken() refreshTokenData: RefreshTokenDataType,
+    @Ip() ip: string,
+    @Headers('user-agent') title: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginSuccessViewModel> {
+    title = title || 'unknown';
 
-    const { accessToken, refreshToken } = await this.jwtService.updateTokens(req.refreshTokenData, req.ip, title);
+    const { accessToken, refreshToken } = await this.jwtService.updateTokens(refreshTokenData, ip, title);
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -111,14 +116,14 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    await this.jwtService.deleteRefreshToken(req.refreshTokenData);
+  async logout(@Refreshtoken() refreshTokenData: RefreshTokenDataType, @Res({ passthrough: true }) res: Response) {
+    await this.jwtService.deleteRefreshToken(refreshTokenData);
     res.clearCookie('refreshToken');
   }
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async getMyInfo(@UserId() userId): Promise<MeViewModel> {
+  async getMyInfo(@UserId() userId: string | null): Promise<MeViewModel> {
     const userData = await this.usersQueryRepo.findUserById(userId);
     if (!userData) throw new UnauthorizedException();
     return {

@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AppJwtService } from '../../auth/application/jwt-service';
+import { ApiJwtService } from '../../auth/application/jwt-service';
 import { Request } from 'express';
 
 @Injectable()
 export class GetUserIdGuard implements CanActivate {
-  constructor(protected jwtService: AppJwtService) {}
+  constructor(protected jwtService: ApiJwtService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req: Request = context.switchToHttp().getRequest();
     const authorization = req.headers.authorization;

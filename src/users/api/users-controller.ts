@@ -31,7 +31,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteUser(@Param('id', checkObjectIdPipe) userId) {
+  async deleteUser(@Param('id', checkObjectIdPipe) userId: string) {
     const isDeletedUser = await this.usersService.deleteUser(userId);
     if (!isDeletedUser) throw new HttpException('user not found', HTTP_Status.NOT_FOUND_404);
   }

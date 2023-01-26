@@ -27,7 +27,10 @@ export class CommentsController {
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getComment(@Param('id', checkObjectIdPipe) commentId, @UserId() userId): Promise<CommentViewModel> {
+  async getComment(
+    @Param('id', checkObjectIdPipe) commentId: string,
+    @UserId() userId: string | null,
+  ): Promise<CommentViewModel> {
     const foundComment = await this.commentsQueryRepo.findCommentById(commentId, userId);
     if (!foundComment) throw new HttpException('comment not found', HTTP_Status.NOT_FOUND_404);
 
@@ -37,7 +40,11 @@ export class CommentsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updateComment(@Param('id', checkObjectIdPipe) commentId, @Body() body: CommentInputModel, @UserId() userId) {
+  async updateComment(
+    @Param('id', checkObjectIdPipe) commentId: string,
+    @Body() body: CommentInputModel,
+    @UserId() userId: string | null,
+  ) {
     const updateStatus = await this.commentsService.updateComment({
       commentId,
       content: body.content,
@@ -49,7 +56,11 @@ export class CommentsController {
   @Put(':id/like-status')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async likeComment(@Param('id', checkObjectIdPipe) commentId, @Body() body: CommentLikeInputModel, @UserId() userId) {
+  async likeComment(
+    @Param('id', checkObjectIdPipe) commentId: string,
+    @Body() body: CommentLikeInputModel,
+    @UserId() userId: string | null,
+  ) {
     const result = await this.commentsService.likeComment({
       commentId,
       userId,
@@ -61,7 +72,7 @@ export class CommentsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deleteComment(@Param('id', checkObjectIdPipe) commentId, @UserId() userId) {
+  async deleteComment(@Param('id', checkObjectIdPipe) commentId: string, @UserId() userId: string | null) {
     const deleteStatus = await this.commentsService.deleteComment(commentId, userId);
     if (deleteStatus !== 204) throw new HttpException('Error', deleteStatus);
   }

@@ -8,12 +8,12 @@ import {
   HttpCode,
   HttpException,
   Param,
-  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
+import { Refreshtoken } from '../../main/decorators/refreshtoken.decorator';
+import { RefreshTokenDataType } from '../../auth/application/jwt-service';
 
 @Controller('security/devices')
 export class SecurityController {
@@ -21,8 +21,8 @@ export class SecurityController {
 
   @Get()
   @UseGuards(RefreshTokenGuard)
-  async getDevices(@Req() req: Request): Promise<DeviceViewModel[]> {
-    const foundActiveDevices = await this.securityQueryRepo.findUserSessions(req.refreshTokenData.userId);
+  async getDevices(@Refreshtoken() refreshTokenData: RefreshTokenDataType): Promise<DeviceViewModel[]> {
+    const foundActiveDevices = await this.securityQueryRepo.findUserSessions(refreshTokenData.userId);
     if (!foundActiveDevices) throw new UnauthorizedException();
     return foundActiveDevices;
   }
@@ -30,10 +30,10 @@ export class SecurityController {
   @Delete()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteDevices(@Req() req: Request) {
+  async deleteDevices(@Refreshtoken() refreshTokenData: RefreshTokenDataType) {
     const isDeletedSessions = await this.securityService.deleteSessionsOfUser(
-      req.refreshTokenData.userId,
-      req.refreshTokenData.deviceId,
+      refreshTokenData.userId,
+      refreshTokenData.deviceId,
     );
     if (!isDeletedSessions) throw new UnauthorizedException();
   }
@@ -41,8 +41,8 @@ export class SecurityController {
   @Delete(':id')
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteDevice(@Param('id') deviceId: string, @Req() req: Request) {
-    const result = await this.securityService.deleteSessionByDeviceId(req.refreshTokenData.userId, deviceId);
+  async deleteDevice(@Param('id') deviceId: string, @Refreshtoken() refreshTokenData: RefreshTokenDataType) {
+    const result = await this.securityService.deleteSessionByDeviceId(refreshTokenData.userId, deviceId);
     if (result !== 204) throw new HttpException('Error delete', result);
   }
 }

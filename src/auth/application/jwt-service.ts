@@ -16,7 +16,7 @@ type TokensType = {
 };
 
 @Injectable()
-export class AppJwtService {
+export class ApiJwtService {
   constructor(
     protected securityService: SecurityService,
     private jwtService: JwtService,

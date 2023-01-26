@@ -73,7 +73,7 @@ export class BlogsController {
   async getPostsForBlog(
     @Param('id', checkObjectIdPipe) blogId: string,
     @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
-    @UserId() userId,
+    @UserId() userId: string | null,
   ): Promise<PostsViewModelPage> {
     const foundPost = await this.postsQueryRepo.findPostsByBlogId(blogId, userId, query);
     if (!foundPost) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
@@ -86,7 +86,7 @@ export class BlogsController {
   async createPostForBlog(
     @Param('id', checkObjectIdPipe) blogId: string,
     @Body() body: BlogPostInputModel,
-    @UserId() userId,
+    @UserId() userId: string | null,
   ): Promise<PostViewModel> {
     const createdPostId = await this.postsService.createPost({
       ...body,

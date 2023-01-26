@@ -44,13 +44,19 @@ export class PostsController {
 
   @Get()
   @UseGuards(GetUserIdGuard)
-  async getPosts(@Query(findPostsQueryPipe) query: FindPostsQueryModel, @UserId() userId): Promise<PostsViewModelPage> {
+  async getPosts(
+    @Query(findPostsQueryPipe) query: FindPostsQueryModel,
+    @UserId() userId: string | null,
+  ): Promise<PostsViewModelPage> {
     return await this.postsQueryRepo.findPosts(query, userId);
   }
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getPost(@Param('id', checkObjectIdPipe) postId, @UserId() userId): Promise<PostViewModel> {
+  async getPost(
+    @Param('id', checkObjectIdPipe) postId: string,
+    @UserId() userId: string | null,
+  ): Promise<PostViewModel> {
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
     if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
@@ -59,7 +65,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async createPost(@Body() body: CreatePostDto, @UserId() userId): Promise<PostViewModel> {
+  async createPost(@Body() body: CreatePostDto, @UserId() userId: string | null): Promise<PostViewModel> {
     const createdPostId = await this.postsService.createPost(body);
     if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
 
@@ -69,7 +75,7 @@ export class PostsController {
   @Put(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async updatePost(@Param('id', checkObjectIdPipe) postId, @Body() body: UpdatePostDto) {
+  async updatePost(@Param('id', checkObjectIdPipe) postId: string, @Body() body: UpdatePostDto) {
     const isUpdatedPost = await this.postsService.updatePost(postId, body);
     if (!isUpdatedPost) {
       throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
@@ -79,9 +85,9 @@ export class PostsController {
   @Get(':id/comments')
   @UseGuards(GetUserIdGuard)
   async getCommentsForPost(
-    @Param('id', checkObjectIdPipe) postId,
+    @Param('id', checkObjectIdPipe) postId: string,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
-    @UserId() userId,
+    @UserId() userId: string | null,
   ): Promise<CommentViewModelPage> {
     const foundComments = await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
     if (!foundComments) throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
@@ -92,9 +98,9 @@ export class PostsController {
   @Post(':id/comments')
   @UseGuards(AuthGuard)
   async createCommentForPost(
-    @Param('id', checkObjectIdPipe) postId,
+    @Param('id', checkObjectIdPipe) postId: string,
     @Body() body: CommentInputModel,
-    @UserId() userId,
+    @UserId() userId: string | null,
   ): Promise<CommentViewModel> {
     const createdCommentId = await this.commentsService.createComment({ postId, content: body.content, userId });
     if (!createdCommentId) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
@@ -106,7 +112,11 @@ export class PostsController {
   @Put(':id/like-status')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async likePost(@Param('id', checkObjectIdPipe) postId, @Body() body: PostLikeInputModel, @UserId() userId) {
+  async likePost(
+    @Param('id', checkObjectIdPipe) postId: string,
+    @Body() body: PostLikeInputModel,
+    @UserId() userId: string | null,
+  ) {
     const result = await this.postsService.likePost({
       postId,
       userId,
@@ -118,7 +128,7 @@ export class PostsController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   @HttpCode(204)
-  async deletePost(@Param('id', checkObjectIdPipe) postId) {
+  async deletePost(@Param('id', checkObjectIdPipe) postId: string) {
     const isDeletedPost = await this.postsService.deletePost(postId);
     if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }

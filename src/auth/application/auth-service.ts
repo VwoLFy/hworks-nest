@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../users/infrastructure/users-repository';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from './email.service';
-import { AppJwtService } from './jwt-service';
+import { ApiJwtService } from './jwt-service';
 import { SecurityService } from '../../security/application/security-service';
 import { CreateUserDto } from '../../users/application/dto/CreateUserDto';
 import { PasswordRecovery, PasswordRecoveryDocument } from '../domain/password-recovery.schema';
@@ -16,7 +16,7 @@ import { Model } from 'mongoose';
 @Injectable()
 export class AuthService {
   constructor(
-    protected jwtService: AppJwtService,
+    protected jwtService: ApiJwtService,
     protected usersRepository: UsersRepository,
     protected emailManager: EmailService,
     protected passwordRepository: PasswordRecoveryRepository,
