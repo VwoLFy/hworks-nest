@@ -23,11 +23,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { AuthGuard } from '../../main/guards/auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
-import { AttemptsGuard } from '../../main/guards/attempts.guard';
+import { AttemptsGuard } from './guards/attempts.guard';
 import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
 import { Refreshtoken } from '../../main/decorators/refreshtoken.decorator';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { CheckLoginBodyFieldsGuard } from './guards/check-login-body-fields.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -38,18 +40,17 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @UseGuards(LocalAuthGuard)
+  @UseGuards(CheckLoginBodyFieldsGuard)
   @UseGuards(AttemptsGuard)
   @HttpCode(200)
   async loginUser(
     @Body() body: CredentialsDto,
     @Ip() ip: string,
-    @Headers('user-agent') title: string,
+    @Headers('user-agent') title = 'unknown',
     @Res({ passthrough: true }) res: Response,
+    @UserId() userId: string,
   ): Promise<LoginSuccessViewModel> {
-    title = title || 'unknown';
-    const userId = await this.authService.checkCredentials(body);
-    if (!userId) throw new UnauthorizedException();
-
     const { accessToken, refreshToken } = await this.authService.loginUser(userId, ip, title);
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -77,11 +78,9 @@ export class AuthController {
   async refreshToken(
     @Refreshtoken() refreshTokenData: RefreshTokenDataType,
     @Ip() ip: string,
-    @Headers('user-agent') title: string,
+    @Headers('user-agent') title = 'unknown',
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
-    title = title || 'unknown';
-
     const { accessToken, refreshToken } = await this.jwtService.updateTokens(refreshTokenData, ip, title);
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });

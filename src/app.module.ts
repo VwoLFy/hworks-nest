@@ -51,6 +51,8 @@ import { ApiConfigModule } from './main/configuration/api.config.module';
 import { ConfigModule } from '@nestjs/config';
 import { configuration } from './main/configuration/configuration';
 import Joi from 'joi';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './auth/api/strategies/local.strategy';
 
 @Module({
   imports: [
@@ -118,6 +120,7 @@ import Joi from 'joi';
         };
       },
     }),
+    PassportModule,
   ],
   controllers: [
     AppController,
@@ -130,6 +133,7 @@ import Joi from 'joi';
     SecurityController,
   ],
   providers: [
+    LocalStrategy,
     IsConfirmCodeValidConstraint,
     IsEmailValidForConfirmConstraint,
     IsBlogExistConstraint,

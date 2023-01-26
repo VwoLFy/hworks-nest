@@ -28,7 +28,7 @@ import { BlogsViewModelPage } from './models/BlogsViewModelPage';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { findPostsOfBlogQueryPipe } from './models/FindPostsOfBlogQueryPipe';
-import { AuthGuard } from '../../main/guards/auth.guard';
+import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
 

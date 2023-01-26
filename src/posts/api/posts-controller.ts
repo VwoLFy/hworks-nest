@@ -26,7 +26,7 @@ import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { CommentsService } from '../../comments/application/comments-service';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
-import { AuthGuard } from '../../main/guards/auth.guard';
+import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
 import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';

@@ -7,7 +7,7 @@ import { HTTP_Status } from '../../main/types/enums';
 import { CreateUserDto } from '../application/dto/CreateUserDto';
 import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { findUsersQueryPipe } from './models/FindUsersQueryPipe';
-import { AuthGuard } from '../../main/guards/auth.guard';
+import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 
 @Controller('users')
