@@ -1,7 +1,6 @@
 import { AuthService } from '../application/auth-service';
 import { ApiJwtService, RefreshTokenDataType } from '../application/jwt-service';
 import { UsersQueryRepo } from '../../users/infrastructure/users-queryRepo';
-import { CredentialsDto } from '../application/dto/CredentialsDto';
 import { LoginSuccessViewModel } from './models/LoginSuccessViewModel';
 import { PasswordRecoveryInputModel } from './models/PasswordRecoveryInputModel';
 import { NewPasswordRecoveryDto } from '../application/dto/NewPasswordRecoveryDto';
@@ -45,7 +44,6 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(200)
   async loginUser(
-    @Body() body: CredentialsDto,
     @Ip() ip: string,
     @Headers('user-agent') title = 'unknown',
     @Res({ passthrough: true }) res: Response,

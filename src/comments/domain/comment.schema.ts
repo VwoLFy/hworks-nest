@@ -4,12 +4,34 @@ import { ObjectId } from 'mongodb';
 import { CommentLikeDocument } from './commentLike.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+@Schema({ _id: false })
+export class CommentatorInfo {
+  @Prop({ required: true })
+  userId: string;
+
+  @Prop({ required: true, minlength: 3, maxlength: 30 })
+  userLogin: string;
+
+  constructor(userId: string, userLogin: string) {
+    this.userId = userId;
+    this.userLogin = userLogin;
+  }
+}
+
+const CommentatorInfoSchema = SchemaFactory.createForClass(CommentatorInfo);
+
 @Schema()
 export class Comment {
   _id: ObjectId;
 
   @Prop({ default: Date.now })
   createdAt: Date;
+
+  @Prop({ required: true, minlength: 20, maxlength: 300 })
+  content: string;
+
+  @Prop({ required: true, type: CommentatorInfoSchema })
+  commentatorInfo: CommentatorInfo;
 
   @Prop({
     _id: false,
@@ -23,15 +45,6 @@ export class Comment {
     likesCount: number;
     dislikesCount: number;
   };
-
-  @Prop({ required: true, minlength: 20, maxlength: 300 })
-  content: string;
-
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true, minlength: 3, maxlength: 30 })
-  userLogin: string;
 
   @Prop({ required: true })
   postId: string;

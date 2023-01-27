@@ -1224,8 +1224,10 @@ describe('AppController (e2e)', () => {
       expect(comment).toEqual({
         id: expect.any(String),
         content: 'valid comment111111111',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 0,
@@ -1246,8 +1248,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment.id,
               content: comment.content,
-              userId: comment.userId,
-              userLogin: comment.userLogin,
+              commentatorInfo: {
+                userId: comment.commentatorInfo.userId,
+                userLogin: comment.commentatorInfo.userLogin,
+              },
               createdAt: comment.createdAt,
               likesInfo: {
                 likesCount: 0,
@@ -1264,8 +1268,10 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200, {
           id: comment.id,
           content: comment.content,
-          userId: comment.userId,
-          userLogin: comment.userLogin,
+          commentatorInfo: {
+            userId: comment.commentatorInfo.userId,
+            userLogin: comment.commentatorInfo.userLogin,
+          },
           createdAt: comment.createdAt,
           likesInfo: {
             likesCount: 0,
@@ -2006,8 +2012,10 @@ describe('AppController (e2e)', () => {
       expect(comment).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 0,
@@ -2052,8 +2060,10 @@ describe('AppController (e2e)', () => {
       expect(likedComment.body).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 1,
@@ -2068,8 +2078,10 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200, {
           id: comment.id,
           content: comment.content,
-          userId: user.id,
-          userLogin: user.login,
+          commentatorInfo: {
+            userId: user.id,
+            userLogin: user.login,
+          },
           createdAt: comment.createdAt,
           likesInfo: {
             likesCount: 1,
@@ -2102,8 +2114,10 @@ describe('AppController (e2e)', () => {
       expect(likedComment.body).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 3,
@@ -2118,8 +2132,10 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200, {
           id: comment.id,
           content: comment.content,
-          userId: user.id,
-          userLogin: user.login,
+          commentatorInfo: {
+            userId: user.id,
+            userLogin: user.login,
+          },
           createdAt: comment.createdAt,
           likesInfo: {
             likesCount: 3,
@@ -2152,8 +2168,10 @@ describe('AppController (e2e)', () => {
       expect(likedComment.body).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 2,
@@ -2181,8 +2199,10 @@ describe('AppController (e2e)', () => {
       expect(likedComment.body).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 1,
@@ -2220,8 +2240,10 @@ describe('AppController (e2e)', () => {
       expect(likedComment.body).toEqual({
         id: expect.any(String),
         content: 'valid comment_comment',
-        userId: user.id,
-        userLogin: user.login,
+        commentatorInfo: {
+          userId: user.id,
+          userLogin: user.login,
+        },
         createdAt: expect.any(String),
         likesInfo: {
           likesCount: 0,
@@ -2370,8 +2392,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment6.id,
               content: comment6.content,
-              userId: comment6.userId,
-              userLogin: comment6.userLogin,
+              commentatorInfo: {
+                userId: comment6.commentatorInfo.userId,
+                userLogin: comment6.commentatorInfo.userLogin,
+              },
               createdAt: comment6.createdAt,
               likesInfo: {
                 likesCount: 1,
@@ -2382,8 +2406,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment5.id,
               content: comment5.content,
-              userId: comment5.userId,
-              userLogin: comment5.userLogin,
+              commentatorInfo: {
+                userId: comment5.commentatorInfo.userId,
+                userLogin: comment5.commentatorInfo.userLogin,
+              },
               createdAt: comment5.createdAt,
               likesInfo: {
                 likesCount: 1,
@@ -2394,8 +2420,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment4.id,
               content: comment4.content,
-              userId: comment4.userId,
-              userLogin: comment4.userLogin,
+              commentatorInfo: {
+                userId: comment4.commentatorInfo.userId,
+                userLogin: comment4.commentatorInfo.userLogin,
+              },
               createdAt: comment4.createdAt,
               likesInfo: {
                 likesCount: 4,
@@ -2406,8 +2434,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment3.id,
               content: comment3.content,
-              userId: comment3.userId,
-              userLogin: comment3.userLogin,
+              commentatorInfo: {
+                userId: comment3.commentatorInfo.userId,
+                userLogin: comment3.commentatorInfo.userLogin,
+              },
               createdAt: comment3.createdAt,
               likesInfo: {
                 likesCount: 0,
@@ -2418,8 +2448,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment2.id,
               content: comment2.content,
-              userId: comment2.userId,
-              userLogin: comment2.userLogin,
+              commentatorInfo: {
+                userId: comment2.commentatorInfo.userId,
+                userLogin: comment2.commentatorInfo.userLogin,
+              },
               createdAt: comment2.createdAt,
               likesInfo: {
                 likesCount: 2,
@@ -2430,8 +2462,10 @@ describe('AppController (e2e)', () => {
             {
               id: comment.id,
               content: comment.content,
-              userId: comment.userId,
-              userLogin: comment.userLogin,
+              commentatorInfo: {
+                userId: comment.commentatorInfo.userId,
+                userLogin: comment.commentatorInfo.userLogin,
+              },
               createdAt: comment.createdAt,
               likesInfo: {
                 likesCount: 2,

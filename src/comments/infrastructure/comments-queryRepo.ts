@@ -67,8 +67,7 @@ export class CommentsQueryRepo {
     return {
       id: comment._id.toString(),
       content: comment.content,
-      userId: comment.userId,
-      userLogin: comment.userLogin,
+      commentatorInfo: comment.commentatorInfo,
       createdAt: comment.createdAt.toISOString(),
       likesInfo,
     };
