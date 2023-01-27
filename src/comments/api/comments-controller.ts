@@ -17,9 +17,9 @@ import { CommentsService } from '../application/comments-service';
 import { CommentInputModel } from './models/CommentInputModel';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { CommentLikeInputModel } from './models/CommentLikeInputModel';
-import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
+import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 
 @Controller('comments')
 export class CommentsController {
@@ -38,7 +38,7 @@ export class CommentsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async updateComment(
     @Param('id', checkObjectIdPipe) commentId: string,
@@ -54,7 +54,7 @@ export class CommentsController {
   }
 
   @Put(':id/like-status')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async likeComment(
     @Param('id', checkObjectIdPipe) commentId: string,
@@ -70,7 +70,7 @@ export class CommentsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async deleteComment(@Param('id', checkObjectIdPipe) commentId: string, @UserId() userId: string | null) {
     const deleteStatus = await this.commentsService.deleteComment(commentId, userId);

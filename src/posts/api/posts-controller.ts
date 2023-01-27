@@ -26,12 +26,13 @@ import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { CommentsService } from '../../comments/application/comments-service';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
-import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
 import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
 import { UserId } from '../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
+import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
+import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -64,7 +65,7 @@ export class PostsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   async createPost(@Body() body: CreatePostDto, @UserId() userId: string | null): Promise<PostViewModel> {
     const createdPostId = await this.postsService.createPost(body);
     if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
@@ -73,7 +74,7 @@ export class PostsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async updatePost(@Param('id', checkObjectIdPipe) postId: string, @Body() body: UpdatePostDto) {
     const isUpdatedPost = await this.postsService.updatePost(postId, body);
@@ -96,7 +97,7 @@ export class PostsController {
   }
 
   @Post(':id/comments')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   async createCommentForPost(
     @Param('id', checkObjectIdPipe) postId: string,
     @Body() body: CommentInputModel,
@@ -110,7 +111,7 @@ export class PostsController {
   }
 
   @Put(':id/like-status')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async likePost(
     @Param('id', checkObjectIdPipe) postId: string,
@@ -126,7 +127,7 @@ export class PostsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deletePost(@Param('id', checkObjectIdPipe) postId: string) {
     const isDeletedPost = await this.postsService.deletePost(postId);

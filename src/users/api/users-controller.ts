@@ -7,8 +7,8 @@ import { HTTP_Status } from '../../main/types/enums';
 import { CreateUserDto } from '../application/dto/CreateUserDto';
 import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { findUsersQueryPipe } from './models/FindUsersQueryPipe';
-import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
+import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -20,7 +20,7 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   async createUser(@Body() body: CreateUserDto): Promise<UserViewModel> {
     const createdUserId = await this.usersService.createUser(body);
     if (!createdUserId) throw new HttpException('login or email is already exist', HTTP_Status.BAD_REQUEST_400);
@@ -29,7 +29,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deleteUser(@Param('id', checkObjectIdPipe) userId: string) {
     const isDeletedUser = await this.usersService.deleteUser(userId);

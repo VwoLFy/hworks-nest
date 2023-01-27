@@ -22,13 +22,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { AuthGuard } from './guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
 import { AttemptsGuard } from './guards/attempts.guard';
 import { RefreshTokenGuard } from '../../main/guards/refreshToken.guard';
 import { Refreshtoken } from '../../main/decorators/refreshtoken.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CheckLoginBodyFieldsGuard } from './guards/check-login-body-fields.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -119,7 +119,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   async getMyInfo(@UserId() userId: string | null): Promise<MeViewModel> {
     const userData = await this.usersQueryRepo.findUserById(userId);
     if (!userData) throw new UnauthorizedException();

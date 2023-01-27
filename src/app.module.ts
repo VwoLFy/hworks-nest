@@ -38,7 +38,7 @@ import { SecurityRepository } from './security/infrastructure/security-repositor
 import { SecurityQueryRepo } from './security/infrastructure/security-queryRepo';
 import { SecurityController } from './security/api/security-controller';
 import { Session, SessionSchema } from './security/domain/session.schema';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { IsBlogExistConstraint } from './main/decorators/IsBlogExistDecorator';
 import { IsFreeLoginOrEmailConstraint } from './main/decorators/IsFreeLoginOrEmailDecorator';
 import { IsConfirmCodeValidConstraint } from './main/decorators/IsConfirmCodeValidDecorator';
@@ -53,6 +53,8 @@ import { configuration } from './main/configuration/configuration';
 import Joi from 'joi';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './auth/api/strategies/local.strategy';
+import { JwtStrategy } from './auth/api/strategies/jwt.strategy';
+import { BasicStrategy } from './auth/api/strategies/basic.strategy';
 
 @Module({
   imports: [
@@ -64,8 +66,13 @@ import { LocalStrategy } from './auth/api/strategies/local.strategy';
         //NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development'),
         PORT: Joi.number(),
 
-        JWT_SECRET: Joi.string().required(),
+        JWT_SECRET_FOR_ACCESSTOKEN: Joi.string().required(),
+        EXPIRES_IN_TIME_OF_ACCESSTOKEN: Joi.string().required(),
         JWT_SECRET_FOR_REFRESHTOKEN: Joi.string().required(),
+        EXPIRES_IN_TIME_OF_REFRESHTOKEN: Joi.string().required(),
+
+        SA_LOGIN: Joi.string().required(),
+        SA_PASSWORD: Joi.string().required(),
 
         EMAIL_PASSWORD: Joi.string().required(),
         EMAIL: Joi.string().email().required(),
@@ -121,6 +128,16 @@ import { LocalStrategy } from './auth/api/strategies/local.strategy';
       },
     }),
     PassportModule,
+    JwtModule.registerAsync({
+      imports: [ApiConfigModule],
+      inject: [ApiConfigService],
+      useFactory: (apiConfigService: ApiConfigService) => {
+        return {
+          secret: apiConfigService.JWT_SECRET_FOR_ACCESSTOKEN,
+          signOptions: { expiresIn: apiConfigService.EXPIRES_IN_TIME_OF_ACCESSTOKEN },
+        };
+      },
+    }),
   ],
   controllers: [
     AppController,
@@ -133,7 +150,9 @@ import { LocalStrategy } from './auth/api/strategies/local.strategy';
     SecurityController,
   ],
   providers: [
+    BasicStrategy,
     LocalStrategy,
+    JwtStrategy,
     IsConfirmCodeValidConstraint,
     IsEmailValidForConfirmConstraint,
     IsBlogExistConstraint,
@@ -160,7 +179,6 @@ import { LocalStrategy } from './auth/api/strategies/local.strategy';
     SecurityService,
     SecurityRepository,
     SecurityQueryRepo,
-    JwtService,
     ApiConfigService,
   ],
 })

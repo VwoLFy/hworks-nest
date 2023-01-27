@@ -28,9 +28,9 @@ import { BlogsViewModelPage } from './models/BlogsViewModelPage';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { findPostsOfBlogQueryPipe } from './models/FindPostsOfBlogQueryPipe';
-import { AuthGuard } from '../../auth/api/guards/auth.guard';
 import { UserId } from '../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../main/guards/getUserId.guard';
+import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -54,14 +54,14 @@ export class BlogsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   async createBlog(@Body() body: CreateBlogDto): Promise<BlogViewModel> {
     const createdBlogId = await this.blogsService.createBlog(body);
     return await this.blogsQueryRepo.findBlogById(createdBlogId);
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async updateBlog(@Param('id', checkObjectIdPipe) blogId: string, @Body() body: UpdateBlogDto) {
     const isUpdatedBlog = await this.blogsService.updateBlog(blogId, body);
@@ -82,7 +82,7 @@ export class BlogsController {
   }
 
   @Post(':id/posts')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   async createPostForBlog(
     @Param('id', checkObjectIdPipe) blogId: string,
     @Body() body: BlogPostInputModel,
@@ -98,7 +98,7 @@ export class BlogsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deleteBlog(@Param('id', checkObjectIdPipe) blogId: string) {
     const isDeletedBlog = await this.blogsService.deleteBlog(blogId);

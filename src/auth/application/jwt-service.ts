@@ -24,13 +24,13 @@ export class ApiJwtService {
   ) {}
 
   async createJWT(userId: string, deviceId: string | null): Promise<TokensType> {
-    const secret = this.apiConfigService.JWT_SECRET;
     const secretRT = this.apiConfigService.JWT_SECRET_FOR_REFRESHTOKEN;
+    const expiresInRT = this.apiConfigService.EXPIRES_IN_TIME_OF_REFRESHTOKEN;
 
-    const accessToken = this.jwtService.sign({ userId }, { secret, expiresIn: '10m' });
+    const accessToken = this.jwtService.sign({ userId });
 
     deviceId = deviceId ? deviceId : await this.securityService.newDeviceId();
-    const refreshToken = this.jwtService.sign({ userId, deviceId }, { secret: secretRT, expiresIn: '1d' });
+    const refreshToken = this.jwtService.sign({ userId, deviceId }, { secret: secretRT, expiresIn: expiresInRT });
 
     return { accessToken, refreshToken };
   }
@@ -65,7 +65,7 @@ export class ApiJwtService {
 
   async getUserIdByAccessToken(accessToken: string): Promise<string | null> {
     try {
-      const secret = this.apiConfigService.JWT_SECRET;
+      const secret = this.apiConfigService.JWT_SECRET_FOR_ACCESSTOKEN;
 
       const result = this.jwtService.verify(accessToken, { secret }) as AccessTokenDataType;
       return result.userId;
