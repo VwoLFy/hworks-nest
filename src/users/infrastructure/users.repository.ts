@@ -42,4 +42,7 @@ export class UsersRepository {
     const result = await this.UserModel.deleteOne({ _id });
     return result.deletedCount !== 0;
   }
+  async deleteAll() {
+    await this.UserModel.deleteMany();
+  }
 }

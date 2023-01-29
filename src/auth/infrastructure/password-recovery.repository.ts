@@ -18,4 +18,8 @@ export class PasswordRecoveryRepository {
   async deletePassRecovery(recoveryCode: string) {
     await this.PasswordRecoveryModel.deleteOne({ recoveryCode });
   }
+
+  async deleteAll() {
+    await this.PasswordRecoveryModel.deleteMany();
+  }
 }

@@ -41,4 +41,8 @@ export class CommentsRepository {
       return 204;
     }
   }
+  async deleteAll() {
+    await this.CommentModel.deleteMany();
+    await this.CommentLikeModel.deleteMany();
+  }
 }

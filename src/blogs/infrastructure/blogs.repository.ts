@@ -21,4 +21,7 @@ export class BlogsRepository {
     const result = await this.BlogModel.deleteOne({ _id });
     return result.deletedCount !== 0;
   }
+  async deleteAll() {
+    await this.BlogModel.deleteMany();
+  }
 }

@@ -23,4 +23,8 @@ export class AttemptsRepository {
   async save(attempt: AttemptsDataDocument) {
     await attempt.save();
   }
+
+  async deleteAll() {
+    await this.AttemptsDataModel.deleteMany();
+  }
 }

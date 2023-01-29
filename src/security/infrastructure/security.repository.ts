@@ -28,4 +28,7 @@ export class SecurityRepository {
     const result = await this.SessionModel.deleteOne({ deviceId });
     return result.deletedCount ? 204 : 404;
   }
+  async deleteAll() {
+    await this.SessionModel.deleteMany();
+  }
 }
