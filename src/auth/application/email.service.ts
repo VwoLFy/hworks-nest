@@ -1,4 +1,4 @@
-import { EmailAdapter } from '../infrastructure/email-adapter';
+import { EmailAdapter } from '../infrastructure/email.adapter';
 import { Injectable } from '@nestjs/common';
 import { ApiConfigService } from '../../main/configuration/api.config.service';
 

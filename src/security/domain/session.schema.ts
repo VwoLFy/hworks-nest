@@ -1,5 +1,5 @@
 import { HydratedDocument } from 'mongoose';
-import { SessionDto } from '../application/dto/SessionDto';
+import { SessionExtendedDto } from '../application/dto/SessionExtendedDto';
 import { ObjectId } from 'mongodb';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
@@ -25,7 +25,7 @@ export class Session {
   @Prop({ required: true })
   deviceId: string;
 
-  updateSessionData(dto: SessionDto) {
+  updateSessionData(dto: SessionExtendedDto) {
     this.ip = dto.ip;
     this.title = dto.title;
     this.exp = dto.exp;
