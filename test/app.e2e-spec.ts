@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpException, INestApplication, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, HttpException, INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
@@ -58,7 +58,7 @@ describe('AppController (e2e)', () => {
               });
             }
           });
-          throw new HttpException(err, HTTP_Status.BAD_REQUEST_400);
+          throw new BadRequestException(err);
         },
       }),
     );

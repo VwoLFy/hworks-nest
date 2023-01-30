@@ -45,12 +45,14 @@ export class PostsQueryRepo {
       items,
     };
   }
+
   async findPostById(_id: string, userId: string | null): Promise<PostViewModel | null> {
     const foundPost = await this.PostModel.findById({ _id }).lean();
     if (!foundPost) return null;
 
     return this.postWithReplaceId(foundPost, userId);
   }
+
   async findPostsByBlogId(
     blogId: string,
     userId: string | null,
@@ -89,6 +91,7 @@ export class PostsQueryRepo {
       items,
     };
   }
+
   async postWithReplaceId(post: Post, userId: string | null): Promise<PostViewModel> {
     let myStatus: LikeStatus = LikeStatus.None;
 

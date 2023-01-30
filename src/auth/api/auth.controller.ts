@@ -111,7 +111,7 @@ export class AuthController {
   @HttpCode(204)
   async registrationConfirmation(@Body() body: RegistrationConfirmationCodeModel) {
     const isConfirm = await this.confirmEmailUseCase.execute(body.code);
-    if (!isConfirm) throw new BadRequestException();
+    if (!isConfirm) throw new BadRequestException([{ field: 'code', message: `Code isn't valid` }]);
   }
 
   @Post('registration-email-resending')
@@ -119,7 +119,8 @@ export class AuthController {
   @HttpCode(204)
   async registrationEmailResending(@Body() body: RegistrationEmailResendingModel) {
     const isResendEmail = await this.resendRegistrationEmailUseCase.execute(body.email);
-    if (!isResendEmail) throw new BadRequestException();
+    if (!isResendEmail)
+      throw new BadRequestException([{ field: 'email', message: `Email isn't valid or already confirmed` }]);
   }
 
   @Post('logout')

@@ -1,6 +1,6 @@
-import { IsConfirmCodeValid } from '../../../main/decorators/is-confirm-code-valid-decorator';
+import { IsString } from 'class-validator';
 
 export class RegistrationConfirmationCodeModel {
-  @IsConfirmCodeValid()
+  @IsString()
   code: string;
 }

@@ -1,6 +1,6 @@
 import { IsMongoId, IsString, Length } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsBlogExist } from '../../../main/decorators/is-blog-exist-decorator';
+import { IsBlogExist } from '../../../main/decorators/is-blog-exist.decorator';
 
 //PostInputModel
 export class CreatePostDto {

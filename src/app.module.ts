@@ -38,10 +38,8 @@ import { SecurityQueryRepo } from './security/infrastructure/security.queryRepo'
 import { SecurityController } from './security/api/security.controller';
 import { Session, SessionSchema } from './security/domain/session.schema';
 import { JwtModule } from '@nestjs/jwt';
-import { IsBlogExistConstraint } from './main/decorators/is-blog-exist-decorator';
-import { IsFreeLoginOrEmailConstraint } from './main/decorators/is-free-login-or-email-decorator';
-import { IsConfirmCodeValidConstraint } from './main/decorators/is-confirm-code-valid-decorator';
-import { IsEmailValidForConfirmConstraint } from './main/decorators/is-email-valid-for-confirm-decorator';
+import { IsBlogExistConstraint } from './main/decorators/is-blog-exist.decorator';
+import { IsFreeLoginOrEmailConstraint } from './main/decorators/is-free-login-or-email.decorator';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { EmailAdapter } from './auth/infrastructure/email.adapter';
@@ -204,8 +202,6 @@ const useCases = [
     BasicStrategy,
     LocalStrategy,
     JwtStrategy,
-    IsConfirmCodeValidConstraint,
-    IsEmailValidForConfirmConstraint,
     IsBlogExistConstraint,
     IsFreeLoginOrEmailConstraint,
     BlogsQueryRepo,

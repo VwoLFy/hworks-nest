@@ -46,12 +46,12 @@ export class BlogsController {
   ) {}
 
   @Get()
-  async getBlogs(@Query(findBlogsQueryPipe) query: FindBlogsQueryModel): Promise<BlogsViewModelPage> {
+  async findBlogs(@Query(findBlogsQueryPipe) query: FindBlogsQueryModel): Promise<BlogsViewModelPage> {
     return await this.blogsQueryRepo.findBlogs(query);
   }
 
   @Get(':id')
-  async getBlog(@Param('id', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
+  async findBlogById(@Param('id', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
     const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
     return blog;
@@ -74,7 +74,7 @@ export class BlogsController {
 
   @Get(':id/posts')
   @UseGuards(GetUserIdGuard)
-  async getPostsForBlog(
+  async findPostsByBlogId(
     @Param('id', checkObjectIdPipe) blogId: string,
     @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
     @UserId() userId: string | null,

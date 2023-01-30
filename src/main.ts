@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HttpException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './exception.filter';
-import { HTTP_Status } from './main/types/enums';
 import cookieParser from 'cookie-parser';
 import { useContainer } from 'class-validator';
 import { ApiConfigService } from './main/configuration/api.config.service';
@@ -28,7 +27,7 @@ async function bootstrap() {
             });
           }
         });
-        throw new HttpException(err, HTTP_Status.BAD_REQUEST_400);
+        throw new BadRequestException(err);
       },
     }),
   );

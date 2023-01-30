@@ -51,7 +51,7 @@ export class PostsController {
 
   @Get()
   @UseGuards(GetUserIdGuard)
-  async getPosts(
+  async findPosts(
     @Query(findPostsQueryPipe) query: FindPostsQueryModel,
     @UserId() userId: string | null,
   ): Promise<PostsViewModelPage> {
@@ -60,7 +60,7 @@ export class PostsController {
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getPost(
+  async findPostById(
     @Param('id', checkObjectIdPipe) postId: string,
     @UserId() userId: string | null,
   ): Promise<PostViewModel> {
@@ -91,7 +91,7 @@ export class PostsController {
 
   @Get(':id/comments')
   @UseGuards(GetUserIdGuard)
-  async getCommentsForPost(
+  async findCommentsByPostId(
     @Param('id', checkObjectIdPipe) postId: string,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
