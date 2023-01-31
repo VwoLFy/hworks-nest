@@ -13,12 +13,10 @@ export class LikeCommentUseCase {
     @InjectModel(CommentLike.name) private CommentLikeModel: Model<CommentLikeDocument>,
   ) {}
 
-  async execute(dto: LikeCommentDto): Promise<boolean> {
+  async execute(dto: LikeCommentDto) {
     const { commentId, userId, likeStatus } = dto;
 
-    const foundComment = await this.commentsRepository.findComment(commentId);
-    if (!foundComment) return false;
-
+    const foundComment = await this.commentsRepository.findCommentOrThrowError(commentId);
     const foundLike = await this.commentsRepository.findLikeStatus(commentId, userId);
 
     const like = foundComment.setLikeStatus(foundLike, userId, likeStatus, this.CommentLikeModel);
@@ -29,6 +27,5 @@ export class LikeCommentUseCase {
     } else {
       await this.commentsRepository.saveLike(like);
     }
-    return true;
   }
 }

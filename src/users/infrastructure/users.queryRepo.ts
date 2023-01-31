@@ -2,7 +2,7 @@ import { User, UserDocument } from '../domain/user.schema';
 import { UserViewModel } from '../api/models/UserViewModel';
 import { UserViewModelPage } from '../api/models/UserViewModelPage';
 import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -53,14 +53,14 @@ export class UsersQueryRepo {
       items,
     };
   }
-  async findUserById(_id: string): Promise<UserViewModel | null> {
+
+  async findUserById(_id: string): Promise<UserViewModel> {
     const foundUser = await this.UserModel.findById({ _id }).lean();
-    if (!foundUser) {
-      return null;
-    } else {
-      return this.userWithReplaceId(foundUser);
-    }
+    if (!foundUser) throw new NotFoundException('User not found');
+
+    return this.userWithReplaceId(foundUser);
   }
+
   userWithReplaceId(object: User): UserViewModel {
     return {
       id: object._id.toString(),

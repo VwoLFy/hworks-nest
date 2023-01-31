@@ -17,6 +17,7 @@ import {
   Get,
   HttpCode,
   HttpException,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -53,7 +54,7 @@ export class BlogsController {
   @Get(':id')
   async findBlogById(@Param('id', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
     const blog = await this.blogsQueryRepo.findBlogById(blogId);
-    if (!blog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+    if (!blog) throw new NotFoundException('blog not found');
     return blog;
   }
 

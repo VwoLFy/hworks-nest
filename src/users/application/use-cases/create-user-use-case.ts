@@ -13,11 +13,8 @@ export class CreateUserUseCase {
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
-  async execute(dto: CreateUserDto): Promise<string | null> {
+  async execute(dto: CreateUserDto): Promise<string> {
     const { login, password, email } = dto;
-
-    const isFreeLoginAndEmail = await this.usersRepository.isFreeLoginAndEmail(login, email);
-    if (!isFreeLoginAndEmail) return null;
 
     const passwordHash = await this.getPasswordHash(password);
 
@@ -28,6 +25,7 @@ export class CreateUserUseCase {
     await this.usersRepository.saveUser(user);
     return user.id;
   }
+
   private async getPasswordHash(password: string): Promise<string> {
     const passwordSalt = await bcrypt.genSalt(10);
     return bcrypt.hash(password, passwordSalt);

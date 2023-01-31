@@ -1,16 +1,7 @@
 import { SecurityQueryRepo } from '../infrastructure/security.queryRepo';
 import { DeleteSessionsExceptCurrentUseCase } from '../application/use-cases/delete-sessions-except-current-use-case';
 import { DeviceViewModel } from './models/DeviceViewModel';
-import {
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  Param,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Param, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { RefreshTokenGuard } from '../../main/guards/refresh-token.guard';
 import { SessionData } from '../../main/decorators/session-data.decorator';
 import { DeleteSessionUseCase } from '../application/use-cases/delete-session-use-case';
@@ -47,7 +38,6 @@ export class SecurityController {
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
   async deleteDevice(@Param('id') deviceId: string, @SessionData() sessionData: SessionDto) {
-    const result = await this.deleteSessionUseCase.execute(sessionData.userId, deviceId);
-    if (result !== 204) throw new HttpException('Error delete', result);
+    await this.deleteSessionUseCase.execute(sessionData.userId, deviceId);
   }
 }

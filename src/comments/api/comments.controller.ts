@@ -1,18 +1,7 @@
 import { CommentsQueryRepo } from '../infrastructure/comments.queryRepo';
 import { CommentViewModel } from './models/CommentViewModel';
 import { HTTP_Status } from '../../main/types/enums';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  NotFoundException,
-  Param,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Put, UseGuards } from '@nestjs/common';
 import { CommentInputModel } from './models/CommentInputModel';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { CommentLikeInputModel } from './models/CommentLikeInputModel';
@@ -52,12 +41,7 @@ export class CommentsController {
     @Body() body: CommentInputModel,
     @UserId() userId: string | null,
   ) {
-    const updateStatus = await this.updateCommentUseCase.execute({
-      commentId,
-      content: body.content,
-      userId,
-    });
-    if (updateStatus !== 204) throw new HttpException('Error', updateStatus);
+    await this.updateCommentUseCase.execute({ commentId, content: body.content, userId });
   }
 
   @Put(':id/like-status')
@@ -68,19 +52,13 @@ export class CommentsController {
     @Body() body: CommentLikeInputModel,
     @UserId() userId: string | null,
   ) {
-    const result = await this.likeCommentUseCase.execute({
-      commentId,
-      userId,
-      likeStatus: body.likeStatus,
-    });
-    if (!result) throw new NotFoundException('comment not found');
+    await this.likeCommentUseCase.execute({ commentId, userId, likeStatus: body.likeStatus });
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async deleteComment(@Param('id', checkObjectIdPipe) commentId: string, @UserId() userId: string | null) {
-    const deleteStatus = await this.deleteCommentUseCase.execute(commentId, userId);
-    if (deleteStatus !== 204) throw new HttpException('Error', deleteStatus);
+    await this.deleteCommentUseCase.execute(commentId, userId);
   }
 }

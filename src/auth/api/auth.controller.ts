@@ -16,7 +16,6 @@ import {
   Ip,
   Post,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -30,10 +29,10 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RegisterUserUseCase } from '../application/use-cases/register-user-use-case';
 import { ConfirmEmailUseCase } from '../application/use-cases/confirm-email-use-case';
 import { ResendRegistrationEmailUseCase } from '../application/use-cases/resend-registration-email-use-case';
-import { CreateSessionUseCase } from '../../security/application/use-cases/create-session-use-case';
+import { LoginUserUseCase } from '../application/use-cases/login-user-use-case';
 import { SendPasswordRecoveryEmailUseCase } from '../application/use-cases/send-password-recovery-email-use-case';
 import { ChangePasswordUseCase } from '../application/use-cases/change-password-use-case';
-import { UpdateSessionUseCase } from '../../security/application/use-cases/update-session-use-case';
+import { GenerateNewTokensUseCase } from '../application/use-cases/generate-new-tokens-use-case';
 import { DeleteSessionUseCase } from '../../security/application/use-cases/delete-session-use-case';
 import { SessionDto } from '../../security/application/dto/SessionDto';
 
@@ -43,10 +42,10 @@ export class AuthController {
     protected registerUserUseCase: RegisterUserUseCase,
     protected confirmEmailUseCase: ConfirmEmailUseCase,
     protected resendRegistrationEmailUseCase: ResendRegistrationEmailUseCase,
-    protected createSessionUseCase: CreateSessionUseCase,
+    protected loginUserUseCase: LoginUserUseCase,
     protected sendPasswordRecoveryEmailUseCase: SendPasswordRecoveryEmailUseCase,
     protected changePasswordUseCase: ChangePasswordUseCase,
-    protected updateSessionUseCase: UpdateSessionUseCase,
+    protected generateNewTokensUseCase: GenerateNewTokensUseCase,
     protected deleteSessionUseCase: DeleteSessionUseCase,
     protected usersQueryRepo: UsersQueryRepo,
   ) {}
@@ -62,7 +61,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @UserId() userId: string,
   ): Promise<LoginSuccessViewModel> {
-    const { accessToken, refreshToken } = await this.createSessionUseCase.execute(userId, ip, title);
+    const { accessToken, refreshToken } = await this.loginUserUseCase.execute(userId, ip, title);
+
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
   }
@@ -92,7 +92,7 @@ export class AuthController {
     @Headers('user-agent') title = 'unknown',
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
-    const { accessToken, refreshToken } = await this.updateSessionUseCase.execute(sessionData, ip, title);
+    const { accessToken, refreshToken } = await this.generateNewTokensUseCase.execute(sessionData, ip, title);
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -136,7 +136,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getMyInfo(@UserId() userId: string | null): Promise<MeViewModel> {
     const userData = await this.usersQueryRepo.findUserById(userId);
-    if (!userData) throw new UnauthorizedException();
     return {
       email: userData.email,
       login: userData.login,

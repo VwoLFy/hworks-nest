@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { GetUserIdByAccessTokenUseCase } from '../../auth/application/use-cases/get-user-id-by-accesstoken-use-case';
+import { ApiJwtService } from '../../auth/application/api-jwt.service';
 
 @Injectable()
 export class GetUserIdGuard implements CanActivate {
-  constructor(protected getUserIdByAccessTokenUseCase: GetUserIdByAccessTokenUseCase) {}
+  constructor(protected apiJwtService: ApiJwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
@@ -12,7 +12,7 @@ export class GetUserIdGuard implements CanActivate {
 
     if (authorization && authorization.startsWith('Bearer')) {
       const accessToken = authorization.split(' ')[1];
-      userId = await this.getUserIdByAccessTokenUseCase.execute(accessToken);
+      userId = await this.apiJwtService.getUserIdByAccessToken(accessToken);
     }
 
     req.user = { userId };

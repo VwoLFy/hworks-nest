@@ -64,16 +64,14 @@ import { LikeCommentUseCase } from './comments/application/use-cases/like-commen
 import { DeleteCommentUseCase } from './comments/application/use-cases/delete-comment-use-case';
 import { DeleteUserUseCase } from './users/application/use-cases/delete-user-use-case';
 import { ChangePasswordUseCase } from './auth/application/use-cases/change-password-use-case';
-import { GetDataIfSessionIsActiveUseCase } from './security/application/use-cases/get-data-if-session-is-active-use-case';
-import { CheckCredentialsOfUserUseCase } from './auth/application/use-cases/check-credentials-of-user-use-case';
 import { ConfirmEmailUseCase } from './auth/application/use-cases/confirm-email-use-case';
-import { CreateSessionUseCase } from './security/application/use-cases/create-session-use-case';
+import { LoginUserUseCase } from './auth/application/use-cases/login-user-use-case';
 import { DeleteSessionUseCase } from './security/application/use-cases/delete-session-use-case';
 import { RegisterUserUseCase } from './auth/application/use-cases/register-user-use-case';
 import { ResendRegistrationEmailUseCase } from './auth/application/use-cases/resend-registration-email-use-case';
 import { SendPasswordRecoveryEmailUseCase } from './auth/application/use-cases/send-password-recovery-email-use-case';
-import { UpdateSessionUseCase } from './security/application/use-cases/update-session-use-case';
-import { GetUserIdByAccessTokenUseCase } from './auth/application/use-cases/get-user-id-by-accesstoken-use-case';
+import { GenerateNewTokensUseCase } from './auth/application/use-cases/generate-new-tokens-use-case';
+import { SecurityService } from './security/application/security.service';
 
 const useCases = [
   DeleteAllUseCase,
@@ -91,18 +89,15 @@ const useCases = [
   CreateUserUseCase,
   DeleteUserUseCase,
   ChangePasswordUseCase,
-  CheckCredentialsOfUserUseCase,
   ConfirmEmailUseCase,
   CountAttemptsUseCase,
-  GetUserIdByAccessTokenUseCase,
   RegisterUserUseCase,
   ResendRegistrationEmailUseCase,
   SendPasswordRecoveryEmailUseCase,
-  CreateSessionUseCase,
+  LoginUserUseCase,
   DeleteSessionUseCase,
   DeleteSessionsExceptCurrentUseCase,
-  UpdateSessionUseCase,
-  GetDataIfSessionIsActiveUseCase,
+  GenerateNewTokensUseCase,
 ];
 
 @Module({
@@ -214,12 +209,13 @@ const useCases = [
     UsersRepository,
     AttemptsRepository,
     AuthService,
+    ApiJwtService,
     EmailService,
     EmailAdapter,
-    ApiJwtService,
     PasswordRecoveryRepository,
     SecurityRepository,
     SecurityQueryRepo,
+    SecurityService,
     ApiConfigService,
     ...useCases,
   ],

@@ -6,7 +6,7 @@ import { UsersRepository } from '../../infrastructure/users.repository';
 export class DeleteUserUseCase {
   constructor(protected usersRepository: UsersRepository) {}
 
-  async execute(_id: string): Promise<boolean> {
-    return await this.usersRepository.deleteUser(new ObjectId(_id));
+  async execute(_id: string) {
+    await this.usersRepository.deleteUser(new ObjectId(_id));
   }
 }
