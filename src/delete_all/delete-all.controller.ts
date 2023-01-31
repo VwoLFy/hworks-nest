@@ -1,13 +1,14 @@
 import { Controller, Delete, HttpCode } from '@nestjs/common';
-import { DeleteAllUseCase } from './delete-all-use-case';
+import { CommandBus } from '@nestjs/cqrs';
+import { DeleteAllCommand } from './delete-all-use-case';
 
 @Controller('/testing/all-data')
 export class DeleteAllController {
-  constructor(private deleteAllUseCase: DeleteAllUseCase) {}
+  constructor(private commandBus: CommandBus) {}
 
   @Delete()
   @HttpCode(204)
   async deleteAll() {
-    await this.deleteAllUseCase.execute();
+    await this.commandBus.execute(new DeleteAllCommand());
   }
 }

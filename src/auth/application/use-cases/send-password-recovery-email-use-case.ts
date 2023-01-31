@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { EmailService } from '../email.service';
 import { PasswordRecoveryRepository } from '../../infrastructure/password-recovery.repository';
 import { PasswordRecovery, PasswordRecoveryDocument } from '../../domain/password-recovery.schema';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class SendPasswordRecoveryEmailUseCase {
+export class SendPasswordRecoveryCommand {
+  constructor(public email: string) {}
+}
+
+@CommandHandler(SendPasswordRecoveryCommand)
+export class SendPasswordRecoveryEmailUseCase implements ICommandHandler<SendPasswordRecoveryCommand> {
   constructor(
     protected usersRepository: UsersRepository,
     protected emailManager: EmailService,
@@ -15,7 +19,9 @@ export class SendPasswordRecoveryEmailUseCase {
     @InjectModel(PasswordRecovery.name) private PasswordRecoveryModel: Model<PasswordRecoveryDocument>,
   ) {}
 
-  async execute(email: string) {
+  async execute(command: SendPasswordRecoveryCommand) {
+    const { email } = command;
+
     const isUserExist = await this.usersRepository.findUserByLoginOrEmail(email);
     if (!isUserExist) return;
 

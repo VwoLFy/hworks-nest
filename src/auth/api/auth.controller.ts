@@ -26,29 +26,20 @@ import { SessionData } from '../../main/decorators/session-data.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CheckLoginBodyFieldsGuard } from './guards/check-login-body-fields.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RegisterUserUseCase } from '../application/use-cases/register-user-use-case';
-import { ConfirmEmailUseCase } from '../application/use-cases/confirm-email-use-case';
-import { ResendRegistrationEmailUseCase } from '../application/use-cases/resend-registration-email-use-case';
-import { LoginUserUseCase } from '../application/use-cases/login-user-use-case';
-import { SendPasswordRecoveryEmailUseCase } from '../application/use-cases/send-password-recovery-email-use-case';
-import { ChangePasswordUseCase } from '../application/use-cases/change-password-use-case';
-import { GenerateNewTokensUseCase } from '../application/use-cases/generate-new-tokens-use-case';
-import { DeleteSessionUseCase } from '../../security/application/use-cases/delete-session-use-case';
+import { RegisterUserCommand } from '../application/use-cases/register-user-use-case';
+import { ConfirmEmailCommand } from '../application/use-cases/confirm-email-use-case';
+import { ResendRegistrationEmailCommand } from '../application/use-cases/resend-registration-email-use-case';
+import { LoginUserCommand } from '../application/use-cases/login-user-use-case';
+import { SendPasswordRecoveryCommand } from '../application/use-cases/send-password-recovery-email-use-case';
+import { ChangePasswordCommand } from '../application/use-cases/change-password-use-case';
+import { GenerateNewTokensCommand } from '../application/use-cases/generate-new-tokens-use-case';
+import { DeleteSessionCommand } from '../../security/application/use-cases/delete-session-use-case';
 import { SessionDto } from '../../security/application/dto/SessionDto';
+import { CommandBus } from '@nestjs/cqrs';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    protected registerUserUseCase: RegisterUserUseCase,
-    protected confirmEmailUseCase: ConfirmEmailUseCase,
-    protected resendRegistrationEmailUseCase: ResendRegistrationEmailUseCase,
-    protected loginUserUseCase: LoginUserUseCase,
-    protected sendPasswordRecoveryEmailUseCase: SendPasswordRecoveryEmailUseCase,
-    protected changePasswordUseCase: ChangePasswordUseCase,
-    protected generateNewTokensUseCase: GenerateNewTokensUseCase,
-    protected deleteSessionUseCase: DeleteSessionUseCase,
-    protected usersQueryRepo: UsersQueryRepo,
-  ) {}
+  constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
@@ -61,7 +52,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @UserId() userId: string,
   ): Promise<LoginSuccessViewModel> {
-    const { accessToken, refreshToken } = await this.loginUserUseCase.execute(userId, ip, title);
+    const { accessToken, refreshToken } = await this.commandBus.execute(new LoginUserCommand(userId, ip, title));
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -71,14 +62,14 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async passwordRecovery(@Body() body: PasswordRecoveryInputModel) {
-    await this.sendPasswordRecoveryEmailUseCase.execute(body.email);
+    await this.commandBus.execute(new SendPasswordRecoveryCommand(body.email));
   }
 
   @Post('new-password')
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async newPassword(@Body() body: NewPasswordRecoveryDto) {
-    const isChangedPassword = await this.changePasswordUseCase.execute(body);
+    const isChangedPassword = await this.commandBus.execute(new ChangePasswordCommand(body));
     if (!isChangedPassword) throw new BadRequestException();
   }
 
@@ -92,7 +83,9 @@ export class AuthController {
     @Headers('user-agent') title = 'unknown',
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
-    const { accessToken, refreshToken } = await this.generateNewTokensUseCase.execute(sessionData, ip, title);
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+      new GenerateNewTokensCommand(sessionData, ip, title),
+    );
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -102,7 +95,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registration(@Body() body: CreateUserDto) {
-    const isRegistered = await this.registerUserUseCase.execute(body);
+    const isRegistered = await this.commandBus.execute(new RegisterUserCommand(body));
     if (!isRegistered) throw new BadRequestException();
   }
 
@@ -110,7 +103,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registrationConfirmation(@Body() body: RegistrationConfirmationCodeModel) {
-    const isConfirm = await this.confirmEmailUseCase.execute(body.code);
+    const isConfirm = await this.commandBus.execute(new ConfirmEmailCommand(body.code));
     if (!isConfirm) throw new BadRequestException([{ field: 'code', message: `Code isn't valid` }]);
   }
 
@@ -118,7 +111,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registrationEmailResending(@Body() body: RegistrationEmailResendingModel) {
-    const isResendEmail = await this.resendRegistrationEmailUseCase.execute(body.email);
+    const isResendEmail = await this.commandBus.execute(new ResendRegistrationEmailCommand(body.email));
     if (!isResendEmail)
       throw new BadRequestException([{ field: 'email', message: `Email isn't valid or already confirmed` }]);
   }
@@ -128,7 +121,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async logout(@SessionData() sessionData: SessionDto, @Res({ passthrough: true }) res: Response) {
-    await this.deleteSessionUseCase.execute(sessionData.userId, sessionData.deviceId);
+    await this.commandBus.execute(new DeleteSessionCommand(sessionData.userId, sessionData.deviceId));
     res.clearCookie('refreshToken');
   }
 

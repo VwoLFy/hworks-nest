@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
@@ -6,9 +5,14 @@ import { PostsRepository } from '../../../posts/infrastructure/posts.repository'
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { Comment, CommentatorInfo, CommentDocument } from '../../domain/comment.schema';
 import { CreateCommentDto } from '../dto/CreateCommentDto';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class CreateCommentUseCase {
+export class CreateCommentCommand {
+  constructor(public dto: CreateCommentDto) {}
+}
+
+@CommandHandler(CreateCommentCommand)
+export class CreateCommentUseCase implements ICommandHandler<CreateCommentCommand> {
   constructor(
     protected usersRepository: UsersRepository,
     protected postsRepository: PostsRepository,
@@ -16,13 +20,15 @@ export class CreateCommentUseCase {
     @InjectModel(Comment.name) private CommentModel: Model<CommentDocument>,
   ) {}
 
-  async execute(dto: CreateCommentDto): Promise<string | null> {
-    const isPostExist = await this.postsRepository.findPostById(dto.postId);
-    const userLogin = await this.usersRepository.findUserLoginById(dto.userId);
+  async execute(command: CreateCommentCommand): Promise<string | null> {
+    const { postId, userId, content } = command.dto;
+
+    const isPostExist = await this.postsRepository.findPostById(postId);
+    const userLogin = await this.usersRepository.findUserLoginById(userId);
     if (!isPostExist || !userLogin) return null;
 
-    const commentatorInfo = new CommentatorInfo(dto.userId, userLogin);
-    const comment = new this.CommentModel({ ...dto, commentatorInfo });
+    const commentatorInfo = new CommentatorInfo(userId, userLogin);
+    const comment = new this.CommentModel({ content, commentatorInfo, postId });
 
     await this.commentsRepository.saveComment(comment);
     return comment.id;

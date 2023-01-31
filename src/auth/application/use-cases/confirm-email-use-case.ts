@@ -1,11 +1,17 @@
-import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class ConfirmEmailUseCase {
+export class ConfirmEmailCommand {
+  constructor(public confirmationCode: string) {}
+}
+
+@CommandHandler(ConfirmEmailCommand)
+export class ConfirmEmailUseCase implements ICommandHandler<ConfirmEmailCommand> {
   constructor(protected usersRepository: UsersRepository) {}
 
-  async execute(confirmationCode: string): Promise<boolean> {
+  async execute(command: ConfirmEmailCommand): Promise<boolean> {
+    const { confirmationCode } = command;
+
     const foundUser = await this.usersRepository.findUserByConfirmationCode(confirmationCode);
     if (!foundUser) return false;
 

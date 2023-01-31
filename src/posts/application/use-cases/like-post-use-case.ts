@@ -1,21 +1,25 @@
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { LikePostDto } from '../dto/LikePostDto';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PostLike, PostLikeDocument } from '../../domain/postLike.schema';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class LikePostUseCase {
+export class LikePostCommand {
+  constructor(public dto: LikePostDto) {}
+}
+
+@CommandHandler(LikePostCommand)
+export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
   constructor(
     protected postsRepository: PostsRepository,
     protected usersRepository: UsersRepository,
     @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
   ) {}
 
-  async execute(dto: LikePostDto): Promise<boolean> {
-    const { postId, userId, likeStatus } = dto;
+  async execute(command: LikePostCommand): Promise<boolean> {
+    const { postId, userId, likeStatus } = command.dto;
 
     const foundPost = await this.postsRepository.findPostById(postId);
     if (!foundPost) return false;

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
@@ -6,9 +5,14 @@ import { EmailService } from '../email.service';
 import { AccountData, EmailConfirmation, User, UserDocument } from '../../../users/domain/user.schema';
 import { CreateUserDto } from '../../../users/application/dto/CreateUserDto';
 import { AuthService } from '../auth.service';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class RegisterUserUseCase {
+export class RegisterUserCommand {
+  constructor(public dto: CreateUserDto) {}
+}
+
+@CommandHandler(RegisterUserCommand)
+export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
     protected emailManager: EmailService,
@@ -16,8 +20,8 @@ export class RegisterUserUseCase {
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
-  async execute(dto: CreateUserDto): Promise<boolean> {
-    const { login, password, email } = dto;
+  async execute(command: RegisterUserCommand): Promise<boolean> {
+    const { login, password, email } = command.dto;
     const passwordHash = await this.authService.getPasswordHash(password);
 
     const accountData = new AccountData(login, passwordHash, email);

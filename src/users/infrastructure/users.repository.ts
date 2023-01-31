@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { User, UserDocument } from '../domain/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -30,21 +29,12 @@ export class UsersRepository {
     });
   }
 
-  async isFreeLoginAndEmail(login: string, email: string): Promise<boolean> {
-    return !(await this.UserModel.findOne({
-      $or: [
-        { 'accountData.login': { $regex: login, $options: 'i' } },
-        { 'accountData.email': { $regex: email, $options: 'i' } },
-      ],
-    }));
-  }
-
   async saveUser(user: UserDocument): Promise<void> {
     await user.save();
   }
 
-  async deleteUser(_id: ObjectId) {
-    const result = await this.UserModel.deleteOne({ _id });
+  async deleteUser(id: string) {
+    const result = await this.UserModel.deleteOne({ _id: id });
     if (!result) throw new NotFoundException('user not found');
   }
 

@@ -1,19 +1,16 @@
 import { SecurityQueryRepo } from '../infrastructure/security.queryRepo';
-import { DeleteSessionsExceptCurrentUseCase } from '../application/use-cases/delete-sessions-except-current-use-case';
+import { DeleteSessionsExceptCurrentCommand } from '../application/use-cases/delete-sessions-except-current-use-case';
 import { DeviceViewModel } from './models/DeviceViewModel';
 import { Controller, Delete, Get, HttpCode, Param, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { RefreshTokenGuard } from '../../main/guards/refresh-token.guard';
 import { SessionData } from '../../main/decorators/session-data.decorator';
-import { DeleteSessionUseCase } from '../application/use-cases/delete-session-use-case';
+import { DeleteSessionCommand } from '../application/use-cases/delete-session-use-case';
 import { SessionDto } from '../application/dto/SessionDto';
+import { CommandBus } from '@nestjs/cqrs';
 
 @Controller('security/devices')
 export class SecurityController {
-  constructor(
-    protected securityQueryRepo: SecurityQueryRepo,
-    protected deleteSessionsExceptCurrentUseCase: DeleteSessionsExceptCurrentUseCase,
-    protected deleteSessionUseCase: DeleteSessionUseCase,
-  ) {}
+  constructor(protected securityQueryRepo: SecurityQueryRepo, private commandBus: CommandBus) {}
 
   @Get()
   @UseGuards(RefreshTokenGuard)
@@ -27,9 +24,8 @@ export class SecurityController {
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
   async deleteDevices(@SessionData() sessionData: SessionDto) {
-    const isDeletedSessions = await this.deleteSessionsExceptCurrentUseCase.execute(
-      sessionData.userId,
-      sessionData.deviceId,
+    const isDeletedSessions = await this.commandBus.execute(
+      new DeleteSessionsExceptCurrentCommand(sessionData.userId, sessionData.deviceId),
     );
     if (!isDeletedSessions) throw new UnauthorizedException();
   }
@@ -38,6 +34,6 @@ export class SecurityController {
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
   async deleteDevice(@Param('id') deviceId: string, @SessionData() sessionData: SessionDto) {
-    await this.deleteSessionUseCase.execute(sessionData.userId, deviceId);
+    await this.commandBus.execute(new DeleteSessionCommand(sessionData.userId, deviceId));
   }
 }

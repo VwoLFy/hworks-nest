@@ -7,16 +7,13 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, UseGuards 
 import { findUsersQueryPipe } from './models/FindUsersQueryPipe';
 import { checkObjectIdPipe } from '../../main/checkObjectIdPipe';
 import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
-import { DeleteUserUseCase } from '../application/use-cases/delete-user-use-case';
-import { CreateUserUseCase } from '../application/use-cases/create-user-use-case';
+import { DeleteUserCommand } from '../application/use-cases/delete-user-use-case';
+import { CreateUserCommand } from '../application/use-cases/create-user-use-case';
+import { CommandBus } from '@nestjs/cqrs';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    protected usersQueryRepo: UsersQueryRepo,
-    protected createUserUseCase: CreateUserUseCase,
-    protected deleteUserUseCase: DeleteUserUseCase,
-  ) {}
+  constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Get()
   async getUsers(@Query(findUsersQueryPipe) query: FindUsersQueryModel): Promise<UserViewModelPage> {
@@ -26,7 +23,7 @@ export class UsersController {
   @Post()
   @UseGuards(BasicAuthGuard)
   async createUser(@Body() body: CreateUserDto): Promise<UserViewModel> {
-    const createdUserId = await this.createUserUseCase.execute(body);
+    const createdUserId = await this.commandBus.execute(new CreateUserCommand(body));
 
     return await this.usersQueryRepo.findUserById(createdUserId);
   }
@@ -35,6 +32,6 @@ export class UsersController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deleteUser(@Param('id', checkObjectIdPipe) userId: string) {
-    await this.deleteUserUseCase.execute(userId);
+    await this.commandBus.execute(new DeleteUserCommand(userId));
   }
 }

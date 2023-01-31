@@ -1,11 +1,15 @@
 import { SecurityRepository } from '../../infrastructure/security.repository';
-import { Injectable } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class DeleteSessionsExceptCurrentUseCase {
+export class DeleteSessionsExceptCurrentCommand {
+  constructor(public userId: string, public deviceId: string) {}
+}
+
+@CommandHandler(DeleteSessionsExceptCurrentCommand)
+export class DeleteSessionsExceptCurrentUseCase implements ICommandHandler<DeleteSessionsExceptCurrentCommand> {
   constructor(protected securityRepository: SecurityRepository) {}
 
-  async execute(userId: string, deviceId: string): Promise<boolean> {
-    return await this.securityRepository.deleteSessionsOfUser(userId, deviceId);
+  async execute(command: DeleteSessionsExceptCurrentCommand): Promise<boolean> {
+    return await this.securityRepository.deleteSessionsOfUser(command.userId, command.deviceId);
   }
 }

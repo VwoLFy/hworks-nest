@@ -1,19 +1,23 @@
-import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { PasswordRecoveryRepository } from '../../infrastructure/password-recovery.repository';
 import { NewPasswordRecoveryDto } from '../dto/NewPasswordRecoveryDto';
 import { AuthService } from '../auth.service';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class ChangePasswordUseCase {
+export class ChangePasswordCommand {
+  constructor(public dto: NewPasswordRecoveryDto) {}
+}
+
+@CommandHandler(ChangePasswordCommand)
+export class ChangePasswordUseCase implements ICommandHandler<ChangePasswordCommand> {
   constructor(
     protected usersRepository: UsersRepository,
     protected passwordRepository: PasswordRecoveryRepository,
     protected authService: AuthService,
   ) {}
 
-  async execute(dto: NewPasswordRecoveryDto): Promise<boolean> {
-    const { newPassword, recoveryCode } = dto;
+  async execute(command: ChangePasswordCommand): Promise<boolean> {
+    const { newPassword, recoveryCode } = command.dto;
 
     const passwordRecovery = await this.passwordRepository.findPassRecovery(recoveryCode);
     if (!passwordRecovery) return false;

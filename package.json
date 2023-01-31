@@ -23,6 +23,7 @@
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
+    "@nestjs/cqrs": "^9.0.1",
     "@nestjs/jwt": "^10.0.1",
     "@nestjs/mongoose": "^9.2.1",
     "@nestjs/passport": "^9.0.0",

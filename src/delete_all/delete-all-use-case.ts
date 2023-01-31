@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { BlogsRepository } from '../blogs/infrastructure/blogs.repository';
 import { PostsRepository } from '../posts/infrastructure/posts.repository';
 import { UsersRepository } from '../users/infrastructure/users.repository';
@@ -6,9 +5,12 @@ import { CommentsRepository } from '../comments/infrastructure/comments.reposito
 import { SecurityRepository } from '../security/infrastructure/security.repository';
 import { AttemptsRepository } from '../auth/infrastructure/attempts.repository';
 import { PasswordRecoveryRepository } from '../auth/infrastructure/password-recovery.repository';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-@Injectable()
-export class DeleteAllUseCase {
+export class DeleteAllCommand {}
+
+@CommandHandler(DeleteAllCommand)
+export class DeleteAllUseCase implements ICommandHandler<DeleteAllCommand> {
   constructor(
     private blogsRepository: BlogsRepository,
     private postsRepository: PostsRepository,

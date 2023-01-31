@@ -72,6 +72,7 @@ import { ResendRegistrationEmailUseCase } from './auth/application/use-cases/res
 import { SendPasswordRecoveryEmailUseCase } from './auth/application/use-cases/send-password-recovery-email-use-case';
 import { GenerateNewTokensUseCase } from './auth/application/use-cases/generate-new-tokens-use-case';
 import { SecurityService } from './security/application/security.service';
+import { CqrsModule } from '@nestjs/cqrs';
 
 const useCases = [
   DeleteAllUseCase,
@@ -182,6 +183,7 @@ const useCases = [
         };
       },
     }),
+    CqrsModule,
   ],
   controllers: [
     AppController,

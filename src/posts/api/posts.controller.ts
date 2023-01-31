@@ -1,5 +1,5 @@
 import { PostsQueryRepo } from '../infrastructure/posts.queryRepo';
-import { LikePostUseCase } from '../application/use-cases/like-post-use-case';
+import { LikePostCommand } from '../application/use-cases/like-post-use-case';
 import { CommentsQueryRepo } from '../../comments/infrastructure/comments.queryRepo';
 import { FindPostsQueryModel } from './models/FindPostsQueryModel';
 import { PostsViewModelPage } from './models/PostsViewModelPage';
@@ -32,21 +32,18 @@ import { UserId } from '../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../main/guards/get-user-id.guard';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
-import { CreatePostUseCase } from '../application/use-cases/create-post-use-case';
-import { UpdatePostUseCase } from '../application/use-cases/update-post-use-case';
-import { DeletePostUseCase } from '../application/use-cases/delete-post-use-case';
-import { CreateCommentUseCase } from '../../comments/application/use-cases/create-comment-use-case';
+import { CreatePostCommand } from '../application/use-cases/create-post-use-case';
+import { UpdatePostCommand } from '../application/use-cases/update-post-use-case';
+import { DeletePostCommand } from '../application/use-cases/delete-post-use-case';
+import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment-use-case';
+import { CommandBus } from '@nestjs/cqrs';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     protected postsQueryRepo: PostsQueryRepo,
     protected commentsQueryRepo: CommentsQueryRepo,
-    private createPostUseCase: CreatePostUseCase,
-    private updatePostUseCase: UpdatePostUseCase,
-    private likePostUseCase: LikePostUseCase,
-    private deletePostUseCase: DeletePostUseCase,
-    private createCommentUseCase: CreateCommentUseCase,
+    private commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -73,7 +70,7 @@ export class PostsController {
   @Post()
   @UseGuards(BasicAuthGuard)
   async createPost(@Body() body: CreatePostDto, @UserId() userId: string | null): Promise<PostViewModel> {
-    const createdPostId = await this.createPostUseCase.execute(body);
+    const createdPostId = await this.commandBus.execute(new CreatePostCommand(body));
     if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
 
     return await this.postsQueryRepo.findPostById(createdPostId, userId);
@@ -83,7 +80,7 @@ export class PostsController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async updatePost(@Param('id', checkObjectIdPipe) postId: string, @Body() body: UpdatePostDto) {
-    const isUpdatedPost = await this.updatePostUseCase.execute(postId, body);
+    const isUpdatedPost = await this.commandBus.execute(new UpdatePostCommand(postId, body));
     if (!isUpdatedPost) {
       throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
     }
@@ -109,7 +106,9 @@ export class PostsController {
     @Body() body: CommentInputModel,
     @UserId() userId: string | null,
   ): Promise<CommentViewModel> {
-    const createdCommentId = await this.createCommentUseCase.execute({ postId, content: body.content, userId });
+    const createdCommentId = await this.commandBus.execute(
+      new CreateCommentCommand({ postId, content: body.content, userId }),
+    );
     if (!createdCommentId) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
     const createdComment = await this.commentsQueryRepo.findCommentById(createdCommentId, userId);
@@ -124,11 +123,7 @@ export class PostsController {
     @Body() body: PostLikeInputModel,
     @UserId() userId: string | null,
   ) {
-    const result = await this.likePostUseCase.execute({
-      postId,
-      userId,
-      likeStatus: body.likeStatus,
-    });
+    const result = await this.commandBus.execute(new LikePostCommand({ postId, userId, likeStatus: body.likeStatus }));
     if (!result) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }
 
@@ -136,7 +131,7 @@ export class PostsController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deletePost(@Param('id', checkObjectIdPipe) postId: string) {
-    const isDeletedPost = await this.deletePostUseCase.execute(postId);
+    const isDeletedPost = await this.commandBus.execute(new DeletePostCommand(postId));
     if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }
 }
