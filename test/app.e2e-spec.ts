@@ -3,15 +3,15 @@ import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/c
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
-import { BlogViewModel } from '../src/blogs/api/models/BlogViewModel';
+import { BlogViewModel } from '../src/modules/blogs/api/models/BlogViewModel';
 import { HttpExceptionFilter } from '../src/exception.filter';
-import { PostViewModel } from '../src/posts/api/models/PostViewModel';
+import { PostViewModel } from '../src/modules/posts/api/models/PostViewModel';
 import { useContainer } from 'class-validator';
 import cookieParser from 'cookie-parser';
-import { UserViewModel } from '../src/users/api/models/UserViewModel';
-import { LoginSuccessViewModel } from '../src/auth/api/models/LoginSuccessViewModel';
-import { CommentViewModel } from '../src/comments/api/models/CommentViewModel';
-import { DeviceViewModel } from '../src/security/api/models/DeviceViewModel';
+import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
+import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
+import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
+import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({

@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { SessionDto } from '../../security/application/dto/SessionDto';
+import { SessionDto } from '../../modules/security/application/dto/SessionDto';
 
 declare global {
   declare namespace Express {
