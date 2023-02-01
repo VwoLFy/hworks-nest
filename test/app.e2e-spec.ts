@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, HttpException, INestApplication, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
@@ -297,6 +297,11 @@ describe('AppController (e2e)', () => {
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
         .delete(`/blogs/1`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/blogs/636a2a16f394608b01446e12`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
@@ -611,6 +616,11 @@ describe('AppController (e2e)', () => {
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
+      await request(app.getHttpServer())
+        .delete(`/posts/636a2a16f394608b01446e12`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
       await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post2);
     });
     it('DELETE should delete blog with correct "id"', async () => {
@@ -813,6 +823,11 @@ describe('AppController (e2e)', () => {
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
         .delete(`/users/1`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/users/636a2a16f394608b01446e12`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
@@ -1361,6 +1376,11 @@ describe('AppController (e2e)', () => {
         .delete(`/comments/1`)
         .auth(token.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/comments/636a2a16f394608b01446e12`)
+        .auth(token.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('DELETE shouldn`t delete comment and return 403', async () => {
       await request(app.getHttpServer())
@@ -1483,6 +1503,10 @@ describe('AppController (e2e)', () => {
     it('DELETE should return error if Id param not found', async () => {
       await request(app.getHttpServer())
         .delete('/security/devices/someId')
+        .set('Cookie', `refreshToken=${validRefreshToken}`)
+        .expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer())
+        .delete('/security/devices/636a2a16f394608b01446e12')
         .set('Cookie', `refreshToken=${validRefreshToken}`)
         .expect(HTTP_Status.NOT_FOUND_404);
     });
