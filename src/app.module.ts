@@ -25,7 +25,7 @@ import { UsersController } from './users/api/users.controller';
 import { DeleteAllController } from './delete_all/delete-all.controller';
 import { AttemptsData, AttemptsDataSchema } from './auth/domain/attempts.schema';
 import { PasswordRecovery, PasswordRecoverySchema } from './auth/domain/password-recovery.schema';
-import { CountAttemptsUseCase } from './auth/application/use-cases/count-attempts-use-case';
+import { AttemptsService } from './auth/application/attempts.service';
 import { AttemptsRepository } from './auth/infrastructure/attempts.repository';
 import { AuthService } from './auth/application/auth.service';
 import { EmailService } from './auth/application/email.service';
@@ -91,7 +91,6 @@ const useCases = [
   DeleteUserUseCase,
   ChangePasswordUseCase,
   ConfirmEmailUseCase,
-  CountAttemptsUseCase,
   RegisterUserUseCase,
   ResendRegistrationEmailUseCase,
   SendPasswordRecoveryEmailUseCase,
@@ -219,6 +218,7 @@ const useCases = [
     SecurityQueryRepo,
     SecurityService,
     ApiConfigService,
+    AttemptsService,
     ...useCases,
   ],
 })

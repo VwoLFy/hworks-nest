@@ -16,7 +16,7 @@ export class UsersController {
   constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Get()
-  async getUsers(@Query(findUsersQueryPipe) query: FindUsersQueryModel): Promise<UserViewModelPage> {
+  async findUsers(@Query(findUsersQueryPipe) query: FindUsersQueryModel): Promise<UserViewModelPage> {
     return await this.usersQueryRepo.findUsers(query);
   }
 

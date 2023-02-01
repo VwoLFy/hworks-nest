@@ -19,7 +19,7 @@ export class CommentsController {
 
   @Get(':id')
   @UseGuards(GetUserIdGuard)
-  async getComment(
+  async findCommentById(
     @Param('id', checkObjectIdPipe) commentId: string,
     @UserId() userId: string | null,
   ): Promise<CommentViewModel> {

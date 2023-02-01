@@ -14,7 +14,7 @@ export class SecurityController {
 
   @Get()
   @UseGuards(RefreshTokenGuard)
-  async getDevices(@SessionData() sessionData: SessionDto): Promise<DeviceViewModel[]> {
+  async findUserSessions(@SessionData() sessionData: SessionDto): Promise<DeviceViewModel[]> {
     const foundActiveDevices = await this.securityQueryRepo.findUserSessions(sessionData.userId);
     if (!foundActiveDevices) throw new UnauthorizedException();
     return foundActiveDevices;
@@ -23,7 +23,7 @@ export class SecurityController {
   @Delete()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteDevices(@SessionData() sessionData: SessionDto) {
+  async deleteSessionsExceptCurrent(@SessionData() sessionData: SessionDto) {
     const isDeletedSessions = await this.commandBus.execute(
       new DeleteSessionsExceptCurrentCommand(sessionData.userId, sessionData.deviceId),
     );
@@ -33,7 +33,7 @@ export class SecurityController {
   @Delete(':id')
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteDevice(@Param('id') deviceId: string, @SessionData() sessionData: SessionDto) {
+  async deleteSession(@Param('id') deviceId: string, @SessionData() sessionData: SessionDto) {
     await this.commandBus.execute(new DeleteSessionCommand(sessionData.userId, deviceId));
   }
 }
