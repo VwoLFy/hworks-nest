@@ -3,15 +3,18 @@ import { FindUsersQueryModel } from './models/FindUsersQueryModel';
 import { UserViewModelPage } from './models/UserViewModelPage';
 import { UserViewModel } from './models/UserViewModel';
 import { CreateUserDto } from '../application/dto/CreateUserDto';
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { findUsersQueryPipe } from './models/FindUsersQueryPipe';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
 import { DeleteUserCommand } from '../application/use-cases/delete-user-use-case';
 import { CreateUserCommand } from '../application/use-cases/create-user-use-case';
 import { CommandBus } from '@nestjs/cqrs';
+import { BanUserDto } from '../application/dto/BanUserDto';
+import { BanUserCommand } from '../application/use-cases/ban-user-use-case';
 
-@Controller('users')
+@Controller('sa/users')
+@UseGuards(BasicAuthGuard)
 export class UsersController {
   constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
@@ -21,15 +24,19 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(BasicAuthGuard)
   async createUser(@Body() body: CreateUserDto): Promise<UserViewModel> {
     const createdUserId = await this.commandBus.execute(new CreateUserCommand(body));
 
     return await this.usersQueryRepo.findUserById(createdUserId);
   }
 
+  @Put(':id/ban')
+  @HttpCode(204)
+  async banUser(@Param('id', checkObjectIdPipe) userId: string, @Body() body: BanUserDto) {
+    await this.commandBus.execute(new BanUserCommand(userId, body));
+  }
+
   @Delete(':id')
-  @UseGuards(BasicAuthGuard)
   @HttpCode(204)
   async deleteUser(@Param('id', checkObjectIdPipe) userId: string) {
     await this.commandBus.execute(new DeleteUserCommand(userId));

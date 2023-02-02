@@ -9,6 +9,12 @@ export enum LikeStatus {
   Dislike = 'Dislike',
 }
 
+export enum BanStatuses {
+  all = 'all',
+  banned = 'banned',
+  notBanned = 'notBanned',
+}
+
 export const enum HTTP_Status {
   CONTINUE_100 = 100,
   SWITCHING_PROTOCOLS_101 = 101,

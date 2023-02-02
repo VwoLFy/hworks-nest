@@ -5,13 +5,14 @@ import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { BanStatuses } from '../../../main/types/enums';
 
 @Injectable()
 export class UsersQueryRepo {
   constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<UserViewModelPage> {
-    const { searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
     let filterFind = {};
 
     if (searchLoginTerm && searchEmailTerm) {
@@ -30,6 +31,9 @@ export class UsersQueryRepo {
         'accountData.email': { $regex: searchEmailTerm, $options: 'i' },
       };
     }
+
+    if (banStatus === BanStatuses.banned) filterFind = { $and: [{ 'banInfo.isBanned': true }, filterFind] };
+    if (banStatus === BanStatuses.notBanned) filterFind = { $and: [{ 'banInfo.isBanned': false }, filterFind] };
 
     const optionsSort = { [`accountData.${sortBy}`]: sortDirection };
 
@@ -67,6 +71,10 @@ export class UsersQueryRepo {
       login: object.accountData.login,
       email: object.accountData.email,
       createdAt: object.accountData.createdAt.toISOString(),
+      banInfo: {
+        ...object.banInfo,
+        banDate: object.banInfo.banDate === null ? null : object.banInfo.banDate.toISOString(),
+      },
     };
   }
 }

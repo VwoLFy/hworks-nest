@@ -1,9 +1,9 @@
 import { PipeTransform } from '@nestjs/common';
-import { SortDirection } from '../../../../main/types/enums';
+import { BanStatuses, SortDirection } from '../../../../main/types/enums';
 import { FindUsersQueryModel } from './FindUsersQueryModel';
 
-class FindUsersQueryPipe implements PipeTransform<any, FindUsersQueryModel> {
-  transform(query: any): FindUsersQueryModel {
+class FindUsersQueryPipe implements PipeTransform<FindUsersQueryModel, FindUsersQueryModel> {
+  transform(query: FindUsersQueryModel): FindUsersQueryModel {
     const searchLoginTerm = query.searchLoginTerm || '';
     const searchEmailTerm = query.searchEmailTerm || '';
 
@@ -13,14 +13,18 @@ class FindUsersQueryPipe implements PipeTransform<any, FindUsersQueryModel> {
     let pageSize = +query.pageSize || 10;
     pageSize = pageSize < 1 ? 10 : pageSize;
 
-    let sortBy = query.sortBy || 'createdAt';
+    let sortBy = query.sortBy;
     const fields = ['id', 'login', 'email', 'createdAt'];
     sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? '_id' : sortBy;
 
-    let sortDirection = query.sortDirection || SortDirection.desc;
+    let sortDirection = query.sortDirection;
     sortDirection = sortDirection !== SortDirection.asc ? SortDirection.desc : SortDirection.asc;
 
-    return { pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm };
+    let banStatus = query.banStatus;
+    const statuses = [BanStatuses.banned, BanStatuses.notBanned];
+    banStatus = statuses.includes(banStatus) ? banStatus : BanStatuses.all;
+
+    return { pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm, banStatus };
   }
 }
 

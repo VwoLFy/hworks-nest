@@ -17,10 +17,14 @@ export class UsersRepository {
     return foundUser ? foundUser : null;
   }
 
-  async findUserLoginById(id: string): Promise<string | null> {
-    const result = await this.UserModel.findOne({ _id: id });
+  async findUserLoginById(userId: string): Promise<string | null> {
+    const result = await this.UserModel.findOne({ _id: userId });
     if (!result) return null;
     return result.accountData.login;
+  }
+
+  async findUserById(userId: string): Promise<UserDocument | null> {
+    return this.UserModel.findOne({ _id: userId });
   }
 
   async findUserByConfirmationCode(confirmationCode: string): Promise<UserDocument | null> {
@@ -33,8 +37,8 @@ export class UsersRepository {
     await user.save();
   }
 
-  async deleteUser(id: string) {
-    const result = await this.UserModel.deleteOne({ _id: id });
+  async deleteUser(userId: string) {
+    const result = await this.UserModel.deleteOne({ _id: userId });
     if (!result.deletedCount) throw new NotFoundException('user not found');
   }
 

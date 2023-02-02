@@ -3,6 +3,7 @@ import { add } from 'date-fns';
 import { ObjectId } from 'mongodb';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { randomUUID } from 'crypto';
+import { BanUserDto } from '../application/dto/BanUserDto';
 
 @Schema({ _id: false })
 export class AccountData {
@@ -68,15 +69,48 @@ export class User {
   @Prop({ required: true, type: EmailConfirmationSchema })
   emailConfirmation: EmailConfirmation;
 
+  @Prop({
+    type: {
+      isBanned: Boolean,
+      banDate: Date || null,
+      banReason: String || null,
+    },
+    default: {
+      isBanned: false,
+      banDate: null,
+      banReason: null,
+    },
+    _id: false,
+  })
+  banInfo: {
+    isBanned: boolean;
+    banDate: Date | null;
+    banReason: string | null;
+  };
+
   confirmUser() {
     this.emailConfirmation.isConfirmed = true;
   }
+
   updateEmailConfirmation() {
     this.emailConfirmation.confirmationCode = randomUUID();
     this.emailConfirmation.expirationDate = add(new Date(), { hours: 1 });
   }
+
   updatePassword(passwordHash: string) {
     this.accountData.passwordHash = passwordHash;
+  }
+
+  banUser(dto: BanUserDto) {
+    if (dto.isBanned) {
+      this.banInfo.isBanned = dto.isBanned;
+      this.banInfo.banReason = dto.banReason;
+      this.banInfo.banDate = new Date();
+    } else {
+      this.banInfo.isBanned = dto.isBanned;
+      this.banInfo.banReason = null;
+      this.banInfo.banDate = null;
+    }
   }
 }
 

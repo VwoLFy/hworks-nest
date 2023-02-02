@@ -674,23 +674,29 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  describe('/users', () => {
+  describe('/sa/users', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
     let user1: UserViewModel;
+    it('GET should return 401 if admin Unauthorized', async function () {
+      await request(app.getHttpServer()).get('/sa/users').expect(HTTP_Status.UNAUTHORIZED_401);
+    });
     it('GET should return 200', async function () {
-      await request(app.getHttpServer()).get('/users').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
+      await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
     });
     it('POST shouldn`t create user with incorrect data', async () => {
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: '',
@@ -699,7 +705,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -708,7 +714,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -717,17 +723,20 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
 
-      await request(app.getHttpServer()).get('/users').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
+      await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
     });
     it('POST should create user with correct data', async () => {
       const result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -742,9 +751,15 @@ describe('AppController (e2e)', () => {
         login: 'login',
         email: 'string2@sdf.ee',
         createdAt: expect.any(String),
+        banInfo: {
+          isBanned: expect.any(Boolean),
+          banDate: null,
+          banReason: null,
+        },
       });
       await request(app.getHttpServer())
-        .get('/users')
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
@@ -755,7 +770,7 @@ describe('AppController (e2e)', () => {
     });
     it('POST shouldn`t create user with existed login', async () => {
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -764,7 +779,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'Login',
@@ -773,7 +788,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'LOGIN',
@@ -784,7 +799,7 @@ describe('AppController (e2e)', () => {
     });
     it('POST shouldn`t create user with existed email', async () => {
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: '1login',
@@ -793,7 +808,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: '2login',
@@ -802,7 +817,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: '3login',
@@ -811,7 +826,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: '3login',
@@ -822,31 +837,34 @@ describe('AppController (e2e)', () => {
     });
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
-        .delete(`/users/1`)
+        .delete(`/sa/users/1`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
       await request(app.getHttpServer())
-        .delete(`/users/636a2a16f394608b01446e12`)
+        .delete(`/sa/users/636a2a16f394608b01446e12`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('DELETE should delete blog with correct "id"', async () => {
       await request(app.getHttpServer())
-        .delete(`/users/${user1.id}`)
+        .delete(`/sa/users/${user1.id}`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NO_CONTENT_204);
-      await request(app.getHttpServer()).get('/users').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
+      await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
     });
     it('GET users array with pagination after post 5 users should return 200', async function () {
       let result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -857,7 +875,7 @@ describe('AppController (e2e)', () => {
       user1 = result.body;
 
       result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'loser',
@@ -868,7 +886,7 @@ describe('AppController (e2e)', () => {
       const user2 = result.body;
 
       result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login3',
@@ -879,7 +897,7 @@ describe('AppController (e2e)', () => {
       const user3 = result.body;
 
       result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'aSERaa',
@@ -890,7 +908,7 @@ describe('AppController (e2e)', () => {
       const user4 = result.body;
 
       result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'zoker',
@@ -901,7 +919,10 @@ describe('AppController (e2e)', () => {
       const user5 = result.body;
 
       await request(app.getHttpServer())
-        .get('/users?pageSize=15&pageNumber=1&searchLoginTerm=seR&searchEmailTerm=.ee&sortDirection=asc&sortBy=login')
+        .get(
+          '/sa/users?pageSize=15&pageNumber=1&searchLoginTerm=seR&searchEmailTerm=.ee&sortDirection=asc&sortBy=login',
+        )
+        .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
@@ -909,6 +930,266 @@ describe('AppController (e2e)', () => {
           totalCount: 3,
           items: [user4, user2, user5],
         });
+    });
+  });
+
+  describe('Ban User', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    let user1: UserViewModel;
+    let user2: UserViewModel;
+    let user3: UserViewModel;
+    let user4: UserViewModel;
+    it('GET should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('POST should create 4 users with correct data', async () => {
+      let result = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user1 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password2',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login3',
+          password: 'password3',
+          email: 'string3@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user3 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login4',
+          password: 'password4',
+          email: 'string4@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user4 = result.body;
+
+      await request(app.getHttpServer())
+        .get('/sa/users?sortBy=login&sortDirection=asc')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 4,
+          items: [user1, user2, user3, user4],
+        });
+    });
+    it('PUT don`t ban user with incorrect data`s', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/1/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/users/636a2a16f394608b01446e12/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: 'true',
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: 'true',
+          banReason: 'banReason                                                      ',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          banReason: 'banReason',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('PUT ban user4', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user4.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?searchEmailTerm=${user4.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items[0].banInfo).toEqual({
+        isBanned: true,
+        banDate: expect.any(String),
+        banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+      });
+    });
+    it('PUT unBan user4', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user4.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: null,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?searchEmailTerm=${user4.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items[0].banInfo).toEqual({
+        isBanned: false,
+        banDate: null,
+        banReason: null,
+      });
+    });
+    it('ban user3 and GET Ban users with query', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user3.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason                    banReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?banStatus=banned`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items).toEqual([
+        {
+          id: user3.id,
+          email: user3.email,
+          login: user3.login,
+          createdAt: user3.createdAt,
+          banInfo: {
+            isBanned: true,
+            banDate: expect.any(String),
+            banReason: 'banReason                    banReason',
+          },
+        },
+      ]);
+      user3 = result.body.items[0];
+
+      await request(app.getHttpServer())
+        .get(`/sa/users?banStatus=banned&searchEmailTerm=${user4.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('GET unBan users with query', async function () {
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?banStatus=notBanned&sortBy=login&sortDirection=asc&searchEmailTerm=s&searchLoginTerm=login`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 3,
+        items: [user1, user2, user4],
+      });
+
+      await request(app.getHttpServer())
+        .get(
+          `/sa/users?banStatus=notBanned&sortBy=login&sortDirection=asc&searchEmailTerm=${user4.email}&searchLoginTerm=${user4.login}`,
+        )
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [user4],
+        });
+
+      await request(app.getHttpServer())
+        .get(
+          `/sa/users?banStatus=notBanned&sortBy=login&sortDirection=asc&searchEmailTerm=${user3.email}&searchLoginTerm=${user3.login}`,
+        )
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('GET all users with query', async function () {
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?banStatus=all&sortBy=login&sortDirection=asc&searchLoginTerm=login`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 4,
+        items: [user1, user2, user3, user4],
+      });
     });
   });
 
@@ -921,7 +1202,7 @@ describe('AppController (e2e)', () => {
     let refreshTokenKey: string, validRefreshToken: string, oldRefreshToken: string;
     it('POST shouldn`t authenticate user with incorrect data', async () => {
       const result = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -1177,7 +1458,7 @@ describe('AppController (e2e)', () => {
       post = resultPost.body;
 
       const resultUser = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -1329,7 +1610,7 @@ describe('AppController (e2e)', () => {
     });
     it('PUT shouldn`t update comment and return 403', async () => {
       const resultUser = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login2',
@@ -1407,7 +1688,7 @@ describe('AppController (e2e)', () => {
     let devices: DeviceViewModel[];
     it('POST should authenticate user with correct data', async () => {
       const resultUser = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -1527,7 +1808,7 @@ describe('AppController (e2e)', () => {
     });
     it('DELETE should return error if access denied', async () => {
       await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login2',
@@ -1945,7 +2226,7 @@ describe('AppController (e2e)', () => {
       post = resultPost.body;
 
       const resultUser = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -1965,7 +2246,7 @@ describe('AppController (e2e)', () => {
       token = resultToken.body;
 
       const resultUser2 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login2',
@@ -1985,7 +2266,7 @@ describe('AppController (e2e)', () => {
       token2 = resultToken2.body;
 
       const resultUser3 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login3',
@@ -2005,7 +2286,7 @@ describe('AppController (e2e)', () => {
       token3 = resultToken3.body;
 
       const resultUser4 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login4',
@@ -2557,7 +2838,7 @@ describe('AppController (e2e)', () => {
       post = resultPost.body;
 
       const resultUser = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login',
@@ -2577,7 +2858,7 @@ describe('AppController (e2e)', () => {
       token = resultToken.body;
 
       const resultUser2 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login2',
@@ -2597,7 +2878,7 @@ describe('AppController (e2e)', () => {
       token2 = resultToken2.body;
 
       const resultUser3 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login3',
@@ -2617,7 +2898,7 @@ describe('AppController (e2e)', () => {
       token3 = resultToken3.body;
 
       const resultUser4 = await request(app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           login: 'login4',
@@ -3315,7 +3596,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('get 1 user', async () => {
-      const users = await request(app.getHttpServer()).get('/users').expect(200);
+      const users = await request(app.getHttpServer()).get('/sa/users').expect(200);
       expect(users.body).toEqual({
         pagesCount: 1,
         page: 1,

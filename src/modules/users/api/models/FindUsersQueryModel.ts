@@ -1,4 +1,4 @@
-import { SortDirection } from '../../../../main/types/enums';
+import { BanStatuses, SortDirection } from '../../../../main/types/enums';
 
 export type FindUsersQueryModel = {
   pageNumber: number;
@@ -7,4 +7,5 @@ export type FindUsersQueryModel = {
   sortDirection: SortDirection;
   searchLoginTerm: string;
   searchEmailTerm: string;
+  banStatus: BanStatuses;
 };

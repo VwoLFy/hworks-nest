@@ -73,6 +73,7 @@ import { SendPasswordRecoveryEmailUseCase } from './modules/auth/application/use
 import { GenerateNewTokensUseCase } from './modules/auth/application/use-cases/generate-new-tokens-use-case';
 import { SecurityService } from './modules/security/application/security.service';
 import { CqrsModule } from '@nestjs/cqrs';
+import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-use-case';
 
 const useCases = [
   DeleteAllUseCase,
@@ -98,6 +99,7 @@ const useCases = [
   DeleteSessionUseCase,
   DeleteSessionsExceptCurrentUseCase,
   GenerateNewTokensUseCase,
+  BanUserUseCase,
 ];
 
 @Module({
