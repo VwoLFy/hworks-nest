@@ -24,9 +24,7 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
     const foundPost = await this.postsRepository.findPostById(postId);
     if (!foundPost) return false;
 
-    const userLogin = await this.usersRepository.findUserLoginById(userId);
-    if (!userLogin) return false;
-
+    const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
     const foundLike = await this.postsRepository.findPostLike(postId, userId);
 
     const like = foundPost.setLikeStatus(foundLike, userId, userLogin, likeStatus, this.PostLikeModel);

@@ -6,22 +6,8 @@ import { PostsViewModelPage } from './models/PostsViewModelPage';
 import { PostViewModel } from './models/PostViewModel';
 import { HTTP_Status } from '../../../main/types/enums';
 import { CommentViewModelPage } from '../../comments/api/models/CommentViewModelPage';
-import { CreatePostDto } from '../application/dto/CreatePostDto';
-import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { FindCommentsQueryModel } from './models/FindCommentsQueryModel';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
@@ -31,10 +17,6 @@ import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQue
 import { UserId } from '../../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../../main/guards/get-user-id.guard';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
-import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
-import { CreatePostCommand } from '../application/use-cases/create-post-use-case';
-import { UpdatePostCommand } from '../application/use-cases/update-post-use-case';
-import { DeletePostCommand } from '../application/use-cases/delete-post-use-case';
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment-use-case';
 import { CommandBus } from '@nestjs/cqrs';
 
@@ -65,25 +47,6 @@ export class PostsController {
     if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
     return foundPost;
-  }
-
-  @Post()
-  @UseGuards(BasicAuthGuard)
-  async createPost(@Body() body: CreatePostDto, @UserId() userId: string | null): Promise<PostViewModel> {
-    const createdPostId = await this.commandBus.execute(new CreatePostCommand(body));
-    if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
-
-    return await this.postsQueryRepo.findPostById(createdPostId, userId);
-  }
-
-  @Put(':id')
-  @UseGuards(BasicAuthGuard)
-  @HttpCode(204)
-  async updatePost(@Param('id', checkObjectIdPipe) postId: string, @Body() body: UpdatePostDto) {
-    const isUpdatedPost = await this.commandBus.execute(new UpdatePostCommand(postId, body));
-    if (!isUpdatedPost) {
-      throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
-    }
   }
 
   @Get(':id/comments')
@@ -125,13 +88,5 @@ export class PostsController {
   ) {
     const result = await this.commandBus.execute(new LikePostCommand({ postId, userId, likeStatus: body.likeStatus }));
     if (!result) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
-  }
-
-  @Delete(':id')
-  @UseGuards(BasicAuthGuard)
-  @HttpCode(204)
-  async deletePost(@Param('id', checkObjectIdPipe) postId: string) {
-    const isDeletedPost = await this.commandBus.execute(new DeletePostCommand(postId));
-    if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
   }
 }

@@ -24,8 +24,9 @@ export class CreateCommentUseCase implements ICommandHandler<CreateCommentComman
     const { postId, userId, content } = command.dto;
 
     const isPostExist = await this.postsRepository.findPostById(postId);
-    const userLogin = await this.usersRepository.findUserLoginById(userId);
-    if (!isPostExist || !userLogin) return null;
+    if (!isPostExist) return null;
+
+    const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
 
     const commentatorInfo = new CommentatorInfo(userId, userLogin);
     const comment = new this.CommentModel({ content, commentatorInfo, postId });

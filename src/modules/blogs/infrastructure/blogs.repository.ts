@@ -7,8 +7,8 @@ import { Model } from 'mongoose';
 export class BlogsRepository {
   constructor(@InjectModel(Blog.name) private BlogModel: Model<BlogDocument>) {}
 
-  async findBlogById(_id: string): Promise<BlogDocument | null> {
-    return this.BlogModel.findById({ _id });
+  async findBlogById(id: string): Promise<BlogDocument | null> {
+    return this.BlogModel.findById(id);
   }
 
   async findBlogNameById(_id: string): Promise<string | null> {

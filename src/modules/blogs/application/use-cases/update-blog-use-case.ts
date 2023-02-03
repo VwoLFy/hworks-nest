@@ -4,9 +4,10 @@ import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { Blog, BlogDocument } from '../../domain/blog.schema';
 import { UpdateBlogDto } from '../dto/UpdateBlogDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 export class UpdateBlogCommand {
-  constructor(public _id: string, public dto: UpdateBlogDto) {}
+  constructor(public id: string, public userId: string, public dto: UpdateBlogDto) {}
 }
 
 @CommandHandler(UpdateBlogCommand)
@@ -17,10 +18,13 @@ export class UpdateBlogUseCase implements ICommandHandler<UpdateBlogCommand> {
   ) {}
 
   async execute(command: UpdateBlogCommand): Promise<boolean> {
-    const blog = await this.blogsRepository.findBlogById(command._id);
-    if (!blog) return false;
+    const { id, userId, dto } = command;
 
-    blog.updateBlog(command.dto);
+    const blog = await this.blogsRepository.findBlogById(id);
+    if (!blog) throw new NotFoundException('blog not found');
+    if (blog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+
+    blog.updateBlog(dto);
     await this.blogsRepository.saveBlog(blog);
     return true;
   }
