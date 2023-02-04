@@ -34,4 +34,8 @@ export class SecurityService {
   async newDeviceId(): Promise<string> {
     return String((await this.securityRepository.maxValueActiveDeviceId()) + 1);
   }
+
+  async deleteAllUserSessions(userId: string) {
+    await this.securityRepository.deleteAllUserSessions(userId);
+  }
 }

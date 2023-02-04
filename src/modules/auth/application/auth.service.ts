@@ -12,6 +12,7 @@ export class AuthService {
     if (
       !foundUser ||
       !foundUser.emailConfirmation.isConfirmed ||
+      foundUser.banInfo.isBanned ||
       !(await this.passwordIsCorrect(dto.password, foundUser.accountData.passwordHash))
     )
       return null;

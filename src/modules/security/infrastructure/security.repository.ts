@@ -22,7 +22,7 @@ export class SecurityRepository {
     );
   }
 
-  async deleteSessionsOfUser(userId: string, deviceId: string): Promise<boolean> {
+  async DeleteSessionsExceptCurrent(userId: string, deviceId: string): Promise<boolean> {
     const deleteFilter = { userId, deviceId: { $ne: deviceId } };
     const result = await this.SessionModel.deleteMany(deleteFilter);
     return !!result.deletedCount;
@@ -34,5 +34,9 @@ export class SecurityRepository {
 
   async deleteAll() {
     await this.SessionModel.deleteMany();
+  }
+
+  async deleteAllUserSessions(userId: string) {
+    await this.SessionModel.deleteMany({ userId });
   }
 }

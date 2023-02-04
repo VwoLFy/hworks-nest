@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
+import { SecurityService } from '../../../security/application/security.service';
 
 export class BanUserCommand {
   constructor(public userId: string, public dto: BanUserDto) {}
@@ -14,6 +15,7 @@ export class BanUserCommand {
 export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
+    protected securityService: SecurityService,
     @InjectModel(User.name) private UserModel: Model<UserDocument>,
   ) {}
 
@@ -24,7 +26,8 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     if (!user) throw new NotFoundException('user not found');
 
     user.banUser(dto);
-
     await this.usersRepository.saveUser(user);
+
+    await this.securityService.deleteAllUserSessions(userId);
   }
 }
