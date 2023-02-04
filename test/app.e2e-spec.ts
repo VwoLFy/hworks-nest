@@ -80,7 +80,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
     let blog1: BlogViewModelBlogger;
-    let blog2: BlogViewModelBlogger;
+    let blog2Pub: BlogViewModel;
     let blogForAll: BlogViewModelBlogger;
     let user1: UserViewModel;
     let user2: UserViewModel;
@@ -272,7 +272,7 @@ describe('AppController (e2e)', () => {
           items: [],
         });
     });
-    it('POST should create blog with correct data', async () => {
+    it('POST should create blog by user1 with correct data', async () => {
       const result = await request(app.getHttpServer())
         .post('/blogger/blogs')
         .auth(token1.accessToken, { type: 'bearer' })
@@ -365,7 +365,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
-    it('PUT shouldn`t update blog  that does not belong to current user', async () => {
+    it('PUT shouldn`t update blog that does not belong to current user', async () => {
       await request(app.getHttpServer())
         .put(`/blogger/blogs/${blog1.id}`)
         .auth(token2.accessToken, { type: 'bearer' })
@@ -387,16 +387,16 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.NO_CONTENT_204);
       const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
-      blog2 = result.body;
-
-      expect(blog2).toEqual({
+      blog2Pub = result.body;
+      console.log(blog2Pub);
+      expect(blog2Pub).toEqual({
         id: expect.any(String),
         name: 'Updating NAME',
         description: 'Updating description',
         websiteUrl: 'https://api-swagger.it-incubator.ru/',
         createdAt: expect.any(String),
       });
-      expect(blog2).not.toEqual(blog1);
+      expect(blog2Pub).not.toEqual(blog1);
     });
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
@@ -409,7 +409,15 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2);
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2Pub);
+    });
+    it('DELETE shouldn`t delete blog that does not belong to current user', async () => {
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/${blog1.id}`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.FORBIDDEN_403);
+
+      await request(app.getHttpServer()).delete(`/blogger/blogs/${blog1.id}`).expect(HTTP_Status.UNAUTHORIZED_401);
     });
     it('DELETE should delete blog with correct "id"', async () => {
       await request(app.getHttpServer())
@@ -680,8 +688,63 @@ describe('AppController (e2e)', () => {
     });
     let post1: PostViewModel;
     let post2: PostViewModel;
-    let post3: PostViewModel;
     let blog1: BlogViewModel;
+    let user1: UserViewModel;
+    let user2: UserViewModel;
+    let token1: LoginSuccessViewModel;
+    let token2: LoginSuccessViewModel;
+    it('Create and login 2 users, create blog by user1', async function () {
+      let resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user1 = resultUser.body;
+
+      let resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token1 = resultToken.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user2 = resultUser.body;
+
+      resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login2',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token2 = resultToken.body;
+
+      const result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog1 = result.body;
+    });
     it('GET should return 200', async function () {
       await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
         pagesCount: 0,
@@ -691,69 +754,41 @@ describe('AppController (e2e)', () => {
         items: [],
       });
     });
-    it('GET By Id should return 404', async function () {
-      await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.NOT_FOUND_404);
-    });
     it('POST shouldn`t create post with incorrect data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      blog1 = result.body;
-
       await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: '',
           content: 'valid',
-          blogId: `${blog1.id}`,
           shortDescription: 'K8cqY3aPKo3mWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: '',
-          blogId: `${blog1.id}`,
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: 'valid',
-          blogId: `1`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `${blog1.id}`,
           shortDescription: '',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: 'valid',
-          blogId: `${blog1.id}`,
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
 
@@ -765,14 +800,53 @@ describe('AppController (e2e)', () => {
         items: [],
       });
     });
-    it('POST should create post with correct data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
+    it('POST shouldn`t create post with not exist blog', async () => {
+      await request(app.getHttpServer())
+        .post(`/blogger/blogs/1/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: 'valid',
-          blogId: `${blog1.id}`,
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .post(`/blogger/blogs/${user1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
+        pagesCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        items: [],
+      });
+    });
+    it('POST shouldn`t create post if user try to add post to blog that does not belong to current user', async () => {
+      await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.FORBIDDEN_403);
+    });
+    it('POST should create post with correct data', async () => {
+      const result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid',
+          content: 'valid',
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.CREATED_201);
@@ -803,72 +877,97 @@ describe('AppController (e2e)', () => {
           items: [post1],
         });
     });
-    it('PUT shouldn`t update blog with incorrect "name"', async () => {
+    it('PUT shouldn`t update post with incorrect "name"', async () => {
       await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: '',
           content: 'valid',
-          blogId: `${blog1.id}`,
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: '',
-          blogId: `${blog1.id}`,
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
           content: 'valid',
-          blogId: `/posts/1`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `/posts/${blog1.id}`,
           shortDescription: '',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `/posts/${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
     });
-    it('PUT should update blog with correct data', async () => {
+    it('PUT shouldn`t update post with bad id', async () => {
       await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .put(`/blogger/blogs/${blog1.id}/posts/1`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'Update POST',
           shortDescription: 'Update shortDescription',
           content: 'Update content',
-          blogId: `${blog1.id}`,
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer())
+        .put(`/blogger/blogs/${blog1.id}/posts/${blog1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'Update POST',
+          shortDescription: 'Update shortDescription',
+          content: 'Update content',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer())
+        .put(`/blogger/blogs/1/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'Update POST',
+          shortDescription: 'Update shortDescription',
+          content: 'Update content',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer())
+        .put(`/blogger/blogs/${post1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'Update POST',
+          shortDescription: 'Update shortDescription',
+          content: 'Update content',
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('PUT shouldn`t update post if user try to update post that belongs to blog that does not belong to current user', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          title: 'Update POST',
+          shortDescription: 'Update shortDescription',
+          content: 'Update content',
+        })
+        .expect(HTTP_Status.FORBIDDEN_403);
+    });
+    it('PUT should update blog with correct data', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'Update POST',
+          shortDescription: 'Update shortDescription',
+          content: 'Update content',
         })
         .expect(HTTP_Status.NO_CONTENT_204);
       const result = await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200);
-      post2 = result.body;
-      expect(post2).toEqual({
+      const updatedPost = result.body;
+      expect(updatedPost).toEqual({
         id: expect.any(String),
         title: 'Update POST',
         content: 'Update content',
@@ -883,103 +982,84 @@ describe('AppController (e2e)', () => {
           newestLikes: [],
         },
       });
-      expect(post2).not.toEqual(post1);
+      expect(updatedPost).not.toEqual(post1);
+      post1 = updatedPost;
     });
-    it('GET all posts for bad blog should return 404', async function () {
-      await request(app.getHttpServer()).get(`/blogs/1/posts`).expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('POST should create post for new blog', async () => {
-      const resultBlog = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
+    it('GET all posts for specific blog should return 200, after add new post to blog1 by user1', async function () {
+      const result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
+          title: 'valid2',
+          content: 'valid2',
+          shortDescription: 'K8cqY3aPKo3XW       OJyQgGnlX5sP3aW3RlaRSQx',
         })
         .expect(HTTP_Status.CREATED_201);
-      const blog2 = resultBlog.body;
+      post2 = result.body;
 
-      const resultPost = await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post3 = resultPost.body;
-
-      expect(post3.blogId).toBe(blog2.id);
-    });
-    it('POST shouldn`t create post for new blog with bad data', async () => {
-      const resultBlog = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      const blog2 = resultBlog.body;
-
-      await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-    });
-    it('GET all posts for specific blog should return 200', async function () {
-      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.OK_200);
-      const result2 = await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.OK_200);
-
-      expect(result.body.items.length).toBe(1);
-      expect(result2.body.items.length).toBe(1);
-    });
-    it('GET2 should return 200', async function () {
-      await request(app.getHttpServer())
-        .get('/posts')
+      const resultFoundPosts = await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
           totalCount: 2,
-          items: [post3, post2],
+          items: [post2, post1],
+        });
+      const foundPosts = resultFoundPosts.body;
+
+      expect(foundPosts.items.length).toBe(2);
+      expect(foundPosts).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 2,
+        items: [post2, post1],
+      });
+    });
+    it('DELETE shouldn`t delete post with incorrect "id"', async () => {
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/${blog1.id}/posts/1`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/${blog1.id}/posts/636a2a16f394608b01446e12`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/1/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/636a2a16f394608b01446e12/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [post2, post1],
         });
     });
-
-    it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
+    it('DELETE shouldn`t delete post if user try to delete post that belongs to blog that does not belong to current user', async () => {
       await request(app.getHttpServer())
-        .delete(`/posts/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .delete(`/posts/636a2a16f394608b01446e12`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post2);
+        .delete(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.FORBIDDEN_403);
     });
-    it('DELETE should delete blog with correct "id"', async () => {
+    it('DELETE should delete post with correct "id"', async () => {
       await request(app.getHttpServer())
-        .delete(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .delete(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NO_CONTENT_204);
+
       await request(app.getHttpServer())
         .get('/posts')
         .expect(HTTP_Status.OK_200, {
@@ -987,38 +1067,15 @@ describe('AppController (e2e)', () => {
           page: 1,
           pageSize: 10,
           totalCount: 1,
-          items: [post3],
+          items: [post2],
         });
     });
     it('DELETE blog should delete all posts of this blog', async () => {
-      const result1 = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid1',
-          content: 'valid1',
-          blogId: `${blog1.id}`,
-          shortDescription: '1 K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post1 = result1.body;
-
-      const result2 = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid2',
-          content: 'valid2',
-          blogId: `${blog1.id}`,
-          shortDescription: '2 K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post2 = result2.body;
-
       await request(app.getHttpServer())
-        .delete(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
+        .delete(`/blogger/blogs/${blog1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NO_CONTENT_204);
+
       await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.NOT_FOUND_404);
       await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.NOT_FOUND_404);
       await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);

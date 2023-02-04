@@ -5,9 +5,10 @@ import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository'
 import { Post, PostDocument } from '../../domain/post.schema';
 import { CreatePostDto } from '../dto/CreatePostDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 export class CreatePostCommand {
-  constructor(public dto: CreatePostDto) {}
+  constructor(public userId: string, public dto: CreatePostDto) {}
 }
 
 @CommandHandler(CreatePostCommand)
@@ -18,12 +19,16 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     @InjectModel(Post.name) private PostModel: Model<PostDocument>,
   ) {}
 
-  async execute(command: CreatePostCommand): Promise<string | null> {
-    const foundBlogName = await this.blogsRepository.findBlogNameById(command.dto.blogId);
-    if (!foundBlogName) return null;
+  async execute(command: CreatePostCommand): Promise<string> {
+    const { userId, dto } = command;
 
-    const post = new this.PostModel({ ...command.dto, blogName: foundBlogName });
+    const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
+    if (!foundBlog) throw new NotFoundException('blog not found');
+    if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+
+    const post = new this.PostModel({ ...dto, blogName: foundBlog.name });
     await this.postsRepository.savePost(post);
+
     return post.id;
   }
 }

@@ -31,9 +31,8 @@ export class CommentsRepository {
     await like.save();
   }
 
-  async deleteAllCommentsOfPost(postId: string): Promise<boolean> {
-    const result = await this.CommentModel.deleteMany({ postId });
-    return result.deletedCount !== 0;
+  async deleteAllCommentsOfPost(postId: string) {
+    await this.CommentModel.deleteMany({ postId });
   }
 
   async deleteLike(_id: ObjectId): Promise<void> {

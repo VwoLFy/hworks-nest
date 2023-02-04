@@ -39,12 +39,10 @@ export class Post {
   @Prop({ required: true, maxlength: 15 })
   blogName: string;
 
-  updatePost(dto: UpdatePostDto, blogName: string) {
+  updatePost(dto: UpdatePostDto) {
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
-    this.blogId = dto.blogId;
-    this.blogName = blogName;
   }
 
   setLikeStatus(

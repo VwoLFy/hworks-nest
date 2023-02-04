@@ -27,9 +27,8 @@ export class PostsRepository {
     await like.save();
   }
 
-  async deletePost(_id: string): Promise<boolean> {
-    const result = await this.PostModel.deleteOne({ _id });
-    return result.deletedCount !== 0;
+  async deletePost(id: string) {
+    await this.PostModel.deleteOne({ id });
   }
 
   async deleteAllPostsOfBlog(blogId: string): Promise<boolean> {

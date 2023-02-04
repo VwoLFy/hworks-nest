@@ -2,24 +2,11 @@ import { BlogsQueryRepo } from '../infrastructure/blogs.queryRepo';
 import { DeleteBlogCommand } from '../application/use-cases/delete-blog-use-case';
 import { PostsQueryRepo } from '../../posts/infrastructure/posts.queryRepo';
 import { FindBlogsQueryModel } from './models/FindBlogsQueryModel';
-import { HTTP_Status } from '../../../main/types/enums';
 import { BlogPostInputModel } from './models/BlogPostInputModel';
 import { PostViewModel } from '../../posts/api/models/PostViewModel';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
 import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
@@ -64,14 +51,13 @@ export class BloggerBlogsController {
     @Body() body: UpdateBlogDto,
     @UserId() userId: string,
   ) {
-    await this.commandBus.execute(new UpdateBlogCommand(blogId, userId, body));
+    await this.commandBus.execute(new UpdateBlogCommand(userId, blogId, body));
   }
 
   @Delete(':id')
   @HttpCode(204)
   async deleteBlog(@Param('id', checkObjectIdPipe) blogId: string, @UserId() userId: string) {
-    const isDeletedBlog = await this.commandBus.execute(new DeleteBlogCommand(blogId));
-    if (!isDeletedBlog) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+    await this.commandBus.execute(new DeleteBlogCommand(userId, blogId));
   }
 
   @Post(':id/posts')
@@ -80,29 +66,29 @@ export class BloggerBlogsController {
     @Body() body: BlogPostInputModel,
     @UserId() userId: string,
   ): Promise<PostViewModel> {
-    const createdPostId = await this.commandBus.execute(new CreatePostCommand({ ...body, blogId }));
-    if (!createdPostId) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
+    const createdPostId = await this.commandBus.execute(new CreatePostCommand(userId, { ...body, blogId }));
 
     return await this.postsQueryRepo.findPostById(createdPostId, userId);
   }
 
-  @Put(':id')
+  @Put(':blogId/posts/:postId')
   @HttpCode(204)
   async updateBlogPost(
-    @Param('id', checkObjectIdPipe) postId: string,
+    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: UpdatePostDto,
     @UserId() userId: string,
   ) {
-    const isUpdatedPost = await this.commandBus.execute(new UpdatePostCommand(postId, body));
-    if (!isUpdatedPost) {
-      throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
-    }
+    await this.commandBus.execute(new UpdatePostCommand(userId, postId, blogId, body));
   }
 
-  @Delete(':id')
+  @Delete(':blogId/posts/:postId')
   @HttpCode(204)
-  async deleteBlogPost(@Param('id', checkObjectIdPipe) postId: string, @UserId() userId: string) {
-    const isDeletedPost = await this.commandBus.execute(new DeletePostCommand(postId));
-    if (!isDeletedPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
+  async deleteBlogPost(
+    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
+    @UserId() userId: string,
+  ) {
+    await this.commandBus.execute(new DeletePostCommand(userId, postId, blogId));
   }
 }

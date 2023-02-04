@@ -20,9 +20,8 @@ export class BlogsRepository {
     await blog.save();
   }
 
-  async deleteBlog(_id: string): Promise<boolean> {
-    const result = await this.BlogModel.deleteOne({ _id });
-    return result.deletedCount !== 0;
+  async deleteBlog(id: string) {
+    await this.BlogModel.deleteOne({ id });
   }
 
   async deleteAll() {
