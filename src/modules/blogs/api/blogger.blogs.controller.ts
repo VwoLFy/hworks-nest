@@ -23,7 +23,7 @@ import { BlogViewModelBlogger } from './models/BlogViewModelBlogger';
 
 @Controller('blogger/blogs')
 @UseGuards(JwtAuthGuard)
-export class BloggerBlogsController {
+export class BlogsControllerBlogger {
   constructor(
     protected blogsQueryRepo: BlogsQueryRepo,
     protected postsQueryRepo: PostsQueryRepo,
@@ -44,25 +44,25 @@ export class BloggerBlogsController {
     return await this.blogsQueryRepo.findBlogForBlogger(createdBlogId);
   }
 
-  @Put(':id')
+  @Put(':blogId')
   @HttpCode(204)
   async updateBlog(
-    @Param('id', checkObjectIdPipe) blogId: string,
+    @Param('blogId', checkObjectIdPipe) blogId: string,
     @Body() body: UpdateBlogDto,
     @UserId() userId: string,
   ) {
     await this.commandBus.execute(new UpdateBlogCommand(userId, blogId, body));
   }
 
-  @Delete(':id')
+  @Delete(':blogId')
   @HttpCode(204)
-  async deleteBlog(@Param('id', checkObjectIdPipe) blogId: string, @UserId() userId: string) {
+  async deleteBlog(@Param('blogId', checkObjectIdPipe) blogId: string, @UserId() userId: string) {
     await this.commandBus.execute(new DeleteBlogCommand(userId, blogId));
   }
 
-  @Post(':id/posts')
+  @Post(':blogId/posts')
   async createBlogPost(
-    @Param('id', checkObjectIdPipe) blogId: string,
+    @Param('blogId', checkObjectIdPipe) blogId: string,
     @Body() body: BlogPostInputModel,
     @UserId() userId: string,
   ): Promise<PostViewModel> {

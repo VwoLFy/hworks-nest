@@ -80,8 +80,8 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
     let blog1: BlogViewModelBlogger;
-    let blog2Pub: BlogViewModel;
-    let blogForAll: BlogViewModelBlogger;
+    let blog1Public: BlogViewModel;
+    let blog2Public: BlogViewModel;
     let user1: UserViewModel;
     let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
@@ -128,16 +128,13 @@ describe('AppController (e2e)', () => {
       token2 = resultToken.body;
     });
     it('GET should return 200', async function () {
-      await request(app.getHttpServer())
-        .get('/blogs')
-        .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 0,
-          page: 1,
-          pageSize: 10,
-          totalCount: 0,
-          items: [],
-        });
+      await request(app.getHttpServer()).get('/blogs').expect(HTTP_Status.OK_200, {
+        pagesCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        items: [],
+      });
 
       await request(app.getHttpServer())
         .get('/blogger/blogs')
@@ -292,19 +289,23 @@ describe('AppController (e2e)', () => {
         createdAt: expect.any(String),
         isMembership: true,
       });
-
-      blogForAll = { ...blog1 };
-      delete blogForAll.isMembership;
+    });
+    it('GET from public by ID, all and blogger API should return 200 and blog', async function () {
+      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, {
+        id: blog1.id,
+        name: blog1.name,
+        description: blog1.description,
+        websiteUrl: blog1.websiteUrl,
+      });
 
       await request(app.getHttpServer())
         .get('/blogs')
-        .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
           totalCount: 1,
-          items: [blogForAll],
+          items: [result.body],
         });
 
       await request(app.getHttpServer())
@@ -317,6 +318,36 @@ describe('AppController (e2e)', () => {
           totalCount: 1,
           items: [blog1],
         });
+    });
+    it('GET blog by admin should return 200 and blog', async function () {
+      const result = await request(app.getHttpServer())
+        .get('/sa/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 1,
+        items: [
+          {
+            id: blog1.id,
+            name: blog1.name,
+            description: blog1.description,
+            websiteUrl: blog1.websiteUrl,
+            createdAt: blog1.createdAt,
+            isMembership: blog1.isMembership,
+            blogOwnerInfo: expect.objectContaining({
+              userId: expect.any(String),
+              userLogin: expect.any(String),
+            }),
+          },
+        ],
+      });
+    });
+    it('GET blog by admin should return 401 without auth', async function () {
+      await request(app.getHttpServer()).get('/sa/blogs').expect(HTTP_Status.UNAUTHORIZED_401);
     });
     it('PUT shouldn`t update blog with incorrect data', async () => {
       await request(app.getHttpServer())
@@ -377,6 +408,9 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('PUT should update blog with correct data', async () => {
+      let result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
+      blog1Public = result.body;
+
       await request(app.getHttpServer())
         .put(`/blogger/blogs/${blog1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
@@ -386,17 +420,16 @@ describe('AppController (e2e)', () => {
           websiteUrl: 'https://api-swagger.it-incubator.ru/',
         })
         .expect(HTTP_Status.NO_CONTENT_204);
-      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
-      blog2Pub = result.body;
-      console.log(blog2Pub);
-      expect(blog2Pub).toEqual({
+      result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
+      blog2Public = result.body;
+
+      expect(blog2Public).toEqual({
         id: expect.any(String),
         name: 'Updating NAME',
         description: 'Updating description',
         websiteUrl: 'https://api-swagger.it-incubator.ru/',
-        createdAt: expect.any(String),
       });
-      expect(blog2Pub).not.toEqual(blog1);
+      expect(blog2Public).not.toEqual(blog1Public);
     });
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
@@ -409,7 +442,7 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2Pub);
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2Public);
     });
     it('DELETE shouldn`t delete blog that does not belong to current user', async () => {
       await request(app.getHttpServer())

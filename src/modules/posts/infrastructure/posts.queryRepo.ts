@@ -3,7 +3,7 @@ import { FindPostsQueryModel } from '../api/models/FindPostsQueryModel';
 import { PostViewModel } from '../api/models/PostViewModel';
 import { PostsViewModelPage } from '../api/models/PostsViewModelPage';
 import { LikeStatus, SortDirection } from '../../../main/types/enums';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PostLike, PostLikeDocument } from '../domain/postLike.schema';
@@ -53,11 +53,7 @@ export class PostsQueryRepo {
     return this.postWithReplaceId(foundPost, userId);
   }
 
-  async findPostsByBlogId(
-    blogId: string,
-    userId: string | null,
-    dto: FindPostsQueryModel,
-  ): Promise<PostsViewModelPage | null> {
+  async findPostsForBlog(blogId: string, userId: string | null, dto: FindPostsQueryModel): Promise<PostsViewModelPage> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
     const optionsSort: { [key: string]: SortDirection } = {
@@ -65,7 +61,7 @@ export class PostsQueryRepo {
     };
 
     const totalCount = await this.PostModel.countDocuments().where('blogId').equals(blogId);
-    if (totalCount == 0) return null;
+    if (totalCount == 0) throw new NotFoundException('blog not found');
 
     const pagesCount = Math.ceil(totalCount / pageSize);
 

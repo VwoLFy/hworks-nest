@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BlogViewModelBlogger } from '../api/models/BlogViewModelBlogger';
 import { PaginationPageModel } from '../api/models/PaginationPageModel';
+import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
 
 @Injectable()
 export class BlogsQueryRepo {
@@ -27,7 +28,7 @@ export class BlogsQueryRepo {
     return !userId ? foundBlogs : foundBlogs.where('blogOwnerInfo.userId', userId);
   }
 
-  async findBlogById(_id: string): Promise<BlogViewModel | null> {
+  async findBlogByIdPublic(_id: string): Promise<BlogViewModel | null> {
     const foundBlog = await this.BlogModel.findById(_id);
     if (!foundBlog) return null;
 
@@ -72,6 +73,25 @@ export class BlogsQueryRepo {
     const foundBlogs = await this.findBlogs(null, dto);
 
     const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
+
+    const paginationPage = new PaginationPageModel({
+      pagesCount,
+      pageNumber,
+      pageSize,
+      totalCount,
+    });
+    return { ...paginationPage, items };
+  }
+
+  async findBlogsSA(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModelSA>> {
+    const { searchNameTerm, pageNumber, pageSize } = dto;
+
+    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(searchNameTerm, 'i'));
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    const foundBlogs = await this.findBlogs(null, dto);
+
+    const items: BlogViewModelSA[] = foundBlogs.map((b) => new BlogViewModelSA(b));
 
     const paginationPage = new PaginationPageModel({
       pagesCount,

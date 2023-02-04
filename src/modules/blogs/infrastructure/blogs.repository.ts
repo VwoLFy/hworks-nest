@@ -11,11 +11,6 @@ export class BlogsRepository {
     return this.BlogModel.findById(id);
   }
 
-  async findBlogNameById(_id: string): Promise<string | null> {
-    const foundBlog = await this.BlogModel.findById({ _id }).lean();
-    return foundBlog ? foundBlog.name : null;
-  }
-
   async saveBlog(blog: BlogDocument) {
     await blog.save();
   }

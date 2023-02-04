@@ -2,10 +2,9 @@ import { BlogsQueryRepo } from '../infrastructure/blogs.queryRepo';
 import { PostsQueryRepo } from '../../posts/infrastructure/posts.queryRepo';
 import { FindBlogsQueryModel } from './models/FindBlogsQueryModel';
 import { BlogViewModel } from './models/BlogViewModel';
-import { HTTP_Status } from '../../../main/types/enums';
 import { PostsViewModelPage } from '../../posts/api/models/PostsViewModelPage';
 import { FindPostsQueryModel } from '../../posts/api/models/FindPostsQueryModel';
-import { Controller, Get, HttpException, NotFoundException, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Query, UseGuards } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
@@ -22,23 +21,20 @@ export class BlogsController {
     return await this.blogsQueryRepo.findBlogsPublic(query);
   }
 
-  @Get(':id')
-  async findBlogById(@Param('id', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
-    const blog = await this.blogsQueryRepo.findBlogById(blogId);
+  @Get(':blogId')
+  async findBlogById(@Param('blogId', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
+    const blog = await this.blogsQueryRepo.findBlogByIdPublic(blogId);
     if (!blog) throw new NotFoundException('blog not found');
     return blog;
   }
 
-  @Get(':id/posts')
+  @Get(':blogId/posts')
   @UseGuards(GetUserIdGuard)
-  async findPostsByBlogId(
-    @Param('id', checkObjectIdPipe) blogId: string,
+  async findPostsForBlog(
+    @Param('blogId', checkObjectIdPipe) blogId: string,
     @Query(findPostsOfBlogQueryPipe) query: FindPostsQueryModel,
     @UserId() userId: string | null,
   ): Promise<PostsViewModelPage> {
-    const foundPost = await this.postsQueryRepo.findPostsByBlogId(blogId, userId, query);
-    if (!foundPost) throw new HttpException('blog not found', HTTP_Status.NOT_FOUND_404);
-
-    return foundPost;
+    return await this.postsQueryRepo.findPostsForBlog(blogId, userId, query);
   }
 }

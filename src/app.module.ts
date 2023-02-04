@@ -74,7 +74,8 @@ import { GenerateNewTokensUseCase } from './modules/auth/application/use-cases/g
 import { SecurityService } from './modules/security/application/security.service';
 import { CqrsModule } from '@nestjs/cqrs';
 import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-use-case';
-import { BloggerBlogsController } from './modules/blogs/api/blogger.blogs.controller';
+import { BlogsControllerBlogger } from './modules/blogs/api/blogger.blogs.controller';
+import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
 
 const useCases = [
   DeleteAllUseCase,
@@ -196,7 +197,8 @@ const useCases = [
     DeleteAllController,
     AuthController,
     SecurityController,
-    BloggerBlogsController,
+    BlogsControllerBlogger,
+    BlogsControllerSA,
   ],
   providers: [
     BasicStrategy,

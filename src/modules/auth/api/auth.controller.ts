@@ -104,7 +104,7 @@ export class AuthController {
   @HttpCode(204)
   async registrationConfirmation(@Body() body: RegistrationConfirmationCodeModel) {
     const isConfirm = await this.commandBus.execute(new ConfirmEmailCommand(body.code));
-    if (!isConfirm) throw new BadRequestException([{ field: 'code', message: `Code isn't valid` }]);
+    if (!isConfirm) throw new BadRequestException([{ message: `Code isn't valid`, field: 'code' }]);
   }
 
   @Post('registration-email-resending')
