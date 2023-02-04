@@ -287,7 +287,7 @@ describe('AppController (e2e)', () => {
         description: 'description',
         websiteUrl: 'https://localhost1.uuu/blogs',
         createdAt: expect.any(String),
-        isMembership: true,
+        isMembership: false,
       });
     });
     it('GET from public by ID, all and blogger API should return 200 and blog', async function () {

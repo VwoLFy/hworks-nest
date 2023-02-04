@@ -19,7 +19,7 @@ export class CommentsQueryRepo {
   async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
     const foundComment = await this.CommentModel.findById({
       _id,
-    }).lean();
+    });
     if (!foundComment) return null;
 
     return this.commentWithReplaceId(foundComment, userId);

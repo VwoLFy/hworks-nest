@@ -52,7 +52,7 @@ export class Blog {
     this.name = dto.name;
     this.description = dto.description;
     this.websiteUrl = dto.websiteUrl;
-    this.isMembership = true;
+    this.isMembership = false;
     this.blogOwnerInfo = new BlogOwnerInfo(userId, userLogin);
   }
 
