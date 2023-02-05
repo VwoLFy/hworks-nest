@@ -13,7 +13,7 @@ export class IsBlogExistConstraint implements ValidatorConstraintInterface {
   constructor(protected blogsQueryRepo: BlogsQueryRepo) {}
 
   async validate(value: string) {
-    const foundBlog = await this.blogsQueryRepo.findBlogByIdPublic(value);
+    const foundBlog = await this.blogsQueryRepo.findBlogById(value);
     return !!foundBlog;
   }
 

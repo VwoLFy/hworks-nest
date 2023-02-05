@@ -12,7 +12,6 @@ import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';
-import { BlogViewModelBlogger } from '../src/modules/blogs/api/models/BlogViewModelBlogger';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -79,9 +78,7 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let blog1: BlogViewModelBlogger;
-    let blog1Public: BlogViewModel;
-    let blog2Public: BlogViewModel;
+    let blog1: BlogViewModel;
     let user1: UserViewModel;
     let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
@@ -291,12 +288,7 @@ describe('AppController (e2e)', () => {
       });
     });
     it('GET from public by ID, all and blogger API should return 200 and blog', async function () {
-      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, {
-        id: blog1.id,
-        name: blog1.name,
-        description: blog1.description,
-        websiteUrl: blog1.websiteUrl,
-      });
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
 
       await request(app.getHttpServer())
         .get('/blogs')
@@ -305,7 +297,7 @@ describe('AppController (e2e)', () => {
           page: 1,
           pageSize: 10,
           totalCount: 1,
-          items: [result.body],
+          items: [blog1],
         });
 
       await request(app.getHttpServer())
@@ -408,8 +400,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('PUT should update blog with correct data', async () => {
-      let result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
-      blog1Public = result.body;
+      const oldBlog1 = { ...blog1 };
 
       await request(app.getHttpServer())
         .put(`/blogger/blogs/${blog1.id}`)
@@ -420,16 +411,18 @@ describe('AppController (e2e)', () => {
           websiteUrl: 'https://api-swagger.it-incubator.ru/',
         })
         .expect(HTTP_Status.NO_CONTENT_204);
-      result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
-      blog2Public = result.body;
+      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
+      blog1 = result.body;
 
-      expect(blog2Public).toEqual({
+      expect(blog1).toEqual({
         id: expect.any(String),
         name: 'Updating NAME',
         description: 'Updating description',
         websiteUrl: 'https://api-swagger.it-incubator.ru/',
+        createdAt: expect.any(String),
+        isMembership: false,
       });
-      expect(blog2Public).not.toEqual(blog1Public);
+      expect(blog1).not.toEqual(oldBlog1);
     });
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
@@ -442,7 +435,7 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2Public);
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
     });
     it('DELETE shouldn`t delete blog that does not belong to current user', async () => {
       await request(app.getHttpServer())
@@ -457,6 +450,7 @@ describe('AppController (e2e)', () => {
         .delete(`/blogger/blogs/${blog1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NO_CONTENT_204);
+
       await request(app.getHttpServer()).get('/blogs').expect(HTTP_Status.OK_200, {
         pagesCount: 0,
         page: 1,
@@ -464,6 +458,14 @@ describe('AppController (e2e)', () => {
         totalCount: 0,
         items: [],
       });
+
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('DELETE shouldn`t delete blog that is not exist', async () => {
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/${blog1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
   });
 

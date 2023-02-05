@@ -18,12 +18,12 @@ export class BlogsController {
 
   @Get()
   async findBlogs(@Query(findBlogsQueryPipe) query: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
-    return await this.blogsQueryRepo.findBlogsPublic(query);
+    return await this.blogsQueryRepo.findBlogs(query);
   }
 
   @Get(':blogId')
   async findBlogById(@Param('blogId', checkObjectIdPipe) blogId: string): Promise<BlogViewModel> {
-    const blog = await this.blogsQueryRepo.findBlogByIdPublic(blogId);
+    const blog = await this.blogsQueryRepo.findBlogById(blogId);
     if (!blog) throw new NotFoundException('blog not found');
     return blog;
   }

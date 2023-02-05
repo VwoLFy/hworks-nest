@@ -19,7 +19,7 @@ import { UpdatePostDto } from '../../posts/application/dto/UpdatePostDto';
 import { UpdatePostCommand } from '../../posts/application/use-cases/update-post-use-case';
 import { DeletePostCommand } from '../../posts/application/use-cases/delete-post-use-case';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
-import { BlogViewModelBlogger } from './models/BlogViewModelBlogger';
+import { BlogViewModel } from './models/BlogViewModel';
 
 @Controller('blogger/blogs')
 @UseGuards(JwtAuthGuard)
@@ -34,14 +34,14 @@ export class BlogsControllerBlogger {
   async findOwnBlogs(
     @Query(findBlogsQueryPipe) query: FindBlogsQueryModel,
     @UserId() userId: string,
-  ): Promise<PageViewModel<BlogViewModelBlogger>> {
+  ): Promise<PageViewModel<BlogViewModel>> {
     return await this.blogsQueryRepo.findOwnBlogs(userId, query);
   }
 
   @Post()
-  async createBlog(@Body() body: CreateBlogDto, @UserId() userId: string): Promise<BlogViewModelBlogger> {
+  async createBlog(@Body() body: CreateBlogDto, @UserId() userId: string): Promise<BlogViewModel> {
     const createdBlogId = await this.commandBus.execute(new CreateBlogCommand(userId, body));
-    return await this.blogsQueryRepo.findBlogForBlogger(createdBlogId);
+    return await this.blogsQueryRepo.findBlogById(createdBlogId);
   }
 
   @Put(':blogId')

@@ -18,7 +18,7 @@ export class BindBlogWithUserUseCase implements ICommandHandler<BindBlogWithUser
       throw new BadRequestException([{ message: `blogId isn't correct`, field: 'blogId' }]);
 
     const foundUser = await this.usersRepository.findUserById(userId);
-    if (!foundUser) throw new BadRequestException([{ message: `user isn't find`, field: 'userId' }]);
+    if (!foundUser) throw new BadRequestException([{ message: `user not found`, field: 'userId' }]);
 
     foundBlog.blogOwnerInfo.userId = userId;
     foundBlog.blogOwnerInfo.userLogin = foundUser.accountData.login;
