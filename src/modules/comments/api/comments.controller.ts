@@ -1,7 +1,6 @@
 import { CommentsQueryRepo } from '../infrastructure/comments.queryRepo';
 import { CommentViewModel } from './models/CommentViewModel';
-import { HTTP_Status } from '../../../main/types/enums';
-import { Body, Controller, Delete, Get, HttpCode, HttpException, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Put, UseGuards } from '@nestjs/common';
 import { CommentInputModel } from './models/CommentInputModel';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { CommentLikeInputModel } from './models/CommentLikeInputModel';
@@ -23,10 +22,7 @@ export class CommentsController {
     @Param('id', checkObjectIdPipe) commentId: string,
     @UserId() userId: string | null,
   ): Promise<CommentViewModel> {
-    const foundComment = await this.commentsQueryRepo.findCommentById(commentId, userId);
-    if (!foundComment) throw new HttpException('comment not found', HTTP_Status.NOT_FOUND_404);
-
-    return foundComment;
+    return await this.commentsQueryRepo.findCommentById(commentId, userId);
   }
 
   @Put(':id')

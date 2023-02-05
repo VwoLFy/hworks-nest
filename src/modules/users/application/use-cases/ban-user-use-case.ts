@@ -27,8 +27,9 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
 
     user.banUser(dto);
     await this.usersRepository.saveUser(user);
-
+    console.log(userId);
     const foundComments = await this.commentsRepository.findUserComments(userId);
+    console.log(foundComments);
     foundComments.forEach((c) => {
       c.setIsAllowed(!dto.isBanned);
       this.commentsRepository.saveComment(c);

@@ -3,7 +3,7 @@ import { FindCommentsByPostIdDto } from './dto/FindCommentsByPostIdDto';
 import { CommentViewModel } from '../api/models/CommentViewModel';
 import { CommentViewModelPage } from '../api/models/CommentViewModelPage';
 import { LikeStatus } from '../../../main/types/enums';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
@@ -18,7 +18,7 @@ export class CommentsQueryRepo {
 
   async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
     const foundComment = await this.CommentModel.findOne({ _id, isAllowed: true });
-    if (!foundComment) return null;
+    if (!foundComment) throw new NotFoundException('comment not found');
 
     return this.commentWithReplaceId(foundComment, userId);
   }

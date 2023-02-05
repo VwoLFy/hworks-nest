@@ -74,8 +74,7 @@ export class PostsController {
     );
     if (!createdCommentId) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
-    const createdComment = await this.commentsQueryRepo.findCommentById(createdCommentId, userId);
-    if (createdComment) return createdComment;
+    return this.commentsQueryRepo.findCommentById(createdCommentId, userId);
   }
 
   @Put(':id/like-status')
