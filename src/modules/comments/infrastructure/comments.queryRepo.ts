@@ -17,7 +17,7 @@ export class CommentsQueryRepo {
   ) {}
 
   async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
-    const foundComment = await this.CommentModel.findById({ _id, isAllowed: true });
+    const foundComment = await this.CommentModel.findOne({ _id, isAllowed: true });
     if (!foundComment) return null;
 
     return this.commentWithReplaceId(foundComment, userId);
