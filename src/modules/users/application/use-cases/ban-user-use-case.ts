@@ -1,14 +1,10 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
-import { User, UserDocument } from '../../domain/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { SecurityService } from '../../../security/application/security.service';
-import { CommentLikeDocument } from '../../../comments/domain/commentLike.schema';
-import { Comment } from '../../../comments/domain/comment.schema';
 import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
+import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 
 export class BanUserCommand {
   constructor(public userId: string, public dto: BanUserDto) {}
@@ -18,10 +14,9 @@ export class BanUserCommand {
 export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
+    protected postsRepository: PostsRepository,
     protected commentsRepository: CommentsRepository,
     protected securityService: SecurityService,
-    @InjectModel(User.name) private UserModel: Model<UserDocument>,
-    @InjectModel(Comment.name) private CommentLike: Model<CommentLikeDocument>,
   ) {}
 
   async execute(command: BanUserCommand) {
@@ -37,6 +32,12 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     foundCommentLikes.forEach((l) => {
       l.setIsAllowed = !dto.isBanned;
       this.commentsRepository.saveLike(l);
+    });
+
+    const foundPostLikes = await this.postsRepository.findPostLikesOrUser(userId);
+    foundPostLikes.forEach((l) => {
+      l.setIsAllowed = !dto.isBanned;
+      this.postsRepository.savePostLike(l);
     });
 
     await this.securityService.deleteAllUserSessions(userId);

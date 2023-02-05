@@ -63,8 +63,18 @@ export class CommentsQueryRepo {
       }).lean();
       if (status) myStatus = status.likeStatus;
     }
-    const likesCount = await this.CommentLikeModel.countDocuments({ commentId: comment._id, isAllowed: true });
-    const dislikesCount = await this.CommentLikeModel.countDocuments({ commentId: comment._id, isAllowed: true });
+
+    const likesCount = await this.CommentLikeModel.countDocuments({
+      commentId: comment._id,
+      likeStatus: LikeStatus.Like,
+      isAllowed: true,
+    });
+    const dislikesCount = await this.CommentLikeModel.countDocuments({
+      commentId: comment._id,
+      likeStatus: LikeStatus.Dislike,
+      isAllowed: true,
+    });
+
     return {
       id: comment._id.toString(),
       content: comment.content,

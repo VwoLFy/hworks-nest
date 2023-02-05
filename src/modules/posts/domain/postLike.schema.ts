@@ -19,8 +19,15 @@ export class PostLike {
   @Prop({ required: true })
   likeStatus: LikeStatus;
 
+  @Prop({ default: true })
+  private isAllowed: boolean;
+
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;
+  }
+
+  set setIsAllowed(isAllowed: boolean) {
+    this.isAllowed = isAllowed;
   }
 }
 export type PostLikeDocument = HydratedDocument<PostLike>;

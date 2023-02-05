@@ -99,9 +99,21 @@ export class PostsQueryRepo {
       if (status) myStatus = status.likeStatus;
     }
 
+    const likesCount = await this.PostLikeModel.countDocuments({
+      postId: post._id,
+      likeStatus: LikeStatus.Like,
+      isAllowed: true,
+    });
+    const dislikesCount = await this.PostLikeModel.countDocuments({
+      postId: post._id,
+      likeStatus: LikeStatus.Dislike,
+      isAllowed: true,
+    });
+
     const newestLikes1 = await this.PostLikeModel.find({
       postId: post._id,
       likeStatus: LikeStatus.Like,
+      isAllowed: true,
     })
       .sort('-addedAt')
       .limit(3)
@@ -121,8 +133,8 @@ export class PostsQueryRepo {
       blogName: post.blogName,
       createdAt: post.createdAt.toISOString(),
       extendedLikesInfo: {
-        likesCount: post.extendedLikesInfo.likesCount,
-        dislikesCount: post.extendedLikesInfo.dislikesCount,
+        likesCount,
+        dislikesCount,
         myStatus,
         newestLikes,
       },
