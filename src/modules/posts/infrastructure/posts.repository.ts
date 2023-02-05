@@ -23,7 +23,7 @@ export class PostsRepository {
     return this.PostLikeModel.findOne({ postId, userId });
   }
 
-  async findPostLikesOrUser(userId: string): Promise<PostLikeDocument[]> {
+  async findUserPostLikes(userId: string): Promise<PostLikeDocument[]> {
     return this.PostLikeModel.find({ userId });
   }
 

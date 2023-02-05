@@ -49,6 +49,13 @@ export class Comment {
   @Prop({ required: true })
   postId: string;
 
+  @Prop({ default: true })
+  private isAllowed: boolean;
+
+  setIsAllowed(isAllowed: boolean) {
+    this.isAllowed = isAllowed;
+  }
+
   setLikeStatus(
     oldLike: CommentLikeDocument | null,
     userId: string,

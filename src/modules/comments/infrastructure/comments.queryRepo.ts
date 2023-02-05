@@ -17,9 +17,7 @@ export class CommentsQueryRepo {
   ) {}
 
   async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
-    const foundComment = await this.CommentModel.findById({
-      _id,
-    });
+    const foundComment = await this.CommentModel.findById({ _id, isAllowed: true });
     if (!foundComment) return null;
 
     return this.commentWithReplaceId(foundComment, userId);
@@ -29,15 +27,14 @@ export class CommentsQueryRepo {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
     const sortOptions = { [sortBy]: sortDirection };
-    const totalCount = await this.CommentModel.countDocuments({ postId });
+    const totalCount = await this.CommentModel.countDocuments({ postId, isAllowed: true });
     if (!totalCount) return null;
 
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const commentsWith_id = await this.CommentModel.find({ postId })
+    const commentsWith_id = await this.CommentModel.find({ postId, isAllowed: true })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
-      .sort(sortOptions)
-      .lean();
+      .sort(sortOptions);
 
     let items: CommentViewModel[] = [];
     for (const commentWith_id of commentsWith_id) {
