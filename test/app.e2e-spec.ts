@@ -1104,6 +1104,14 @@ describe('AppController (e2e)', () => {
           totalCount: 1,
           items: [post2],
         });
+
+      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('DELETE shouldn`t delete post that is not exist', async () => {
+      await request(app.getHttpServer())
+        .delete(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('DELETE blog should delete all posts of this blog', async () => {
       await request(app.getHttpServer())

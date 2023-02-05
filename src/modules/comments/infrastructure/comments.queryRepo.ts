@@ -63,13 +63,14 @@ export class CommentsQueryRepo {
       }).lean();
       if (status) myStatus = status.likeStatus;
     }
-    const likesInfo = { ...comment.likesInfo, myStatus: myStatus };
+    const likesCount = await this.CommentLikeModel.countDocuments({ commentId: comment._id, isAllowed: true });
+    const dislikesCount = await this.CommentLikeModel.countDocuments({ commentId: comment._id, isAllowed: true });
     return {
       id: comment._id.toString(),
       content: comment.content,
       commentatorInfo: comment.commentatorInfo,
       createdAt: comment.createdAt.toISOString(),
-      likesInfo,
+      likesInfo: { likesCount, dislikesCount, myStatus: myStatus },
     };
   }
 }

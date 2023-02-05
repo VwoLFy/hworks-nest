@@ -16,8 +16,15 @@ export class CommentLike {
   @Prop({ required: true })
   public likeStatus: LikeStatus;
 
+  @Prop({ default: true })
+  private isAllowed: boolean;
+
   updateLikeStatus(likeStatus: LikeStatus): void {
     this.likeStatus = likeStatus;
+  }
+
+  set setIsAllowed(isAllowed: boolean) {
+    this.isAllowed = isAllowed;
   }
 }
 

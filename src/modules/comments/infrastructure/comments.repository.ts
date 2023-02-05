@@ -19,6 +19,10 @@ export class CommentsRepository {
     return foundComment;
   }
 
+  async findCommentLikesOrUser(userId: string): Promise<CommentLikeDocument[]> {
+    return this.CommentLikeModel.find({ userId });
+  }
+
   async saveComment(comment: CommentDocument): Promise<void> {
     await comment.save();
   }
