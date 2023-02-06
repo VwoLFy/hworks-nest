@@ -11,7 +11,7 @@ class FindCommentsQueryPipe implements PipeTransform<any, FindCommentsQueryModel
     pageSize = pageSize < 1 ? 10 : pageSize;
 
     let sortBy = query.sortBy || 'createdAt';
-    const fields = ['id', 'content', 'userId', 'userLogin', 'createdAt'];
+    const fields = ['id', 'content', 'createdAt'];
     sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? '_id' : sortBy;
 
     let sortDirection = query.sortDirection || SortDirection.desc;
