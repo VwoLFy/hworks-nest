@@ -85,7 +85,6 @@ export class PostsController {
     @Body() body: PostLikeInputModel,
     @UserId() userId: string | null,
   ) {
-    const result = await this.commandBus.execute(new LikePostCommand({ postId, userId, likeStatus: body.likeStatus }));
-    if (!result) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
+    await this.commandBus.execute(new LikePostCommand({ postId, userId, likeStatus: body.likeStatus }));
   }
 }

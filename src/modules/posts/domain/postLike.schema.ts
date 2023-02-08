@@ -1,10 +1,11 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
 
 @Schema()
 export class PostLike {
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   addedAt: Date;
 
   @Prop({ required: true })
@@ -19,8 +20,17 @@ export class PostLike {
   @Prop({ required: true })
   likeStatus: LikeStatus;
 
-  @Prop({ default: true })
+  @Prop({ required: true })
   private isAllowed: boolean;
+
+  constructor(dto: CreatePostLikeDto) {
+    this.postId = dto.postId;
+    this.userId = dto.userId;
+    this.login = dto.userLogin;
+    this.likeStatus = dto.likeStatus;
+    this.addedAt = new Date();
+    this.isAllowed = true;
+  }
 
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;

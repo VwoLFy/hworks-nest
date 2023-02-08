@@ -20,15 +20,21 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   ) {}
 
   async execute(command: CreatePostCommand): Promise<string> {
+    const post = await this.createPostDocument(command);
+    return post.id;
+  }
+
+  async createPostDocument(command: CreatePostCommand): Promise<PostDocument> {
     const { userId, dto } = command;
 
     const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
     if (!foundBlog) throw new NotFoundException('blog not found');
     if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
 
-    const post = new this.PostModel({ ...dto, blogName: foundBlog.name });
-    await this.postsRepository.savePost(post);
+    const post = new Post(dto, foundBlog.name);
+    const postModel = new this.PostModel(post);
+    await this.postsRepository.savePost(postModel);
 
-    return post.id;
+    return postModel;
   }
 }

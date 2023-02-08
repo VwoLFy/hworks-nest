@@ -29,9 +29,9 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
 
     const blog = new Blog(dto, userId, userLogin);
-    const blog2 = new this.BlogModel(blog);
-    await this.blogsRepository.saveBlog(blog2);
+    const blogModel = new this.BlogModel(blog);
+    await this.blogsRepository.saveBlog(blogModel);
 
-    return blog2;
+    return blogModel;
   }
 }

@@ -102,12 +102,12 @@ export class User {
   }
 
   banUser(dto: BanUserDto) {
+    this.banInfo.isBanned = dto.isBanned;
+
     if (dto.isBanned) {
-      this.banInfo.isBanned = dto.isBanned;
       this.banInfo.banReason = dto.banReason;
       this.banInfo.banDate = new Date();
     } else {
-      this.banInfo.isBanned = dto.isBanned;
       this.banInfo.banReason = null;
       this.banInfo.banDate = null;
     }

@@ -1,28 +1,31 @@
-import { HydratedDocument, Model } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { LikeStatus } from '../../../main/types/enums';
 import { ObjectId } from 'mongodb';
-import { PostLikeDocument } from './postLike.schema';
+import { PostLike, PostLikeDocument } from './postLike.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { CreatePostDto } from '../application/dto/CreatePostDto';
+import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
+
+@Schema({ _id: false })
+export class ExtendedLikesInfo {
+  @Prop({ required: true })
+  likesCount: number;
+
+  @Prop({ required: true })
+  dislikesCount: number;
+
+  constructor() {
+    this.likesCount = 0;
+    this.dislikesCount = 0;
+  }
+}
+export const ExtendedLikesInfoSchema = SchemaFactory.createForClass(ExtendedLikesInfo);
 
 @Schema()
 export class Post {
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   _id: ObjectId;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
-
-  @Prop({
-    default: {
-      likesCount: 0,
-      dislikesCount: 0,
-    },
-    type: { likesCount: Number, dislikesCount: Number },
-  })
-  extendedLikesInfo: {
-    likesCount: number;
-    dislikesCount: number;
-  };
 
   @Prop({ required: true, maxlength: 30 })
   title: string;
@@ -39,37 +42,41 @@ export class Post {
   @Prop({ required: true, maxlength: 15 })
   blogName: string;
 
+  @Prop({ required: true })
+  createdAt: Date;
+
+  @Prop({ required: true, type: ExtendedLikesInfoSchema })
+  extendedLikesInfo: ExtendedLikesInfo;
+
+  constructor(dto: CreatePostDto, blogName: string) {
+    this._id = new ObjectId();
+    this.title = dto.title;
+    this.shortDescription = dto.shortDescription;
+    this.content = dto.content;
+    this.blogId = dto.blogId;
+    this.blogName = blogName;
+    this.createdAt = new Date();
+    this.extendedLikesInfo = new ExtendedLikesInfo();
+  }
+
   updatePost(dto: UpdatePostDto) {
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
   }
 
-  setLikeStatus(
-    oldLike: PostLikeDocument | null,
-    userId: string,
-    login: string,
-    likeStatus: LikeStatus,
-    PostLikeModel: Model<PostLikeDocument>,
-  ) {
-    let oldLikeStatus: LikeStatus;
-    let like: PostLikeDocument;
+  newLikeStatus(dto: CreatePostLikeDto): PostLike {
+    const { userId, userLogin, likeStatus } = dto;
+    return new PostLike({
+      postId: this._id.toString(),
+      userId,
+      userLogin,
+      likeStatus,
+    });
+  }
 
-    if (oldLike) {
-      oldLikeStatus = oldLike.likeStatus;
-      like = oldLike;
-      like.updateLikeStatus(likeStatus);
-    } else {
-      oldLikeStatus = LikeStatus.None;
-      like = new PostLikeModel({
-        postId: this._id.toString(),
-        userId,
-        login,
-        likeStatus,
-      });
-    }
-
-    this.updateLikesCount(likeStatus, oldLikeStatus);
+  updateLikeStatus(like: PostLikeDocument, likeStatus: LikeStatus): PostLikeDocument {
+    like.updateLikeStatus(likeStatus);
     return like;
   }
 

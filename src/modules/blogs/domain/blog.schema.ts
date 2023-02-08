@@ -48,10 +48,10 @@ export class Blog {
 
   constructor(dto: CreateBlogDto, userId: string, userLogin: string) {
     this._id = new ObjectId();
-    this.createdAt = new Date();
     this.name = dto.name;
     this.description = dto.description;
     this.websiteUrl = dto.websiteUrl;
+    this.createdAt = new Date();
     this.isMembership = false;
     this.blogOwnerInfo = new BlogOwnerInfo(userId, userLogin);
   }

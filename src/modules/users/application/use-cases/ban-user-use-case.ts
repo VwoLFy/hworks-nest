@@ -24,6 +24,7 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
 
     const user = await this.usersRepository.findUserById(userId);
     if (!user) throw new NotFoundException('user not found');
+    if (user.banInfo.isBanned === dto.isBanned) return;
 
     user.banUser(dto);
     await this.usersRepository.saveUser(user);
