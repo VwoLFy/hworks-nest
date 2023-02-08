@@ -12,6 +12,7 @@ import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';
+import { BlogViewModelSA } from '../src/modules/blogs/api/models/BlogViewModelSA';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -78,15 +79,13 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let user1: UserViewModel;
-    let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
     let blog1: BlogViewModel;
     let blog2: BlogViewModel;
     let blog3: BlogViewModel;
     it('Create and login 2 users', async function () {
-      let resultUser = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -95,7 +94,6 @@ describe('AppController (e2e)', () => {
           email: 'string@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user1 = resultUser.body;
 
       let resultToken = await request(app.getHttpServer())
         .post('/auth/login')
@@ -106,7 +104,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token1 = resultToken.body;
 
-      resultUser = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -115,7 +113,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user2 = resultUser.body;
 
       resultToken = await request(app.getHttpServer())
         .post('/auth/login')
@@ -549,320 +546,18 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  describe('Old test of blogs', () => {
+  describe('SA-  blogs', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let blog1: BlogViewModel;
-    let blog2: BlogViewModel;
-    it('GET should return 200', async function () {
-      await request(app.getHttpServer()).get('/blogs').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
-    });
-    it('POST shouldn`t create blog with incorrect "data"', async () => {
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: '    ',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'description',
-          websiteUrl: ' htt://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: '        ',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 1,
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'description',
-          websiteUrl: 1,
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 1,
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 1,
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'description',
-          websiteUrl: 1,
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 1,
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'a'.repeat(16),
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'a'.repeat(501),
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'description',
-          websiteUrl: 'https://localhost1.uuu/blogs' + 'a'.repeat(100),
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer()).get('/blogs').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
-    });
-    it('POST should create blog with correct data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: ' NEW NAME   ',
-          description: 'description  ',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      blog1 = result.body;
-
-      expect(blog1).toEqual({
-        id: expect.any(String),
-        name: 'NEW NAME',
-        description: 'description',
-        websiteUrl: 'https://localhost1.uuu/blogs',
-        createdAt: expect.any(String),
-      });
-      await request(app.getHttpServer())
-        .get('/blogs')
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 1,
-          items: [blog1],
-        });
-    });
-    it('GET blog by id should return 200', async function () {
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
-    });
-    it('GET blog by bad id should return 404', async function () {
-      await request(app.getHttpServer()).get(`/blogs/1`).expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('PUT shouldn`t update blog with incorrect data', async () => {
-      await request(app.getHttpServer())
-        .put(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: '    ',
-          description: 'Updating description',
-          websiteUrl: 'https://api-swagger.it-incubator.ru/',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'valid name',
-          description: 'Updating description',
-          websiteUrl: 'http://api-swagger.it-incubator',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/blogs/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: ' Updating NAME   ',
-          description: 'Updating description',
-          websiteUrl: 'https://api-swagger.it-incubator.ru/',
-        })
-        .expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('PUT should update blog with correct data', async () => {
-      await request(app.getHttpServer())
-        .put(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: ' Updating NAME   ',
-          description: 'Updating description',
-          websiteUrl: 'https://api-swagger.it-incubator.ru/',
-        })
-        .expect(HTTP_Status.NO_CONTENT_204);
-      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
-      blog2 = result.body;
-
-      expect(blog2).toEqual({
-        id: expect.any(String),
-        name: 'Updating NAME',
-        description: 'Updating description',
-        websiteUrl: 'https://api-swagger.it-incubator.ru/',
-        createdAt: expect.any(String),
-      });
-      expect(blog2).not.toEqual(blog1);
-    });
-    it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
-      await request(app.getHttpServer())
-        .delete(`/blogs/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .delete(`/blogs/636a2a16f394608b01446e12`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog2);
-    });
-    it('DELETE should delete blog with correct "id"', async () => {
-      await request(app.getHttpServer())
-        .delete(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NO_CONTENT_204);
-      await request(app.getHttpServer()).get('/blogs').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
-    });
-    it('GET from public by ID, all and blogger API should return 200 and blog', async function () {
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
-
-      await request(app.getHttpServer())
-        .get('/blogs')
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 1,
-          items: [blog1],
-        });
-
-      await request(app.getHttpServer())
-        .get('/blogger/blogs')
-        .auth('token1.accessToken', { type: 'bearer' })
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 1,
-          items: [blog1],
-        });
-    });
-    it('GET blog by admin should return 200 and blog', async function () {
-      const result = await request(app.getHttpServer())
-        .get('/sa/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.OK_200);
-
-      expect(result.body).toEqual({
-        pagesCount: 1,
-        page: 1,
-        pageSize: 10,
-        totalCount: 1,
-        items: [
-          {
-            id: blog1.id,
-            name: blog1.name,
-            description: blog1.description,
-            websiteUrl: blog1.websiteUrl,
-            createdAt: blog1.createdAt,
-            isMembership: blog1.isMembership,
-            blogOwnerInfo: expect.objectContaining({
-              userId: expect.any(String),
-              userLogin: expect.any(String),
-            }),
-          },
-        ],
-      });
-    });
-    it('GET blog by admin should return 401 without auth', async function () {
-      await request(app.getHttpServer()).get('/sa/blogs').expect(HTTP_Status.UNAUTHORIZED_401);
-    });
-  });
-
-  describe('Blogger-  posts', () => {
-    beforeAll(async () => {
-      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
-    });
-    let post1: PostViewModel;
-    let post2: PostViewModel;
-    let blog1: BlogViewModel;
     let user1: UserViewModel;
     let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
-    it('Create and login 2 users, create blog by user1', async function () {
+    let blog1: BlogViewModelSA;
+    let blog2: BlogViewModelSA;
+    let blog3: BlogViewModelSA;
+    it('Create and login 2 users', async function () {
       let resultUser = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -902,8 +597,464 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.OK_200);
       token2 = resultToken.body;
+    });
+    it('GET should return 401', async function () {
+      await request(app.getHttpServer()).get('/sa/blogs').expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('GET should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/sa/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
 
-      const result = await request(app.getHttpServer())
+      await request(app.getHttpServer())
+        .get('/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('Create 2 blog by user1 and 1 blog by user2', async () => {
+      let result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: ' NEW NAME   ',
+          description: 'description  ',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog1 = result.body;
+
+      expect(blog1).toEqual({
+        id: expect.any(String),
+        name: 'NEW NAME',
+        description: 'description',
+        websiteUrl: 'https://localhost1.uuu/blogs',
+        createdAt: expect.any(String),
+        isMembership: false,
+      });
+      result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'what name 2  ',
+          description: 'adescription  2',
+          websiteUrl: ' https://localhost1.uuu/blogs2  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          name: '  user2 blog  ',
+          description: 'description  3',
+          websiteUrl: ' https://localhost1.uuu/blogs3  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog3 = result.body;
+
+      blog1 = { ...blog1, blogOwnerInfo: { userId: user1.id, userLogin: user1.login } };
+      blog2 = { ...blog2, blogOwnerInfo: { userId: user1.id, userLogin: user1.login } };
+      blog3 = { ...blog3, blogOwnerInfo: { userId: user2.id, userLogin: user2.login } };
+    });
+    it('GET by bloggers should return 200 and blogs', async function () {
+      await request(app.getHttpServer())
+        .get('/sa/blogs')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog3, blog2, blog1],
+        });
+    });
+    it('GET by blog1 with query should return 200 and blogs', async function () {
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=name')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [blog2, blog1],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?sortDirection=asc')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog1, blog2, blog3],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?sortBy=description')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog3, blog1, blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=name&pageSize=1')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 1,
+          pageSize: 1,
+          totalCount: 2,
+          items: [blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=name&pageSize=1&pageNumber=2')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 2,
+          pageSize: 1,
+          totalCount: 2,
+          items: [blog1],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=2')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [blog3, blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=new')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [blog1],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/blogs?searchNameTerm=123')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('Bind blog should return 401', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/bind-with-user/${user1.id}`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('Bind blog should return 404 if data is incorrect', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/1/bind-with-user/${user1.id}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/bind-with-user/1`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${user1.id}/bind-with-user/${user1.id}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('Bind blog should return 400 if blog already bound to any user', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/bind-with-user/${user1.id}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+  });
+
+  describe('Public-    blogs', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    let blog1: BlogViewModel;
+    let blog2: BlogViewModel;
+    let blog3: BlogViewModel;
+    let token1: LoginSuccessViewModel;
+    let token2: LoginSuccessViewModel;
+    it('Create and login 2 users', async function () {
+      await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+
+      let resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token1 = resultToken.body;
+
+      await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+
+      resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login2',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token2 = resultToken.body;
+    });
+    it('GET blogs should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 0,
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          items: [],
+        });
+    });
+    it('Create 2 blog by user1 and 1 blog by user2', async () => {
+      let result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: ' NEW NAME   ',
+          description: 'description  ',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog1 = result.body;
+
+      expect(blog1).toEqual({
+        id: expect.any(String),
+        name: 'NEW NAME',
+        description: 'description',
+        websiteUrl: 'https://localhost1.uuu/blogs',
+        createdAt: expect.any(String),
+        isMembership: false,
+      });
+      result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'what name 2  ',
+          description: 'adescription  2',
+          websiteUrl: ' https://localhost1.uuu/blogs2  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          name: '  user2 blog  ',
+          description: 'description  3',
+          websiteUrl: ' https://localhost1.uuu/blogs3  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog3 = result.body;
+    });
+    it('GET blog by id should return blog', async function () {
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
+    });
+    it('GET blog by bad id should return 404', async function () {
+      await request(app.getHttpServer()).get(`/blogs/1`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/blogs/63e35fa4354b26c3c099bd58`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('GET blogs should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/blogs')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog3, blog2, blog1],
+        });
+    });
+    it('GET blogs with query should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/blogs?searchNameTerm=name')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [blog2, blog1],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?sortDirection=asc')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog1, blog2, blog3],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?sortBy=description')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [blog3, blog1, blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?searchNameTerm=name&pageSize=1')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 1,
+          pageSize: 1,
+          totalCount: 2,
+          items: [blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?searchNameTerm=name&pageSize=1&pageNumber=2')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 2,
+          pageSize: 1,
+          totalCount: 2,
+          items: [blog1],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?searchNameTerm=2')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [blog3, blog2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/blogs?searchNameTerm=new')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [blog1],
+        });
+
+      await request(app.getHttpServer()).get('/blogs?searchNameTerm=123').expect(HTTP_Status.OK_200, {
+        pagesCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        items: [],
+      });
+    });
+  });
+
+  describe('Blogger and public-  posts', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    let post1: PostViewModel;
+    let post2: PostViewModel;
+    let post3: PostViewModel;
+    let post4: PostViewModel;
+    let blog1: BlogViewModel;
+    let blog2: BlogViewModel;
+    let token1: LoginSuccessViewModel;
+    let token2: LoginSuccessViewModel;
+    it('Create and login 2 users, create blog by user1', async function () {
+      await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+
+      let resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token1 = resultToken.body;
+
+      await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+
+      resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login2',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token2 = resultToken.body;
+
+      let resultBlog = await request(app.getHttpServer())
         .post('/blogger/blogs')
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
@@ -912,7 +1063,18 @@ describe('AppController (e2e)', () => {
           websiteUrl: ' https://localhost1.uuu/blogs  ',
         })
         .expect(HTTP_Status.CREATED_201);
-      blog1 = result.body;
+      blog1 = resultBlog.body;
+
+      resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog2 = resultBlog.body;
     });
     it('GET should return 200', async function () {
       await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
@@ -922,6 +1084,10 @@ describe('AppController (e2e)', () => {
         totalCount: 0,
         items: [],
       });
+    });
+    it('GET By id should return 404', async function () {
+      await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/posts/63e35fa4354b26c3c099bd58`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('POST shouldn`t create post with incorrect data', async () => {
       await request(app.getHttpServer())
@@ -981,7 +1147,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.NOT_FOUND_404);
 
       await request(app.getHttpServer())
-        .post(`/blogger/blogs/${user1.id}/posts`)
+        .post(`/blogger/blogs/63e35fa4354b26c3c099bd58/posts`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
@@ -1036,44 +1202,170 @@ describe('AppController (e2e)', () => {
           newestLikes: [],
         },
       });
+    });
+    it('POST should create 2 posts', async () => {
+      let result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'cvalid2',
+          content: 'valid2',
+          shortDescription: 'K8cqY3aPKo3XW       OJyQgGnlX5sP3aW3RlaRSQx2',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid3',
+          content: 'valid3',
+          shortDescription: 'K8cqY3aPKo3XWOJy    QgGnlX5sP3aW3RlaRSQx3',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post3 = result.body;
+    });
+    it('GET post by id should return post', async function () {
+      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post1);
+    });
+    it('GET posts should return 200', async function () {
       await request(app.getHttpServer())
         .get('/posts')
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
-          totalCount: 1,
+          totalCount: 3,
+          items: [post3, post2, post1],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post3, post2, post1],
+        });
+    });
+    it('GET posts with query should return 200', async function () {
+      await request(app.getHttpServer())
+        .get('/posts?sortDirection=asc')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post1, post2, post3],
+        });
+
+      await request(app.getHttpServer())
+        .get('/posts?sortBy=title')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post3, post1, post2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/posts?pageSize=1')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 3,
+          page: 1,
+          pageSize: 1,
+          totalCount: 3,
+          items: [post3],
+        });
+
+      await request(app.getHttpServer())
+        .get('/posts?searchNameTerm=name&pageSize=2&pageNumber=2')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 2,
+          pageSize: 2,
+          totalCount: 3,
           items: [post1],
         });
     });
-    it('PUT shouldn`t update post with incorrect "name"', async () => {
+    it('GET posts by BlogId with query should return 200', async function () {
       await request(app.getHttpServer())
-        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
+        .get(`/blogs/${blog1.id}/posts?sortDirection=asc`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post1, post2, post3],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts?sortBy=title`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post3, post1, post2],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts?pageSize=1`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 3,
+          page: 1,
+          pageSize: 1,
+          totalCount: 3,
+          items: [post3],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts?searchNameTerm=name&pageSize=2&pageNumber=2`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 2,
+          page: 2,
+          pageSize: 2,
+          totalCount: 3,
+          items: [post1],
+        });
+    });
+    it('GET all posts for specific blog should return 200, after add new post to blog2 by user1', async function () {
+      const result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog2.id}/posts`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          title: '',
-          content: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+          title: 'valid4',
+          content: 'valid4',
+          shortDescription: 'K8cqY3aPKo3XWOJy    QgGnlX5sP3aW3RlaRSQx4',
         })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+        .expect(HTTP_Status.CREATED_201);
+      post4 = result.body;
+
       await request(app.getHttpServer())
-        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
-        .auth(token1.accessToken, { type: 'bearer' })
-        .send({
-          title: 'valid',
-          content: '',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
-        .auth(token1.accessToken, { type: 'bearer' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          shortDescription: '',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+        .get('/posts')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 4,
+          items: [post4, post3, post2, post1],
+        });
+
+      const resultFoundPosts = await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [post3, post2, post1],
+        });
+      const foundPosts = resultFoundPosts.body;
+
+      expect(foundPosts.items.length).toBe(3);
     });
     it('PUT shouldn`t update post with bad id', async () => {
       await request(app.getHttpServer())
@@ -1154,38 +1446,6 @@ describe('AppController (e2e)', () => {
       expect(updatedPost).not.toEqual(post1);
       post1 = updatedPost;
     });
-    it('GET all posts for specific blog should return 200, after add new post to blog1 by user1', async function () {
-      const result = await request(app.getHttpServer())
-        .post(`/blogger/blogs/${blog1.id}/posts`)
-        .auth(token1.accessToken, { type: 'bearer' })
-        .send({
-          title: 'valid2',
-          content: 'valid2',
-          shortDescription: 'K8cqY3aPKo3XW       OJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post2 = result.body;
-
-      const resultFoundPosts = await request(app.getHttpServer())
-        .get(`/blogs/${blog1.id}/posts`)
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 2,
-          items: [post2, post1],
-        });
-      const foundPosts = resultFoundPosts.body;
-
-      expect(foundPosts.items.length).toBe(2);
-      expect(foundPosts).toEqual({
-        pagesCount: 1,
-        page: 1,
-        pageSize: 10,
-        totalCount: 2,
-        items: [post2, post1],
-      });
-    });
     it('DELETE shouldn`t delete post with incorrect "id"', async () => {
       await request(app.getHttpServer())
         .delete(`/blogger/blogs/${blog1.id}/posts/1`)
@@ -1213,8 +1473,8 @@ describe('AppController (e2e)', () => {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
-          totalCount: 2,
-          items: [post2, post1],
+          totalCount: 3,
+          items: [post3, post2, post1],
         });
     });
     it('DELETE shouldn`t delete post if user try to delete post that belongs to blog that does not belong to current user', async () => {
@@ -1235,8 +1495,8 @@ describe('AppController (e2e)', () => {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
-          totalCount: 1,
-          items: [post2],
+          totalCount: 3,
+          items: [post4, post3, post2],
         });
 
       await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);
@@ -1259,359 +1519,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).get(`/posts/${post2.id}`).expect(HTTP_Status.NOT_FOUND_404);
     });
   });
-  /*
-  describe('/posts', () => {
-    beforeAll(async () => {
-      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
-    });
-    let post1: PostViewModel;
-    let post2: PostViewModel;
-    let post3: PostViewModel;
-    let blog1: BlogViewModel;
-    it('GET should return 200', async function () {
-      await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
-    });
-    it('GET By Id should return 404', async function () {
-      await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('POST shouldn`t create post with incorrect data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      blog1 = result.body;
 
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: '',
-          content: 'valid',
-          blogId: `${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3mWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: '',
-          blogId: `${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `1`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `${blog1.id}`,
-          shortDescription: '',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `${blog1.id}`,
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
-        pagesCount: 0,
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        items: [],
-      });
-    });
-    it('POST should create post with correct data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post1 = result.body;
-
-      expect(post1).toEqual({
-        id: expect.any(String),
-        title: 'valid',
-        content: 'valid',
-        blogId: `${blog1.id}`,
-        blogName: `${blog1.name}`,
-        shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        createdAt: expect.any(String),
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatus.None,
-          newestLikes: [],
-        },
-      });
-      await request(app.getHttpServer())
-        .get('/posts')
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 1,
-          items: [post1],
-        });
-    });
-    it('PUT shouldn`t update blog with incorrect "name"', async () => {
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: '',
-          content: 'valid',
-          blogId: `${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: '',
-          blogId: `${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `/posts/1`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `/posts/${blog1.id}`,
-          shortDescription: '',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .put(`/posts/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          blogId: `/posts/${blog1.id}`,
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-    });
-    it('PUT should update blog with correct data', async () => {
-      await request(app.getHttpServer())
-        .put(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'Update POST',
-          shortDescription: 'Update shortDescription',
-          content: 'Update content',
-          blogId: `${blog1.id}`,
-        })
-        .expect(HTTP_Status.NO_CONTENT_204);
-      const result = await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200);
-      post2 = result.body;
-      expect(post2).toEqual({
-        id: expect.any(String),
-        title: 'Update POST',
-        content: 'Update content',
-        blogId: `${blog1.id}`,
-        blogName: `${blog1.name}`,
-        shortDescription: 'Update shortDescription',
-        createdAt: expect.any(String),
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatus.None,
-          newestLikes: [],
-        },
-      });
-      expect(post2).not.toEqual(post1);
-    });
-    it('GET all posts for bad blog should return 404', async function () {
-      await request(app.getHttpServer()).get(`/blogs/1/posts`).expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('POST should create post for new blog', async () => {
-      const resultBlog = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      const blog2 = resultBlog.body;
-
-      const resultPost = await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post3 = resultPost.body;
-
-      expect(post3.blogId).toBe(blog2.id);
-    });
-    it('POST shouldn`t create post for new blog with bad data', async () => {
-      const resultBlog = await request(app.getHttpServer())
-        .post('/blogs')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          name: 'blogName',
-          description: 'description',
-          websiteUrl: ' https://localhost1.uuu/blogs  ',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      const blog2 = resultBlog.body;
-
-      await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          content: 'valid',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer())
-        .post(`/blogs/${blog2.id}/posts`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-    });
-    it('GET all posts for specific blog should return 200', async function () {
-      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.OK_200);
-      const result2 = await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.OK_200);
-
-      expect(result.body.items.length).toBe(1);
-      expect(result2.body.items.length).toBe(1);
-    });
-    it('GET2 should return 200', async function () {
-      await request(app.getHttpServer())
-        .get('/posts')
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 2,
-          items: [post3, post2],
-        });
-    });
-
-    it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
-      await request(app.getHttpServer())
-        .delete(`/posts/1`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .delete(`/posts/636a2a16f394608b01446e12`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post2);
-    });
-    it('DELETE should delete blog with correct "id"', async () => {
-      await request(app.getHttpServer())
-        .delete(`/posts/${post1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NO_CONTENT_204);
-      await request(app.getHttpServer())
-        .get('/posts')
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 1,
-          items: [post3],
-        });
-    });
-    it('DELETE blog should delete all posts of this blog', async () => {
-      const result1 = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid1',
-          content: 'valid1',
-          blogId: `${blog1.id}`,
-          shortDescription: '1 K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post1 = result1.body;
-
-      const result2 = await request(app.getHttpServer())
-        .post('/posts')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          title: 'valid2',
-          content: 'valid2',
-          blogId: `${blog1.id}`,
-          shortDescription: '2 K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      post2 = result2.body;
-
-      await request(app.getHttpServer())
-        .delete(`/blogs/${blog1.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NO_CONTENT_204);
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/posts/${post2.id}`).expect(HTTP_Status.NOT_FOUND_404);
-    });
-  });
-*/
   describe('SA-  users', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
@@ -1823,7 +1731,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.CREATED_201);
       const user2 = result.body;
 
-      result = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -1832,7 +1740,6 @@ describe('AppController (e2e)', () => {
           email: 'string3@sdf.eqe',
         })
         .expect(HTTP_Status.CREATED_201);
-      const user3 = result.body;
 
       result = await request(app.getHttpServer())
         .post('/sa/users')
@@ -1879,6 +1786,24 @@ describe('AppController (e2e)', () => {
     let user2: UserViewModel;
     let user3: UserViewModel;
     let user4: UserViewModel;
+    let token1: LoginSuccessViewModel;
+    let token2: LoginSuccessViewModel;
+    let token3: LoginSuccessViewModel;
+    let token4: LoginSuccessViewModel;
+    let refreshToken: string;
+    let comment1: CommentViewModel;
+    let comment2: CommentViewModel;
+    let comment3: CommentViewModel;
+    let comment4: CommentViewModel;
+    let post: PostViewModel;
+    let blog: BlogViewModel;
+    let newestLikes: [
+      {
+        addedAt: string;
+        userId: string;
+        login: string;
+      },
+    ];
     it('GET should return 200', async function () {
       await request(app.getHttpServer())
         .get('/sa/users')
@@ -2129,17 +2054,402 @@ describe('AppController (e2e)', () => {
         items: [user1, user2, user3, user4],
       });
     });
+    it('Delete-all', async function () {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('POST should create blog, post and 4 auth users', async () => {
+      let resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user1 = resultUser.body;
+
+      const resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token1 = resultToken.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password2',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user2 = resultUser.body;
+
+      const resultToken2 = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login2',
+          password: 'password2',
+        })
+        .expect(HTTP_Status.OK_200);
+      token2 = resultToken2.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login3',
+          password: 'password3',
+          email: 'string3@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user3 = resultUser.body;
+
+      const resultToken3 = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login3',
+          password: 'password3',
+        })
+        .expect(HTTP_Status.OK_200);
+      token3 = resultToken3.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login4',
+          password: 'password4',
+          email: 'string4@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user4 = resultUser.body;
+
+      const resultToken4 = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login4',
+          password: 'password4',
+        })
+        .expect(HTTP_Status.OK_200);
+      token4 = resultToken4.body;
+      refreshToken = resultToken4.headers['set-cookie'][0].split(';')[0].split('=')[1];
+
+      const resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog = resultBlog.body;
+
+      const resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post = resultPost.body;
+    });
+    it('POST should create comment by each users', async () => {
+      let resultComment = await request(app.getHttpServer())
+        .post(`/posts/${post.id}/comments`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment_comment',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment1 = resultComment.body;
+
+      resultComment = await request(app.getHttpServer())
+        .post(`/posts/${post.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment_comment2',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment2 = resultComment.body;
+
+      resultComment = await request(app.getHttpServer())
+        .post(`/posts/${post.id}/comments`)
+        .auth(token3.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment_comment3',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment3 = resultComment.body;
+
+      resultComment = await request(app.getHttpServer())
+        .post(`/posts/${post.id}/comments`)
+        .auth(token4.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment_comment4',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment4 = resultComment.body;
+
+      await request(app.getHttpServer())
+        .get(`/posts/${post.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 4,
+          items: [comment4, comment3, comment2, comment1],
+        });
+    });
+    it('PUT ban  user4', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user4.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?searchEmailTerm=${user4.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items[0].banInfo).toEqual({
+        isBanned: true,
+        banDate: expect.any(String),
+        banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+      });
+    });
+    it('Banned user can`t login and can`t get device list', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login4',
+          password: 'password4',
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+
+      await request(app.getHttpServer())
+        .get('/security/devices')
+        .set('Cookie', `refreshToken=${refreshToken}`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('GET should return 200 and comments without user4 comment', async () => {
+      await request(app.getHttpServer())
+        .get(`/posts/${post.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 3,
+          items: [comment3, comment2, comment1],
+        });
+    });
+    it('PUT unBan  user4', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user4.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: null,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?searchEmailTerm=${user4.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items[0].banInfo).toEqual({
+        isBanned: false,
+        banDate: null,
+        banReason: null,
+      });
+    });
+    it('PUT should like comment by user2, user3 and dislike by user4, user1', async () => {
+      await request(app.getHttpServer())
+        .put(`/comments/${comment1.id}/like-status`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Dislike' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/comments/${comment1.id}/like-status`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Like' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/comments/${comment1.id}/like-status`)
+        .auth(token3.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Like' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/comments/${comment1.id}/like-status`)
+        .auth(token4.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Dislike' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const likedComment = await request(app.getHttpServer())
+        .get(`/comments/${comment1.id}`)
+        .expect(HTTP_Status.OK_200);
+
+      expect(likedComment.body).toEqual({
+        id: expect.any(String),
+        content: 'valid comment_comment',
+        commentatorInfo: {
+          userId: user1.id,
+          userLogin: user1.login,
+        },
+        createdAt: expect.any(String),
+        likesInfo: {
+          likesCount: 2,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+        },
+      });
+    });
+    it('PUT should like post by user2, user3 and dislike by user4, user1', async () => {
+      await request(app.getHttpServer())
+        .put(`/posts/${post.id}/like-status`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Dislike' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/posts/${post.id}/like-status`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Like' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/posts/${post.id}/like-status`)
+        .auth(token3.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Like' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/posts/${post.id}/like-status`)
+        .auth(token4.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Dislike' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const likedPost = await request(app.getHttpServer()).get(`/posts/${post.id}`).expect(HTTP_Status.OK_200);
+
+      expect(likedPost.body).toEqual({
+        id: expect.any(String),
+        title: 'valid',
+        content: 'valid',
+        blogId: `${blog.id}`,
+        blogName: `${blog.name}`,
+        shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        createdAt: expect.any(String),
+        extendedLikesInfo: {
+          likesCount: 2,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+          newestLikes: expect.arrayContaining([
+            {
+              addedAt: expect.any(String),
+              userId: expect.any(String),
+              login: expect.any(String),
+            },
+          ]),
+        },
+      });
+      newestLikes = likedPost.body.extendedLikesInfo.newestLikes;
+    });
+    it('PUT ban  user3', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user3.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?searchEmailTerm=${user3.email}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body.items[0].banInfo).toEqual({
+        isBanned: true,
+        banDate: expect.any(String),
+        banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+      });
+    });
+    it('All likes of banned user shouldn`t returned and be counted for comment', async () => {
+      const likedComment = await request(app.getHttpServer())
+        .get(`/comments/${comment1.id}`)
+        .expect(HTTP_Status.OK_200);
+
+      expect(likedComment.body).toEqual({
+        id: expect.any(String),
+        content: 'valid comment_comment',
+        commentatorInfo: {
+          userId: user1.id,
+          userLogin: user1.login,
+        },
+        createdAt: expect.any(String),
+        likesInfo: {
+          likesCount: 1,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+        },
+      });
+    });
+    it('All likes of banned user shouldn`t returned and be counted for post', async () => {
+      const likedPost = await request(app.getHttpServer()).get(`/posts/${post.id}`).expect(HTTP_Status.OK_200);
+
+      expect(likedPost.body).toEqual({
+        id: expect.any(String),
+        title: 'valid',
+        content: 'valid',
+        blogId: `${blog.id}`,
+        blogName: `${blog.name}`,
+        shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        createdAt: expect.any(String),
+        extendedLikesInfo: {
+          likesCount: 1,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+          newestLikes: expect.arrayContaining([
+            {
+              addedAt: expect.any(String),
+              userId: expect.any(String),
+              login: expect.any(String),
+            },
+          ]),
+        },
+      });
+      const newestLikes2 = likedPost.body.extendedLikesInfo.newestLikes;
+
+      expect(newestLikes.length).toBe(2);
+      expect(newestLikes2.length).toBe(1);
+      expect(newestLikes).not.toEqual(newestLikes2);
+    });
   });
 
   describe('/auth', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let user: UserViewModel;
     let validAccessToken: LoginSuccessViewModel, oldAccessToken: LoginSuccessViewModel;
     let refreshTokenKey: string, validRefreshToken: string, oldRefreshToken: string;
     it('POST shouldn`t authenticate user with incorrect data', async () => {
-      const result = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2148,7 +2458,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user = result.body;
       await request(app.getHttpServer())
         .post('/auth/login')
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -2366,13 +2675,12 @@ describe('AppController (e2e)', () => {
     });
     let comment: CommentViewModel;
     let user1: UserViewModel;
-    let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
     let blog1: BlogViewModel;
     let post1: PostViewModel;
     it('Create and login 2 users, create blog & post by user1', async function () {
-      let resultUser = await request(app.getHttpServer())
+      const resultUser = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2392,7 +2700,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token1 = resultToken.body;
 
-      resultUser = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2401,7 +2709,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user2 = resultUser.body;
 
       resultToken = await request(app.getHttpServer())
         .post('/auth/login')
@@ -2628,12 +2935,11 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let user: UserViewModel;
     let validAccessToken: LoginSuccessViewModel;
-    let refreshTokenKey: string, validRefreshToken: string, oldRefreshToken: string, validRefreshToken0: string;
+    let refreshTokenKey: string, validRefreshToken: string, oldRefreshToken: string;
     let devices: DeviceViewModel[];
     it('POST should authenticate user with correct data', async () => {
-      const resultUser = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2642,8 +2948,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-
-      user = resultUser.body;
 
       const result = await request(app.getHttpServer())
         .post('/auth/login')
@@ -2660,7 +2964,7 @@ describe('AppController (e2e)', () => {
       expect(result.headers['set-cookie']).toBeTruthy();
       if (!result.headers['set-cookie']) return;
 
-      [refreshTokenKey, validRefreshToken0] = result.headers['set-cookie'][0].split(';')[0].split('=');
+      [refreshTokenKey] = result.headers['set-cookie'][0].split(';')[0].split('=');
       expect(refreshTokenKey).toBe('refreshToken');
       expect(result.headers['set-cookie'][0].includes('HttpOnly')).toBe(true);
       expect(result.headers['set-cookie'][0].includes('Secure')).toBe(true);
@@ -3137,9 +3441,6 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
     let user1: UserViewModel;
-    let user2: UserViewModel;
-    let user3: UserViewModel;
-    let user4: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
     let token3: LoginSuccessViewModel;
@@ -3168,7 +3469,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token1 = resultToken.body;
 
-      const resultUser2 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3177,7 +3478,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user2 = resultUser2.body;
 
       const resultToken2 = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3188,7 +3488,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token2 = resultToken2.body;
 
-      const resultUser3 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3197,7 +3497,6 @@ describe('AppController (e2e)', () => {
           email: 'string3@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user3 = resultUser3.body;
 
       const resultToken3 = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3208,7 +3507,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token3 = resultToken3.body;
 
-      const resultUser4 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3217,7 +3516,6 @@ describe('AppController (e2e)', () => {
           email: 'string4@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user4 = resultUser4.body;
 
       const resultToken4 = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3759,10 +4057,6 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let user1: UserViewModel;
-    let user2: UserViewModel;
-    let user3: UserViewModel;
-    let user4: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
     let token3: LoginSuccessViewModel;
@@ -3770,7 +4064,7 @@ describe('AppController (e2e)', () => {
     let post: PostViewModel;
     let blog: BlogViewModel;
     it('POST should create blog, post and 4 auth users', async () => {
-      const resultUser = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3779,7 +4073,6 @@ describe('AppController (e2e)', () => {
           email: 'string@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user1 = resultUser.body;
 
       const resultToken = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3790,7 +4083,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token1 = resultToken.body;
 
-      const resultUser2 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3799,7 +4092,6 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user2 = resultUser2.body;
 
       const resultToken2 = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3810,7 +4102,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token2 = resultToken2.body;
 
-      const resultUser3 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3819,7 +4111,6 @@ describe('AppController (e2e)', () => {
           email: 'string3@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user3 = resultUser3.body;
 
       const resultToken3 = await request(app.getHttpServer())
         .post('/auth/login')
@@ -3830,7 +4121,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token3 = resultToken3.body;
 
-      const resultUser4 = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -3839,7 +4130,6 @@ describe('AppController (e2e)', () => {
           email: 'string4@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
-      user4 = resultUser4.body;
 
       const resultToken4 = await request(app.getHttpServer())
         .post('/auth/login')

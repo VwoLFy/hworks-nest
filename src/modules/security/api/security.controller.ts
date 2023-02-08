@@ -24,10 +24,9 @@ export class SecurityController {
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
   async deleteSessionsExceptCurrent(@SessionData() sessionData: SessionDto) {
-    const isDeletedSessions = await this.commandBus.execute(
+    return await this.commandBus.execute(
       new DeleteSessionsExceptCurrentCommand(sessionData.userId, sessionData.deviceId),
     );
-    if (!isDeletedSessions) throw new UnauthorizedException();
   }
 
   @Delete(':id')

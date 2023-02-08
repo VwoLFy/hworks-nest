@@ -76,6 +76,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-use-case';
 import { BlogsControllerBlogger } from './modules/blogs/api/blogger.blogs.controller';
 import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
+import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/bind-blog-with-user-use-case';
 
 const useCases = [
   DeleteAllUseCase,
@@ -102,6 +103,7 @@ const useCases = [
   DeleteSessionsExceptCurrentUseCase,
   GenerateNewTokensUseCase,
   BanUserUseCase,
+  BindBlogWithUserUseCase,
 ];
 
 @Module({

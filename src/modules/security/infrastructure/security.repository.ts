@@ -22,10 +22,9 @@ export class SecurityRepository {
     );
   }
 
-  async DeleteSessionsExceptCurrent(userId: string, deviceId: string): Promise<boolean> {
+  async DeleteSessionsExceptCurrent(userId: string, deviceId: string) {
     const deleteFilter = { userId, deviceId: { $ne: deviceId } };
-    const result = await this.SessionModel.deleteMany(deleteFilter);
-    return !!result.deletedCount;
+    await this.SessionModel.deleteMany(deleteFilter);
   }
 
   async deleteSessionByDeviceId(deviceId: string) {

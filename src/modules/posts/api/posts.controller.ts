@@ -37,10 +37,10 @@ export class PostsController {
     return await this.postsQueryRepo.findPosts(query, userId);
   }
 
-  @Get(':id')
+  @Get(':postId')
   @UseGuards(GetUserIdGuard)
   async findPostById(
-    @Param('id', checkObjectIdPipe) postId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
     @UserId() userId: string | null,
   ): Promise<PostViewModel> {
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
@@ -49,10 +49,10 @@ export class PostsController {
     return foundPost;
   }
 
-  @Get(':id/comments')
+  @Get(':postId/comments')
   @UseGuards(GetUserIdGuard)
   async findCommentsByPostId(
-    @Param('id', checkObjectIdPipe) postId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
   ): Promise<CommentViewModelPage> {
@@ -62,10 +62,10 @@ export class PostsController {
     return foundComments;
   }
 
-  @Post(':id/comments')
+  @Post(':postId/comments')
   @UseGuards(JwtAuthGuard)
   async createCommentForPost(
-    @Param('id', checkObjectIdPipe) postId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: CommentInputModel,
     @UserId() userId: string | null,
   ): Promise<CommentViewModel> {
@@ -77,11 +77,11 @@ export class PostsController {
     return this.commentsQueryRepo.findCommentById(createdCommentId, userId);
   }
 
-  @Put(':id/like-status')
+  @Put(':postId/like-status')
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async likePost(
-    @Param('id', checkObjectIdPipe) postId: string,
+    @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: PostLikeInputModel,
     @UserId() userId: string | null,
   ) {

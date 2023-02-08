@@ -9,7 +9,7 @@ export class DeleteSessionsExceptCurrentCommand {
 export class DeleteSessionsExceptCurrentUseCase implements ICommandHandler<DeleteSessionsExceptCurrentCommand> {
   constructor(protected securityRepository: SecurityRepository) {}
 
-  async execute(command: DeleteSessionsExceptCurrentCommand): Promise<boolean> {
-    return await this.securityRepository.DeleteSessionsExceptCurrent(command.userId, command.deviceId);
+  async execute(command: DeleteSessionsExceptCurrentCommand) {
+    await this.securityRepository.DeleteSessionsExceptCurrent(command.userId, command.deviceId);
   }
 }
