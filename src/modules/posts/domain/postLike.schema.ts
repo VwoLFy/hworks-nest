@@ -21,7 +21,7 @@ export class PostLike {
   likeStatus: LikeStatus;
 
   @Prop({ required: true })
-  private isAllowed: boolean;
+  private isBanned: boolean;
 
   constructor(dto: CreatePostLikeDto) {
     this.postId = dto.postId;
@@ -29,15 +29,15 @@ export class PostLike {
     this.login = dto.userLogin;
     this.likeStatus = dto.likeStatus;
     this.addedAt = new Date();
-    this.isAllowed = true;
+    this.isBanned = false;
   }
 
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;
   }
 
-  set setIsAllowed(isAllowed: boolean) {
-    this.isAllowed = isAllowed;
+  set setIsBanned(isBanned: boolean) {
+    this.isBanned = isBanned;
   }
 }
 export type PostLikeDocument = HydratedDocument<PostLike>;

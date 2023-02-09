@@ -5,10 +5,10 @@ import { randomUUID } from 'crypto';
 
 @Schema()
 export class PasswordRecovery {
-  @Prop({ default: randomUUID() })
+  @Prop({ required: true })
   recoveryCode: string;
 
-  @Prop({ default: add(new Date(), { hours: 24 }) })
+  @Prop({ required: true })
   expirationDate: Date;
 
   @Prop({
@@ -18,6 +18,12 @@ export class PasswordRecovery {
     },
   })
   email: string;
+
+  constructor(email: string) {
+    this.email = email;
+    this.recoveryCode = randomUUID();
+    this.expirationDate = add(new Date(), { hours: 24 });
+  }
 }
 export type PasswordRecoveryDocument = HydratedDocument<PasswordRecovery>;
 

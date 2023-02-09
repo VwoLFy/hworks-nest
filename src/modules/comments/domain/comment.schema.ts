@@ -1,8 +1,10 @@
-import { HydratedDocument, Model } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
 import { ObjectId } from 'mongodb';
-import { CommentLikeDocument } from './commentLike.schema';
+import { CommentLike, CommentLikeDocument } from './commentLike.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { CreateCommentDto } from '../application/dto/CreateCommentDto';
+import { LikeCommentDto } from '../application/dto/LikeCommentDto';
 
 @Schema({ _id: false })
 export class CommentatorInfo {
@@ -17,15 +19,27 @@ export class CommentatorInfo {
     this.userLogin = userLogin;
   }
 }
-
 const CommentatorInfoSchema = SchemaFactory.createForClass(CommentatorInfo);
+
+@Schema({ _id: false })
+export class LikesInfo {
+  @Prop({ required: true })
+  likesCount: number;
+
+  @Prop({ required: true })
+  dislikesCount: number;
+
+  constructor() {
+    this.likesCount = 0;
+    this.dislikesCount = 0;
+  }
+}
+export const LikesInfoSchema = SchemaFactory.createForClass(LikesInfo);
 
 @Schema()
 export class Comment {
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   _id: ObjectId;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
 
   @Prop({ required: true, minlength: 20, maxlength: 300 })
   content: string;
@@ -33,52 +47,38 @@ export class Comment {
   @Prop({ required: true, type: CommentatorInfoSchema })
   commentatorInfo: CommentatorInfo;
 
-  @Prop({
-    _id: false,
-    default: {
-      likesCount: 0,
-      dislikesCount: 0,
-    },
-    type: { likesCount: Number, dislikesCount: Number },
-  })
-  likesInfo: {
-    likesCount: number;
-    dislikesCount: number;
-  };
-
   @Prop({ required: true })
   postId: string;
 
-  @Prop({ default: true })
-  private isAllowed: boolean;
+  @Prop({ required: true })
+  createdAt: Date;
 
-  setIsAllowed(isAllowed: boolean) {
-    this.isAllowed = isAllowed;
+  @Prop({ required: true, type: LikesInfoSchema })
+  likesInfo: LikesInfo;
+
+  @Prop({ required: true })
+  isBanned: boolean;
+
+  constructor(dto: CreateCommentDto, userLogin: string) {
+    this._id = new ObjectId();
+    this.content = dto.content;
+    this.commentatorInfo = new CommentatorInfo(dto.userId, userLogin);
+    this.postId = dto.postId;
+    this.createdAt = new Date();
+    this.likesInfo = new LikesInfo();
+    this.isBanned = false;
   }
 
-  setLikeStatus(
-    oldLike: CommentLikeDocument | null,
-    userId: string,
-    likeStatus: LikeStatus,
-    CommentLikeModel: Model<CommentLikeDocument>,
-  ): CommentLikeDocument {
-    let oldLikeStatus: LikeStatus;
-    let like: CommentLikeDocument;
+  setIsBanned(isBanned: boolean) {
+    this.isBanned = isBanned;
+  }
 
-    if (oldLike) {
-      oldLikeStatus = oldLike.likeStatus;
-      like = oldLike;
-      like.updateLikeStatus(likeStatus);
-    } else {
-      oldLikeStatus = LikeStatus.None;
-      like = new CommentLikeModel({
-        commentId: this._id.toString(),
-        userId,
-        likeStatus,
-      });
-    }
+  newLikeStatus(dto: LikeCommentDto): CommentLike {
+    return new CommentLike(dto);
+  }
 
-    this.updateLikesCount(likeStatus, oldLikeStatus);
+  updateLikeStatus(like: CommentLikeDocument, likeStatus: LikeStatus): CommentLikeDocument {
+    like.updateLikeStatus(likeStatus);
     return like;
   }
 

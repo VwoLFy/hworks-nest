@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/CreateUserDto';
-import { User, AccountData, UserDocument, EmailConfirmation } from '../../domain/user.schema';
+import { User, UserDocument } from '../../domain/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
@@ -22,12 +22,11 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
 
     const passwordHash = await this.getPasswordHash(password);
 
-    const accountData = new AccountData(login, passwordHash, email);
-    const emailConfirmation = new EmailConfirmation(true);
-    const user = new this.UserModel({ accountData, emailConfirmation });
+    const user = new User(login, passwordHash, email, true);
+    const userModel = new this.UserModel(user);
 
-    await this.usersRepository.saveUser(user);
-    return user.id;
+    await this.usersRepository.saveUser(userModel);
+    return userModel.id;
   }
 
   private async getPasswordHash(password: string): Promise<string> {

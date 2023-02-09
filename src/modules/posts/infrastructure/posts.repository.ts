@@ -27,6 +27,10 @@ export class PostsRepository {
     return this.PostLikeModel.find({ userId });
   }
 
+  async updateBanOnUserPostsLikes(userId: string, isBanned: boolean) {
+    await this.PostLikeModel.updateMany({ userId }, { $set: { isBanned } });
+  }
+
   async savePostLike(like: PostLikeDocument) {
     await like.save();
   }

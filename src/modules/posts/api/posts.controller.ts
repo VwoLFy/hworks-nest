@@ -67,12 +67,11 @@ export class PostsController {
   async createCommentForPost(
     @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: CommentInputModel,
-    @UserId() userId: string | null,
+    @UserId() userId: string,
   ): Promise<CommentViewModel> {
     const createdCommentId = await this.commandBus.execute(
       new CreateCommentCommand({ postId, content: body.content, userId }),
     );
-    if (!createdCommentId) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
     return this.commentsQueryRepo.findCommentById(createdCommentId, userId);
   }
@@ -83,7 +82,7 @@ export class PostsController {
   async likePost(
     @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: PostLikeInputModel,
-    @UserId() userId: string | null,
+    @UserId() userId: string,
   ) {
     await this.commandBus.execute(new LikePostCommand({ postId, userId, likeStatus: body.likeStatus }));
   }

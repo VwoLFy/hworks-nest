@@ -19,32 +19,32 @@ export class CommentsRepository {
     return foundComment;
   }
 
-  async findUserCommentLikes(userId: string): Promise<CommentLikeDocument[]> {
-    return this.CommentLikeModel.find({ userId });
-  }
-
-  async findUserComments(userId: string): Promise<CommentDocument[]> {
-    return this.CommentModel.find({ 'commentatorInfo.userId': userId });
+  async updateBanOnUserComments(userId: string, isBanned: boolean) {
+    await this.CommentModel.updateMany({ 'commentatorInfo.userId': userId }, { $set: { isBanned } });
   }
 
   async saveComment(comment: CommentDocument) {
     await comment.save();
   }
 
-  async findLikeStatus(commentId: string, userId: string): Promise<CommentLikeDocument | null> {
+  async findUserCommentLikes(userId: string): Promise<CommentLikeDocument[]> {
+    return this.CommentLikeModel.find({ userId });
+  }
+
+  async updateBanOnUserCommentsLikes(userId: string, isBanned: boolean) {
+    await this.CommentLikeModel.updateMany({ userId }, { $set: { isBanned } });
+  }
+
+  async findCommentLike(commentId: string, userId: string): Promise<CommentLikeDocument | null> {
     return this.CommentLikeModel.findOne({ commentId, userId });
   }
 
-  async saveLike(like: CommentLikeDocument): Promise<void> {
+  async saveCommentLike(like: CommentLikeDocument): Promise<void> {
     await like.save();
   }
 
   async deleteAllCommentsOfPost(postId: string) {
     await this.CommentModel.deleteMany({ postId });
-  }
-
-  async deleteLike(_id: ObjectId): Promise<void> {
-    await this.CommentLikeModel.deleteOne({ _id });
   }
 
   async deleteComment(_id: ObjectId) {

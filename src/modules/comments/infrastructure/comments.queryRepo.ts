@@ -17,7 +17,7 @@ export class CommentsQueryRepo {
   ) {}
 
   async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
-    const foundComment = await this.CommentModel.findOne({ _id, isAllowed: true });
+    const foundComment = await this.CommentModel.findOne({ _id, isBanned: false }).lean();
     if (!foundComment) throw new NotFoundException('comment not found');
 
     return this.commentWithReplaceId(foundComment, userId);
@@ -27,14 +27,15 @@ export class CommentsQueryRepo {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
     const sortOptions = { [sortBy]: sortDirection };
-    const totalCount = await this.CommentModel.countDocuments({ postId, isAllowed: true });
+    const totalCount = await this.CommentModel.countDocuments({ postId, isBanned: false });
     if (!totalCount) return null;
 
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const commentsWith_id = await this.CommentModel.find({ postId, isAllowed: true })
+    const commentsWith_id = await this.CommentModel.find({ postId, isBanned: false })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
-      .sort(sortOptions);
+      .sort(sortOptions)
+      .lean();
 
     let items: CommentViewModel[] = [];
     for (const commentWith_id of commentsWith_id) {
@@ -61,23 +62,12 @@ export class CommentsQueryRepo {
       if (status) myStatus = status.likeStatus;
     }
 
-    const likesCount = await this.CommentLikeModel.countDocuments({
-      commentId: comment._id,
-      likeStatus: LikeStatus.Like,
-      isAllowed: true,
-    });
-    const dislikesCount = await this.CommentLikeModel.countDocuments({
-      commentId: comment._id,
-      likeStatus: LikeStatus.Dislike,
-      isAllowed: true,
-    });
-
     return {
       id: comment._id.toString(),
       content: comment.content,
       commentatorInfo: comment.commentatorInfo,
       createdAt: comment.createdAt.toISOString(),
-      likesInfo: { likesCount, dislikesCount, myStatus: myStatus },
+      likesInfo: { ...comment.likesInfo, myStatus: myStatus },
     };
   }
 }

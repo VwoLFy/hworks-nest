@@ -3,9 +3,10 @@ import { Model } from 'mongoose';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { Comment, CommentatorInfo, CommentDocument } from '../../domain/comment.schema';
+import { Comment, CommentDocument } from '../../domain/comment.schema';
 import { CreateCommentDto } from '../dto/CreateCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { NotFoundException } from '@nestjs/common';
 
 export class CreateCommentCommand {
   constructor(public dto: CreateCommentDto) {}
@@ -20,18 +21,23 @@ export class CreateCommentUseCase implements ICommandHandler<CreateCommentComman
     @InjectModel(Comment.name) private CommentModel: Model<CommentDocument>,
   ) {}
 
-  async execute(command: CreateCommentCommand): Promise<string | null> {
-    const { postId, userId, content } = command.dto;
+  async execute(command: CreateCommentCommand): Promise<string> {
+    const comment = await this.createCommentDocument(command.dto);
+    return comment.id;
+  }
+
+  async createCommentDocument(dto: CreateCommentDto): Promise<CommentDocument> {
+    const { postId, userId } = dto;
 
     const isPostExist = await this.postsRepository.findPostById(postId);
-    if (!isPostExist) return null;
+    if (!isPostExist) throw new NotFoundException('post not found');
 
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
 
-    const commentatorInfo = new CommentatorInfo(userId, userLogin);
-    const comment = new this.CommentModel({ content, commentatorInfo, postId });
+    const comment = new Comment(dto, userLogin);
+    const commentModel = new this.CommentModel(comment);
+    await this.commentsRepository.saveComment(commentModel);
 
-    await this.commentsRepository.saveComment(comment);
-    return comment.id;
+    return commentModel;
   }
 }

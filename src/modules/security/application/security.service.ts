@@ -14,8 +14,9 @@ export class SecurityService {
   ) {}
 
   async createSession(dto: SessionExtendedDto) {
-    const session = new this.SessionModel(dto);
-    await this.securityRepository.saveSession(session);
+    const session = new Session(dto);
+    const sessionModel = new this.SessionModel(session);
+    await this.securityRepository.saveSession(sessionModel);
   }
 
   async updateSession(dto: SessionExtendedDto) {

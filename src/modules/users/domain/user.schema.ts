@@ -1,4 +1,4 @@
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { add } from 'date-fns';
 import { ObjectId } from 'mongodb';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -59,8 +59,28 @@ export class EmailConfirmation {
 }
 export const EmailConfirmationSchema = SchemaFactory.createForClass(EmailConfirmation);
 
+@Schema({ _id: false })
+export class BanInfo {
+  @Prop({ required: true })
+  isBanned: boolean;
+
+  @Prop()
+  banDate: Date | null;
+
+  @Prop()
+  banReason: string | null;
+
+  constructor() {
+    this.isBanned = false;
+    this.banDate = null;
+    this.banReason = null;
+  }
+}
+export const BanInfoSchema = SchemaFactory.createForClass(BanInfo);
+
 @Schema()
 export class User {
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   _id: ObjectId;
 
   @Prop({ required: true, type: AccountDataSchema })
@@ -69,24 +89,15 @@ export class User {
   @Prop({ required: true, type: EmailConfirmationSchema })
   emailConfirmation: EmailConfirmation;
 
-  @Prop({
-    type: {
-      isBanned: Boolean,
-      banDate: Date || null,
-      banReason: String || null,
-    },
-    default: {
-      isBanned: false,
-      banDate: null,
-      banReason: null,
-    },
-    _id: false,
-  })
-  banInfo: {
-    isBanned: boolean;
-    banDate: Date | null;
-    banReason: string | null;
-  };
+  @Prop({ required: true, type: BanInfoSchema })
+  banInfo: BanInfo;
+
+  constructor(login: string, passwordHash: string, email: string, isConfirmed: boolean) {
+    this._id = new ObjectId();
+    this.accountData = new AccountData(login, passwordHash, email);
+    this.emailConfirmation = new EmailConfirmation(isConfirmed);
+    this.banInfo = new BanInfo();
+  }
 
   confirmUser() {
     this.emailConfirmation.isConfirmed = true;

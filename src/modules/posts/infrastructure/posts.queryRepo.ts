@@ -99,21 +99,10 @@ export class PostsQueryRepo {
       if (status) myStatus = status.likeStatus;
     }
 
-    const likesCount = await this.PostLikeModel.countDocuments({
-      postId: post._id,
-      likeStatus: LikeStatus.Like,
-      isAllowed: true,
-    });
-    const dislikesCount = await this.PostLikeModel.countDocuments({
-      postId: post._id,
-      likeStatus: LikeStatus.Dislike,
-      isAllowed: true,
-    });
-
     const newestLikes1 = await this.PostLikeModel.find({
       postId: post._id,
       likeStatus: LikeStatus.Like,
-      isAllowed: true,
+      isBanned: false,
     })
       .sort('-addedAt')
       .limit(3)
@@ -132,12 +121,7 @@ export class PostsQueryRepo {
       blogId: post.blogId,
       blogName: post.blogName,
       createdAt: post.createdAt.toISOString(),
-      extendedLikesInfo: {
-        likesCount,
-        dislikesCount,
-        myStatus,
-        newestLikes,
-      },
+      extendedLikesInfo: { ...post.extendedLikesInfo, myStatus, newestLikes },
     };
   }
 }

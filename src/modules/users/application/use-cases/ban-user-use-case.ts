@@ -3,8 +3,9 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { SecurityService } from '../../../security/application/security.service';
-import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
-import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { UserDocument } from '../../domain/user.schema';
+import { CommentsService } from '../../../comments/application/comments.service';
+import { PostsService } from '../../../posts/application/posts.service';
 
 export class BanUserCommand {
   constructor(public userId: string, public dto: BanUserDto) {}
@@ -14,8 +15,8 @@ export class BanUserCommand {
 export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
-    protected postsRepository: PostsRepository,
-    protected commentsRepository: CommentsRepository,
+    protected commentsService: CommentsService,
+    protected postsService: PostsService,
     protected securityService: SecurityService,
   ) {}
 
@@ -26,27 +27,17 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     if (!user) throw new NotFoundException('user not found');
     if (user.banInfo.isBanned === dto.isBanned) return;
 
-    user.banUser(dto);
-    await this.usersRepository.saveUser(user);
+    await this.banUser(user, dto);
 
-    const foundComments = await this.commentsRepository.findUserComments(userId);
-    foundComments.forEach((c) => {
-      c.setIsAllowed(!dto.isBanned);
-      this.commentsRepository.saveComment(c);
-    });
-
-    const foundCommentLikes = await this.commentsRepository.findUserCommentLikes(userId);
-    foundCommentLikes.forEach((l) => {
-      l.setIsAllowed = !dto.isBanned;
-      this.commentsRepository.saveLike(l);
-    });
-
-    const foundPostLikes = await this.postsRepository.findUserPostLikes(userId);
-    foundPostLikes.forEach((l) => {
-      l.setIsAllowed = !dto.isBanned;
-      this.postsRepository.savePostLike(l);
-    });
+    await this.commentsService.banUserComments(userId, dto.isBanned);
+    await this.commentsService.banUserCommentLikes(userId, dto.isBanned);
+    await this.postsService.banUserPostLikes(userId, dto.isBanned);
 
     await this.securityService.deleteAllUserSessions(userId);
+  }
+
+  async banUser(user: UserDocument, dto: BanUserDto) {
+    user.banUser(dto);
+    await this.usersRepository.saveUser(user);
   }
 }

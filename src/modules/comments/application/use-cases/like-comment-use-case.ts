@@ -5,6 +5,7 @@ import { CommentLike, CommentLikeDocument } from '../../domain/commentLike.schem
 import { LikeCommentDto } from '../dto/LikeCommentDto';
 import { LikeStatus } from '../../../../main/types/enums';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommentDocument } from '../../domain/comment.schema';
 
 export class LikeCommentCommand {
   constructor(public dto: LikeCommentDto) {}
@@ -18,18 +19,29 @@ export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
   ) {}
 
   async execute(command: LikeCommentCommand) {
-    const { commentId, userId, likeStatus } = command.dto;
+    const foundComment = await this.commentsRepository.findCommentOrThrowError(command.dto.commentId);
 
-    const foundComment = await this.commentsRepository.findCommentOrThrowError(commentId);
-    const foundLike = await this.commentsRepository.findLikeStatus(commentId, userId);
+    await this.setLikeStatus(command.dto, foundComment);
+  }
 
-    const like = foundComment.setLikeStatus(foundLike, userId, likeStatus, this.CommentLikeModel);
-    await this.commentsRepository.saveComment(foundComment);
+  async setLikeStatus(dto: LikeCommentDto, foundComment: CommentDocument) {
+    const { commentId, userId, likeStatus } = dto;
+    let oldLikeStatus: LikeStatus;
+    let like: CommentLikeDocument;
 
-    if (likeStatus === LikeStatus.None) {
-      await this.commentsRepository.deleteLike(like._id);
+    const oldLike = await this.commentsRepository.findCommentLike(commentId, userId);
+
+    if (!oldLike) {
+      oldLikeStatus = LikeStatus.None;
+      const newLike = foundComment.newLikeStatus(dto);
+      like = new this.CommentLikeModel(newLike);
     } else {
-      await this.commentsRepository.saveLike(like);
+      oldLikeStatus = oldLike.likeStatus;
+      like = foundComment.updateLikeStatus(oldLike, likeStatus);
     }
+    foundComment.updateLikesCount(likeStatus, oldLikeStatus);
+
+    await this.commentsRepository.saveComment(foundComment);
+    await this.commentsRepository.saveCommentLike(like);
   }
 }

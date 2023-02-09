@@ -25,11 +25,11 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
     const foundPost = await this.postsRepository.findPostById(command.dto.postId);
     if (!foundPost) throw new NotFoundException('post not found');
 
-    await this.setLikeStatus(command, foundPost);
+    await this.setLikeStatus(command.dto, foundPost);
   }
 
-  async setLikeStatus(command: LikePostCommand, foundPost: PostDocument) {
-    const { postId, userId, likeStatus } = command.dto;
+  async setLikeStatus(dto: LikePostDto, foundPost: PostDocument) {
+    const { postId, userId, likeStatus } = dto;
     let oldLikeStatus: LikeStatus;
     let like: PostLikeDocument;
 
@@ -38,7 +38,7 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
 
     if (!oldLike) {
       oldLikeStatus = LikeStatus.None;
-      const newLike = foundPost.newLikeStatus({ ...command.dto, userLogin });
+      const newLike = foundPost.newLikeStatus({ ...dto, userLogin });
       like = new this.PostLikeModel(newLike);
     } else {
       oldLikeStatus = oldLike.likeStatus;

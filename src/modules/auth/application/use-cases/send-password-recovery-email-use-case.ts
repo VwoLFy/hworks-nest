@@ -25,11 +25,12 @@ export class SendPasswordRecoveryEmailUseCase implements ICommandHandler<SendPas
     const isUserExist = await this.usersRepository.findUserByLoginOrEmail(email);
     if (!isUserExist) return;
 
-    const passwordRecovery = new this.PasswordRecoveryModel({ email });
-    await this.passwordRepository.savePassRecovery(passwordRecovery);
+    const passwordRecovery = new PasswordRecovery(email);
+    const passwordRecoveryModel = new this.PasswordRecoveryModel(passwordRecovery);
+    await this.passwordRepository.savePassRecovery(passwordRecoveryModel);
 
     try {
-      await this.emailManager.sendEmailPasswordRecoveryMessage(email, passwordRecovery.recoveryCode);
+      await this.emailManager.sendEmailPasswordRecoveryMessage(email, passwordRecoveryModel.recoveryCode);
     } catch (e) {
       console.log(e);
     }

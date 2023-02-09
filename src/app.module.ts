@@ -77,6 +77,8 @@ import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-u
 import { BlogsControllerBlogger } from './modules/blogs/api/blogger.blogs.controller';
 import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
 import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/bind-blog-with-user-use-case';
+import { CommentsService } from './modules/comments/application/comments.service';
+import { PostsService } from './modules/posts/application/posts.service';
 
 const useCases = [
   DeleteAllUseCase,
@@ -210,8 +212,10 @@ const useCases = [
     IsFreeLoginOrEmailConstraint,
     BlogsQueryRepo,
     BlogsRepository,
+    PostsService,
     PostsQueryRepo,
     PostsRepository,
+    CommentsService,
     CommentsQueryRepo,
     CommentsRepository,
     UsersQueryRepo,

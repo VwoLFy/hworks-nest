@@ -4450,14 +4450,14 @@ describe('AppController (e2e)', () => {
       });
     });
     it(
-      'create +5 comments then:' +
-        ' like comment 1 by user 1, user 2;' +
-        ' like comment 2 by user 2, user 3;' +
-        ' dislike comment 3 by user 1;' +
-        ' like comment 4 by user 1, user 4, user 2, user 3;' +
-        ' like comment 5 by user 2, dislike by user 3;' +
-        ' like comment 6 by user 1, dislike by user 2.' +
-        ' Get the comments by user 1 after all likes',
+      'create +5 posts then:' +
+        ' like post 1 by user 1, user 2;' +
+        ' like post 2 by user 2, user 3;' +
+        ' dislike post 3 by user 1;' +
+        ' like post 4 by user 1, user 4, user 2, user 3;' +
+        ' like post 5 by user 2, dislike by user 3;' +
+        ' like post 6 by user 1, dislike by user 2.' +
+        ' Get the posts by user 1 after all likes',
       async () => {
         let likedPost = await request(app.getHttpServer())
           .post(`/blogger/blogs/${blog.id}/posts`)
