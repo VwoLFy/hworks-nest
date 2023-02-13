@@ -27,17 +27,13 @@ export class PostLike {
     this.postId = dto.postId;
     this.userId = dto.userId;
     this.login = dto.userLogin;
-    this.likeStatus = dto.likeStatus;
+    this.likeStatus = LikeStatus.None;
     this.addedAt = new Date();
     this.isBanned = false;
   }
 
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;
-  }
-
-  set setIsBanned(isBanned: boolean) {
-    this.isBanned = isBanned;
   }
 }
 export type PostLikeDocument = HydratedDocument<PostLike>;

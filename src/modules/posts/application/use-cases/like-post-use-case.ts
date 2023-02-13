@@ -7,7 +7,6 @@ import { PostLike, PostLikeDocument } from '../../domain/postLike.schema';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
 import { PostDocument } from '../../domain/post.schema';
-import { LikeStatus } from '../../../../main/types/enums';
 
 export class LikePostCommand {
   constructor(public dto: LikePostDto) {}
@@ -30,23 +29,13 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
 
   async setLikeStatus(dto: LikePostDto, foundPost: PostDocument) {
     const { postId, userId, likeStatus } = dto;
-    let oldLikeStatus: LikeStatus;
-    let like: PostLikeDocument;
 
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
     const oldLike = await this.postsRepository.findPostLike(postId, userId);
 
-    if (!oldLike) {
-      oldLikeStatus = LikeStatus.None;
-      const newLike = foundPost.newLikeStatus({ ...dto, userLogin });
-      like = new this.PostLikeModel(newLike);
-    } else {
-      oldLikeStatus = oldLike.likeStatus;
-      like = foundPost.updateLikeStatus(oldLike, likeStatus);
-    }
-    foundPost.updateLikesCount(likeStatus, oldLikeStatus);
+    const newLike = foundPost.setLikeStatus(this.PostLikeModel, oldLike, userId, userLogin, likeStatus);
 
     await this.postsRepository.savePost(foundPost);
-    await this.postsRepository.savePostLike(like);
+    await this.postsRepository.savePostLike(newLike);
   }
 }

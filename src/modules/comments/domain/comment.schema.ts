@@ -1,10 +1,9 @@
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Model } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
 import { ObjectId } from 'mongodb';
 import { CommentLike, CommentLikeDocument } from './commentLike.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
-import { LikeCommentDto } from '../application/dto/LikeCommentDto';
 
 @Schema({ _id: false })
 export class CommentatorInfo {
@@ -69,17 +68,25 @@ export class Comment {
     this.isBanned = false;
   }
 
-  setIsBanned(isBanned: boolean) {
-    this.isBanned = isBanned;
-  }
+  setLikeStatus(
+    CommentLikeModel: Model<CommentLikeDocument>,
+    like: CommentLikeDocument | null,
+    userId: string,
+    likeStatus: LikeStatus,
+  ): CommentLikeDocument {
+    if (!like) like = this.createLikeStatus(CommentLikeModel, userId);
 
-  newLikeStatus(dto: LikeCommentDto): CommentLike {
-    return new CommentLike(dto);
-  }
-
-  updateLikeStatus(like: CommentLikeDocument, likeStatus: LikeStatus): CommentLikeDocument {
+    const oldLikeStatus = like.likeStatus;
     like.updateLikeStatus(likeStatus);
+
+    this.updateLikesCount(likeStatus, oldLikeStatus);
+
     return like;
+  }
+
+  createLikeStatus(CommentLikeModel: Model<CommentLikeDocument>, userId: string): CommentLikeDocument {
+    const like = new CommentLike(this._id.toString(), userId);
+    return new CommentLikeModel(like);
   }
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {

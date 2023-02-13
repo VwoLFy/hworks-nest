@@ -1,7 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { LikeCommentDto } from '../application/dto/LikeCommentDto';
 
 @Schema()
 export class CommentLike {
@@ -20,20 +19,16 @@ export class CommentLike {
   @Prop({ required: true })
   private isBanned: boolean;
 
-  constructor(dto: LikeCommentDto) {
-    this.commentId = dto.commentId;
-    this.userId = dto.userId;
-    this.likeStatus = dto.likeStatus;
+  constructor(commentId: string, userId: string) {
+    this.commentId = commentId;
+    this.userId = userId;
+    this.likeStatus = LikeStatus.None;
     this.addedAt = new Date();
     this.isBanned = false;
   }
 
   updateLikeStatus(likeStatus: LikeStatus): void {
     this.likeStatus = likeStatus;
-  }
-
-  set setIsBanned(isBanned: boolean) {
-    this.isBanned = isBanned;
   }
 }
 

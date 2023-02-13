@@ -1,11 +1,10 @@
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Model } from 'mongoose';
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { LikeStatus } from '../../../main/types/enums';
 import { ObjectId } from 'mongodb';
 import { PostLike, PostLikeDocument } from './postLike.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreatePostDto } from '../application/dto/CreatePostDto';
-import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
 
 @Schema({ _id: false })
 export class ExtendedLikesInfo {
@@ -65,19 +64,30 @@ export class Post {
     this.content = dto.content;
   }
 
-  newLikeStatus(dto: CreatePostLikeDto): PostLike {
-    const { userId, userLogin, likeStatus } = dto;
-    return new PostLike({
+  setLikeStatus(
+    PostLikeModel: Model<PostLikeDocument>,
+    like: PostLikeDocument | null,
+    userId: string,
+    userLogin: string,
+    likeStatus: LikeStatus,
+  ): PostLikeDocument {
+    if (!like) like = this.createLikeStatus(PostLikeModel, userId, userLogin);
+
+    const oldLikeStatus = like.likeStatus;
+    like.updateLikeStatus(likeStatus);
+
+    this.updateLikesCount(likeStatus, oldLikeStatus);
+
+    return like;
+  }
+
+  createLikeStatus(PostLikeModel: Model<PostLikeDocument>, userId: string, userLogin: string): PostLikeDocument {
+    const like = new PostLike({
       postId: this._id.toString(),
       userId,
       userLogin,
-      likeStatus,
     });
-  }
-
-  updateLikeStatus(like: PostLikeDocument, likeStatus: LikeStatus): PostLikeDocument {
-    like.updateLikeStatus(likeStatus);
-    return like;
+    return new PostLikeModel(like);
   }
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {

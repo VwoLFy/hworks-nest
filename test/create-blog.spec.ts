@@ -13,6 +13,7 @@ describe('Create user', () => {
   let authService: AuthService;
   let mongoServer: MongoMemoryServer;
   let userId: string;
+  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -28,7 +29,7 @@ describe('Create user', () => {
         AuthService,
         {
           provide: User.name,
-          useValue: Model<UserDocument>,
+          useValue: UserModel,
         },
       ],
     }).compile();
@@ -50,9 +51,7 @@ describe('Create user', () => {
       expect(userId).toEqual(expect.any(String));
     });
     it('should create user', async () => {
-      console.log(userId);
-      const user = await usersRepository.findUserById(userId);
-      console.log(user);
+      await usersRepository.findUserById(userId);
     });
     it('should return id', async () => {
       expect(
@@ -68,6 +67,7 @@ describe('Create user', () => {
 describe('Create user with mock', () => {
   let createUserUseCase: CreateUserUseCase;
   let mongoServer: MongoMemoryServer;
+  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -82,11 +82,12 @@ describe('Create user with mock', () => {
         UsersRepository,
         {
           provide: User.name,
-          useValue: Model<UserDocument>,
+          useValue: UserModel,
         },
       ],
     })
       .overrideProvider(UsersRepository)
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       .useValue({ saveUser: () => {} })
       .compile();
 
@@ -112,6 +113,7 @@ describe('Create user with mock2', () => {
   let createUserUseCase: CreateUserUseCase;
   let usersRepository: UsersRepository;
   let mongoServer: MongoMemoryServer;
+  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -126,7 +128,7 @@ describe('Create user with mock2', () => {
         UsersRepository,
         {
           provide: User.name,
-          useValue: Model<UserDocument>,
+          useValue: UserModel,
         },
       ],
     }).compile();
