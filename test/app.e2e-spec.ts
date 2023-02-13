@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
 import { BlogViewModel } from '../src/modules/blogs/api/models/BlogViewModel';
-import { HttpExceptionFilter } from '../src/exception.filter';
 import { PostViewModel } from '../src/modules/posts/api/models/PostViewModel';
-import { useContainer } from 'class-validator';
-import cookieParser from 'cookie-parser';
 import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';
 import { BlogViewModelSA } from '../src/modules/blogs/api/models/BlogViewModelSA';
+import { EmailAdapter } from '../src/modules/auth/infrastructure/email.adapter';
+import { EmailService } from '../src/modules/auth/application/email.service';
+import { appConfig } from '../src/app.config';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -38,33 +38,13 @@ describe('AppController (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(EmailAdapter)
+      .useValue({ sendEmail: () => 'OK' })
+      .compile();
+
     app = moduleFixture.createNestApplication();
-
-    useContainer(app.select(AppModule), { fallbackOnErrors: true });
-    app.enableCors();
-    app.use(cookieParser());
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        stopAtFirstError: true,
-        whitelist: true,
-        exceptionFactory: (errors) => {
-          const err = [];
-          errors.forEach((e) => {
-            for (const eKey in e.constraints) {
-              err.push({
-                field: e.property,
-                message: e.constraints[eKey],
-              });
-            }
-          });
-          throw new BadRequestException(err);
-        },
-      }),
-    );
-    app.useGlobalFilters(new HttpExceptionFilter());
-
+    appConfig(app);
     await app.init();
   });
   afterAll(async () => {
@@ -4722,11 +4702,15 @@ describe('AppController (e2e)', () => {
     );
   });
 
-  /*describe('registration', () => {
+  describe('registration', () => {
+    let confirmationCode: string;
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
     it('POST should create user and send email', async () => {
+      const emailAdapter = app.get<EmailAdapter>(EmailAdapter);
+      jest.spyOn(emailAdapter, 'sendEmail');
+
       await request(app.getHttpServer())
         .post('/auth/registration')
         .send({
@@ -4735,6 +4719,8 @@ describe('AppController (e2e)', () => {
           email: process.env.MY_EMAIL,
         })
         .expect(HTTP_Status.NO_CONTENT_204);
+
+      expect(emailAdapter.sendEmail).toBeCalled();
     });
     it('POST shouldn`t create user with valid login or email', async () => {
       await request(app.getHttpServer())
@@ -4763,12 +4749,20 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('POST should resend email', async () => {
+      const emailService = app.get<EmailService>(EmailService);
+      const sendEmailConfirmationMessage = jest.spyOn(emailService, 'sendEmailConfirmationMessage');
+      const emailAdapter = app.get<EmailAdapter>(EmailAdapter);
+      jest.spyOn(emailAdapter, 'sendEmail');
+
       await request(app.getHttpServer())
         .post('/auth/registration-email-resending')
         .send({
           email: process.env.MY_EMAIL,
         })
         .expect(HTTP_Status.NO_CONTENT_204);
+
+      expect(emailAdapter.sendEmail).toBeCalled();
+      confirmationCode = sendEmailConfirmationMessage.mock.lastCall[1];
     });
     it('POST shouldn`t resend email', async () => {
       await request(app.getHttpServer())
@@ -4799,7 +4793,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/auth/registration-confirmation')
         .send({
-          code: 'testres',
+          code: confirmationCode,
         }) // add "emailConfirmation.confirmationCode = 'testres'" to auth.service methods: createUser, passwordRecoverySendEmail, registrationResendEmail
         .expect(HTTP_Status.NO_CONTENT_204);
     });
@@ -4837,7 +4831,11 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('get 1 user', async () => {
-      const users = await request(app.getHttpServer()).get('/sa/users').expect(200);
+      const users = await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(200);
+
       expect(users.body).toEqual({
         pagesCount: 1,
         page: 1,
@@ -4849,9 +4847,14 @@ describe('AppController (e2e)', () => {
             login: 'NewUser',
             email: process.env.MY_EMAIL,
             createdAt: expect.any(String),
+            banInfo: {
+              banDate: null,
+              banReason: null,
+              isBanned: false,
+            },
           },
         ],
       });
     });
-  });*/
+  });
 });

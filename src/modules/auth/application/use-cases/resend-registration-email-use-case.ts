@@ -8,7 +8,7 @@ export class ResendRegistrationEmailCommand {
 
 @CommandHandler(ResendRegistrationEmailCommand)
 export class ResendRegistrationEmailUseCase implements ICommandHandler<ResendRegistrationEmailCommand> {
-  constructor(protected usersRepository: UsersRepository, protected emailManager: EmailService) {}
+  constructor(protected usersRepository: UsersRepository, protected emailService: EmailService) {}
 
   async execute(command: ResendRegistrationEmailCommand): Promise<boolean> {
     const { email } = command;
@@ -19,7 +19,7 @@ export class ResendRegistrationEmailUseCase implements ICommandHandler<ResendReg
     foundUser.updateEmailConfirmation();
 
     try {
-      await this.emailManager.sendEmailConfirmationMessage(email, foundUser.emailConfirmation.confirmationCode);
+      await this.emailService.sendEmailConfirmationMessage(email, foundUser.emailConfirmation.confirmationCode);
       await this.usersRepository.saveUser(foundUser);
     } catch (e) {
       console.log(e);

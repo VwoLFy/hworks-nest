@@ -95,8 +95,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registration(@Body() body: CreateUserDto) {
-    const isRegistered = await this.commandBus.execute(new RegisterUserCommand(body));
-    if (!isRegistered) throw new BadRequestException();
+    await this.commandBus.execute(new RegisterUserCommand(body));
   }
 
   @Post('registration-confirmation')
