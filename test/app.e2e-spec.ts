@@ -13,6 +13,7 @@ import { BlogViewModelSA } from '../src/modules/blogs/api/models/BlogViewModelSA
 import { EmailAdapter } from '../src/modules/auth/infrastructure/email.adapter';
 import { EmailService } from '../src/modules/auth/application/email.service';
 import { appConfig } from '../src/app.config';
+import { CommentViewModelBl } from '../src/modules/comments/api/models/CommentViewModel.Bl';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -2865,14 +2866,26 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
-    let comment: CommentViewModel;
     let user1: UserViewModel;
+    let user2: UserViewModel;
     let token1: LoginSuccessViewModel;
     let token2: LoginSuccessViewModel;
     let blog1: BlogViewModel;
-    let post1: PostViewModel;
-    it('Create and login 2 users, create blog & post by user1', async function () {
-      const resultUser = await request(app.getHttpServer())
+    let blog2: BlogViewModel;
+    let post1ForBlog1: PostViewModel;
+    let post2ForBlog1: PostViewModel;
+    let post1ForBlog2: PostViewModel;
+    let post2ForBlog2: PostViewModel;
+    let comment1: CommentViewModel;
+    let comment2: CommentViewModel;
+    let comment3: CommentViewModel;
+    let comment4: CommentViewModel;
+    let commentBl1: CommentViewModelBl;
+    let commentBl2: CommentViewModelBl;
+    let commentBl3: CommentViewModelBl;
+    let commentBl4: CommentViewModelBl;
+    it('Create and login 2 users, create 2 blogs & 2 posts in each blog by user1', async function () {
+      let resultUser = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2892,7 +2905,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token1 = resultToken.body;
 
-      await request(app.getHttpServer())
+      resultUser = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -2901,6 +2914,7 @@ describe('AppController (e2e)', () => {
           email: 'string2@sdf.ee',
         })
         .expect(HTTP_Status.CREATED_201);
+      user2 = resultUser.body;
 
       resultToken = await request(app.getHttpServer())
         .post('/auth/login')
@@ -2911,43 +2925,87 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.OK_200);
       token2 = resultToken.body;
 
-      const resultBlog = await request(app.getHttpServer())
+      let resultBlog = await request(app.getHttpServer())
         .post('/blogger/blogs')
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          name: 'blogName',
+          name: 'blogName1',
           description: 'description',
           websiteUrl: ' https://localhost1.uuu/blogs  ',
         })
         .expect(HTTP_Status.CREATED_201);
       blog1 = resultBlog.body;
 
-      const resultPost = await request(app.getHttpServer())
+      let resultPost = await request(app.getHttpServer())
         .post(`/blogger/blogs/${blog1.id}/posts`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          title: 'valid',
+          title: 'post1ForBlog1',
           content: 'valid',
-          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+          shortDescription: 'shortDescription        shortDescription',
         })
         .expect(HTTP_Status.CREATED_201);
-      post1 = resultPost.body;
+      post1ForBlog1 = resultPost.body;
+
+      resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post2ForBlog1',
+          content: 'valid',
+          shortDescription: 'shortDescription        shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post2ForBlog1 = resultPost.body;
+
+      resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName2',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog2 = resultBlog.body;
+
+      resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog2.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post1ForBlog2',
+          content: 'valid',
+          shortDescription: 'shortDescription        shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post1ForBlog2 = resultPost.body;
+
+      resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog2.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post2ForBlog2',
+          content: 'valid',
+          shortDescription: 'shortDescription        shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post2ForBlog2 = resultPost.body;
     });
     it('POST shouldn`t create comment with incorrect data', async () => {
       await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken + 'd', { type: 'bearer' })
         .send({ content: 'valid comment111111111' })
         .expect(HTTP_Status.UNAUTHORIZED_401);
       let result = await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'bad content' })
         .expect(HTTP_Status.BAD_REQUEST_400);
       checkError(result.body, 'content');
 
       result = await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           content:
@@ -2963,19 +3021,19 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('GET comments should return 404', async () => {
-      await request(app.getHttpServer()).get(`/posts/${post1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/posts/${post1ForBlog1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('POST should create comment with correct data', async () => {
       const result = await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           content: 'valid comment111111111',
         })
         .expect(HTTP_Status.CREATED_201);
-      comment = result.body;
+      comment1 = result.body;
 
-      expect(comment).toEqual({
+      expect(comment1).toEqual({
         id: expect.any(String),
         content: 'valid comment111111111',
         commentatorInfo: {
@@ -2992,29 +3050,29 @@ describe('AppController (e2e)', () => {
     });
     it('GET should return 200 and comments', async () => {
       await request(app.getHttpServer())
-        .get(`/posts/${post1.id}/comments`)
+        .get(`/posts/${post1ForBlog1.id}/comments`)
         .expect(HTTP_Status.OK_200, {
           pagesCount: 1,
           page: 1,
           pageSize: 10,
           totalCount: 1,
-          items: [comment],
+          items: [comment1],
         });
     });
     it('GET should return 200 and found comment by id ', async () => {
-      await request(app.getHttpServer()).get(`/comments/${comment.id}`).expect(HTTP_Status.OK_200, comment);
+      await request(app.getHttpServer()).get(`/comments/${comment1.id}`).expect(HTTP_Status.OK_200, comment1);
     });
     it('GET should return 404', async () => {
       await request(app.getHttpServer()).get(`/comments/1`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('PUT shouldn`t update comment and return 400', async () => {
       await request(app.getHttpServer())
-        .put(`/comments/${comment.id}`)
+        .put(`/comments/${comment1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'bad content' })
         .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .put(`/comments/${comment.id}`)
+        .put(`/comments/${comment1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           content:
@@ -3024,7 +3082,7 @@ describe('AppController (e2e)', () => {
     });
     it('PUT shouldn`t update comment and return 401', async () => {
       await request(app.getHttpServer())
-        .put(`/comments/${comment.id}`)
+        .put(`/comments/${comment1.id}`)
         .auth(token1.accessToken + 'd', { type: 'bearer' })
         .send({ content: 'new content_new content' })
         .expect(HTTP_Status.UNAUTHORIZED_401);
@@ -3044,26 +3102,26 @@ describe('AppController (e2e)', () => {
     });
     it('PUT shouldn`t update comment and return 403', async () => {
       await request(app.getHttpServer())
-        .put(`/comments/${comment.id}`)
+        .put(`/comments/${comment1.id}`)
         .auth(token2.accessToken, { type: 'bearer' })
         .send({ content: 'new content_new content' })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('PUT should update comment', async () => {
       await request(app.getHttpServer())
-        .put(`/comments/${comment.id}`)
+        .put(`/comments/${comment1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'new content_new content' })
         .expect(HTTP_Status.NO_CONTENT_204);
-      const newComment = await request(app.getHttpServer()).get(`/comments/${comment.id}`).expect(HTTP_Status.OK_200);
+      const newComment = await request(app.getHttpServer()).get(`/comments/${comment1.id}`).expect(HTTP_Status.OK_200);
 
-      expect(comment).not.toEqual(newComment.body);
+      expect(comment1).not.toEqual(newComment.body);
       expect(newComment.body.content).toBe('new content_new content');
-      expect(comment.content).not.toBe('new content_new content');
+      expect(comment1.content).not.toBe('new content_new content');
     });
     it('DELETE shouldn`t delete comment and return 401', async () => {
       await request(app.getHttpServer())
-        .delete(`/comments/${comment.id}`)
+        .delete(`/comments/${comment1.id}`)
         .auth(token1.accessToken + 'd', { type: 'bearer' })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
@@ -3080,46 +3138,240 @@ describe('AppController (e2e)', () => {
     });
     it('DELETE shouldn`t delete comment and return 403', async () => {
       await request(app.getHttpServer())
-        .delete(`/comments/${comment.id}`)
+        .delete(`/comments/${comment1.id}`)
         .auth(token2.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('DELETE should delete comment, after add 2 comments', async () => {
-      const result = await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+      let result = await request(app.getHttpServer())
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           content: 'valid comment111111111',
         })
         .expect(HTTP_Status.CREATED_201);
-      const comment2 = result.body;
+      comment2 = result.body;
 
-      await request(app.getHttpServer())
-        .post(`/posts/${post1.id}/comments`)
+      result = await request(app.getHttpServer())
+        .post(`/posts/${post1ForBlog1.id}/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           content: 'valid comment111111111',
         })
         .expect(HTTP_Status.CREATED_201);
+      comment3 = result.body;
 
       await request(app.getHttpServer())
         .delete(`/comments/${comment2.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NO_CONTENT_204);
       await request(app.getHttpServer()).get(`/comments/${comment2.id}`).expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .delete(`/comments/${comment3.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      await request(app.getHttpServer()).get(`/comments/${comment3.id}`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('DELETE should return 404 if comments is already delete', async () => {
       await request(app.getHttpServer())
-        .delete(`/comments/${comment.id}`)
+        .delete(`/comments/${comment1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NO_CONTENT_204);
 
       await request(app.getHttpServer())
-        .delete(`/comments/${comment.id}`)
+        .delete(`/comments/${comment1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
-      await request(app.getHttpServer()).get(`/comments/${comment.id}`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/comments/${comment1.id}`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('POST should create comments for each post by user2', async () => {
+      let result = await request(app.getHttpServer())
+        .post(`/posts/${post1ForBlog1.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid       comment 1',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment1 = result.body;
+
+      expect(comment1).toEqual({
+        id: expect.any(String),
+        content: 'valid       comment 1',
+        commentatorInfo: {
+          userId: user2.id,
+          userLogin: user2.login,
+        },
+        createdAt: expect.any(String),
+        likesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: 'None',
+        },
+      });
+
+      result = await request(app.getHttpServer())
+        .post(`/posts/${post2ForBlog1.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid       comment 2',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/posts/${post1ForBlog2.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid       comment 3',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment3 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/posts/${post2ForBlog2.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid       comment 4',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment4 = result.body;
+
+      await request(app.getHttpServer())
+        .get(`/posts/${post1ForBlog1.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [comment1],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/posts/${post2ForBlog1.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [comment2],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/posts/${post1ForBlog2.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [comment3],
+        });
+
+      await request(app.getHttpServer())
+        .get(`/posts/${post2ForBlog2.id}/comments`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          items: [comment4],
+        });
+
+      commentBl1 = {
+        id: comment1.id,
+        content: comment1.content,
+        commentatorInfo: comment1.commentatorInfo,
+        createdAt: comment1.createdAt,
+        postInfo: {
+          id: post1ForBlog1.id,
+          title: post1ForBlog1.title,
+          blogId: post1ForBlog1.blogId,
+          blogName: post1ForBlog1.blogName,
+        },
+      };
+
+      commentBl2 = {
+        id: comment2.id,
+        content: comment2.content,
+        commentatorInfo: comment2.commentatorInfo,
+        createdAt: comment2.createdAt,
+        postInfo: {
+          id: post2ForBlog1.id,
+          title: post2ForBlog1.title,
+          blogId: post2ForBlog1.blogId,
+          blogName: post2ForBlog1.blogName,
+        },
+      };
+
+      commentBl3 = {
+        id: comment3.id,
+        content: comment3.content,
+        commentatorInfo: comment3.commentatorInfo,
+        createdAt: comment3.createdAt,
+        postInfo: {
+          id: post1ForBlog2.id,
+          title: post1ForBlog2.title,
+          blogId: post1ForBlog2.blogId,
+          blogName: post1ForBlog2.blogName,
+        },
+      };
+
+      commentBl4 = {
+        id: comment4.id,
+        content: comment4.content,
+        commentatorInfo: comment4.commentatorInfo,
+        createdAt: comment4.createdAt,
+        postInfo: {
+          id: post2ForBlog2.id,
+          title: post2ForBlog2.title,
+          blogId: post2ForBlog2.blogId,
+          blogName: post2ForBlog2.blogName,
+        },
+      };
+    });
+    it('GET should return 401', async () => {
+      await request(app.getHttpServer()).get(`/blogger/blogs/comments`).expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('GET should return all comments of blog with query', async () => {
+      let result = await request(app.getHttpServer())
+        .get(`/blogger/blogs/comments?sortDirection=asc`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 4,
+        items: [commentBl1, commentBl2, commentBl3, commentBl4],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/blogger/blogs/comments?pageSize=2&pageNumber=2`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 2,
+        page: 2,
+        pageSize: 2,
+        totalCount: 4,
+        items: [commentBl2, commentBl1],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/blogger/blogs/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        items: [],
+      });
     });
   });
 

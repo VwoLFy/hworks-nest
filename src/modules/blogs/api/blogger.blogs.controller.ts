@@ -20,6 +20,10 @@ import { UpdatePostCommand } from '../../posts/application/use-cases/update-post
 import { DeletePostCommand } from '../../posts/application/use-cases/delete-post-use-case';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 import { BlogViewModel } from './models/BlogViewModel';
+import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
+import { FindCommentsQueryModel } from '../../posts/api/models/FindCommentsQueryModel';
+import { CommentViewModelBl } from '../../comments/api/models/CommentViewModel.Bl';
+import { CommentsQueryRepo } from '../../comments/infrastructure/comments.queryRepo';
 
 @Controller('blogger/blogs')
 @UseGuards(JwtAuthGuard)
@@ -27,6 +31,7 @@ export class BlogsControllerBlogger {
   constructor(
     protected blogsQueryRepo: BlogsQueryRepo,
     protected postsQueryRepo: PostsQueryRepo,
+    protected commentsQueryRepo: CommentsQueryRepo,
     private commandBus: CommandBus,
   ) {}
 
@@ -36,6 +41,14 @@ export class BlogsControllerBlogger {
     @UserId() userId: string,
   ): Promise<PageViewModel<BlogViewModel>> {
     return await this.blogsQueryRepo.findOwnBlogs(userId, query);
+  }
+
+  @Get('comments')
+  async findCommentsForOwnBlogs(
+    @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
+    @UserId() userId: string,
+  ): Promise<PageViewModel<CommentViewModelBl>> {
+    return await this.commentsQueryRepo.findCommentsForOwnBlogs({ ...query, userId });
   }
 
   @Post()
