@@ -1,6 +1,5 @@
 import { UsersQueryRepo } from '../infrastructure/users.queryRepo';
 import { FindUsersQueryModel } from './models/FindUsersQueryModel';
-import { UserViewModelPage } from './models/UserViewModelPage';
 import { UserViewModel } from './models/UserViewModel';
 import { CreateUserDto } from '../application/dto/CreateUserDto';
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
@@ -12,6 +11,7 @@ import { CreateUserCommand } from '../application/use-cases/create-user-use-case
 import { CommandBus } from '@nestjs/cqrs';
 import { BanUserDto } from '../application/dto/BanUserDto';
 import { BanUserCommand } from '../application/use-cases/ban-user-use-case';
+import { PageViewModel } from '../../../main/types/PageViewModel';
 
 @Controller('sa/users')
 @UseGuards(BasicAuthGuard)
@@ -19,7 +19,7 @@ export class UsersController {
   constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Get()
-  async findUsers(@Query(findUsersQueryPipe) query: FindUsersQueryModel): Promise<UserViewModelPage> {
+  async findUsers(@Query(findUsersQueryPipe) query: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     return await this.usersQueryRepo.findUsers(query);
   }
 

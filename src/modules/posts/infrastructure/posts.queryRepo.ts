@@ -1,12 +1,13 @@
 import { Post, PostDocument } from '../domain/post.schema';
 import { FindPostsQueryModel } from '../api/models/FindPostsQueryModel';
 import { PostViewModel } from '../api/models/PostViewModel';
-import { PostsViewModelPage } from '../api/models/PostsViewModelPage';
 import { LikeStatus, SortDirection } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PostLike, PostLikeDocument } from '../domain/postLike.schema';
+import { PageViewModel } from '../../../main/types/PageViewModel';
+import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 
 @Injectable()
 export class PostsQueryRepo {
@@ -15,7 +16,7 @@ export class PostsQueryRepo {
     @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
   ) {}
 
-  async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PostsViewModelPage> {
+  async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
     const optionsSort: { [key: string]: SortDirection } = {
@@ -38,13 +39,13 @@ export class PostsQueryRepo {
       items = [...items, item];
     }
 
-    return {
+    const paginationPage = new PaginationPageModel({
       pagesCount,
-      page: pageNumber,
+      pageNumber,
       pageSize,
       totalCount,
-      items,
-    };
+    });
+    return { ...paginationPage, items };
   }
 
   async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
@@ -54,7 +55,11 @@ export class PostsQueryRepo {
     return this.postWithReplaceId(foundPost, userId);
   }
 
-  async findPostsForBlog(blogId: string, userId: string | null, dto: FindPostsQueryModel): Promise<PostsViewModelPage> {
+  async findPostsForBlog(
+    blogId: string,
+    userId: string | null,
+    dto: FindPostsQueryModel,
+  ): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
     const optionsSort: { [key: string]: SortDirection } = {
@@ -81,13 +86,13 @@ export class PostsQueryRepo {
       items = [...items, item];
     }
 
-    return {
+    const paginationPage = new PaginationPageModel({
       pagesCount,
-      page: pageNumber,
+      pageNumber,
       pageSize,
       totalCount,
-      items,
-    };
+    });
+    return { ...paginationPage, items };
   }
 
   async postWithReplaceId(post: Post, userId: string | null): Promise<PostViewModel> {

@@ -2,10 +2,8 @@ import { PostsQueryRepo } from '../infrastructure/posts.queryRepo';
 import { LikePostCommand } from '../application/use-cases/like-post-use-case';
 import { CommentsQueryRepo } from '../../comments/infrastructure/comments.queryRepo';
 import { FindPostsQueryModel } from './models/FindPostsQueryModel';
-import { PostsViewModelPage } from './models/PostsViewModelPage';
 import { PostViewModel } from './models/PostViewModel';
 import { HTTP_Status } from '../../../main/types/enums';
-import { CommentViewModelPage } from '../../comments/api/models/CommentViewModelPage';
 import { FindCommentsQueryModel } from './models/FindCommentsQueryModel';
 import { Body, Controller, Get, HttpCode, HttpException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
@@ -19,6 +17,7 @@ import { GetUserIdGuard } from '../../../main/guards/get-user-id.guard';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment-use-case';
 import { CommandBus } from '@nestjs/cqrs';
+import { PageViewModel } from '../../../main/types/PageViewModel';
 
 @Controller('posts')
 export class PostsController {
@@ -33,7 +32,7 @@ export class PostsController {
   async findPosts(
     @Query(findPostsQueryPipe) query: FindPostsQueryModel,
     @UserId() userId: string | null,
-  ): Promise<PostsViewModelPage> {
+  ): Promise<PageViewModel<PostViewModel>> {
     return await this.postsQueryRepo.findPosts(query, userId);
   }
 
@@ -55,7 +54,7 @@ export class PostsController {
     @Param('postId', checkObjectIdPipe) postId: string,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
-  ): Promise<CommentViewModelPage> {
+  ): Promise<PageViewModel<CommentViewModel>> {
     const foundComments = await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
     if (!foundComments) throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
 

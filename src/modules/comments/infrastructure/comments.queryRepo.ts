@@ -1,12 +1,13 @@
 import { Comment, CommentDocument } from '../domain/comment.schema';
 import { FindCommentsByPostIdDto } from './dto/FindCommentsByPostIdDto';
 import { CommentViewModel } from '../api/models/CommentViewModel';
-import { CommentViewModelPage } from '../api/models/CommentViewModelPage';
 import { LikeStatus } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
+import { PageViewModel } from '../../../main/types/PageViewModel';
+import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 
 @Injectable()
 export class CommentsQueryRepo {
@@ -23,7 +24,7 @@ export class CommentsQueryRepo {
     return this.commentWithReplaceId(foundComment, userId);
   }
 
-  async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<CommentViewModelPage | null> {
+  async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
     const sortOptions = { [sortBy]: sortDirection };
@@ -43,13 +44,13 @@ export class CommentsQueryRepo {
       items = [...items, item];
     }
 
-    return {
+    const paginationPage = new PaginationPageModel({
       pagesCount,
-      page: pageNumber,
+      pageNumber,
       pageSize,
       totalCount,
-      items,
-    };
+    });
+    return { ...paginationPage, items };
   }
 
   async commentWithReplaceId(comment: Comment, userId: string | null): Promise<CommentViewModel> {

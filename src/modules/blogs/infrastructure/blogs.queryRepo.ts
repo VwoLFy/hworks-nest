@@ -6,7 +6,7 @@ import { SortDirection } from '../../../main/types/enums';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PaginationPageModel } from '../api/models/PaginationPageModel';
+import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
 
 @Injectable()

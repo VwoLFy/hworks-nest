@@ -1,17 +1,18 @@
 import { User, UserDocument } from '../domain/user.schema';
 import { UserViewModel } from '../api/models/UserViewModel';
-import { UserViewModelPage } from '../api/models/UserViewModelPage';
 import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BanStatuses } from '../../../main/types/enums';
+import { PageViewModel } from '../../../main/types/PageViewModel';
+import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 
 @Injectable()
 export class UsersQueryRepo {
   constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
 
-  async findUsers(dto: FindUsersQueryModel): Promise<UserViewModelPage> {
+  async findUsers(dto: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
     let filterFind = {};
 
@@ -39,7 +40,6 @@ export class UsersQueryRepo {
 
     const totalCount = await this.UserModel.countDocuments(filterFind);
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const page = pageNumber;
 
     const items = (
       await this.UserModel.find(filterFind)
@@ -49,13 +49,13 @@ export class UsersQueryRepo {
         .lean()
     ).map((foundBlog) => this.userWithReplaceId(foundBlog));
 
-    return {
+    const paginationPage = new PaginationPageModel({
       pagesCount,
-      page,
+      pageNumber,
       pageSize,
       totalCount,
-      items,
-    };
+    });
+    return { ...paginationPage, items };
   }
 
   async findUserById(_id: string): Promise<UserViewModel> {

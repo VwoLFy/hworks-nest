@@ -1,4 +1,4 @@
-import { CreatePaginationDto } from './CreatePaginationDto';
+import { CreatePaginationDto } from '../../modules/blogs/api/models/CreatePaginationDto';
 
 export class PaginationPageModel {
   pagesCount: number;
