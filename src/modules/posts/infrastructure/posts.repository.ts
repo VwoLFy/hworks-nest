@@ -19,6 +19,10 @@ export class PostsRepository {
     await newPost.save();
   }
 
+  async updateBanOnPostsOfBlog(blogId: string, isBanned: boolean) {
+    await this.PostModel.updateMany({ blogId }, { $set: { isBanned } });
+  }
+
   async findPostLike(postId: string, userId: string): Promise<PostLikeDocument | null> {
     return this.PostLikeModel.findOne({ postId, userId });
   }

@@ -10,6 +10,7 @@ export class BindBlogWithUserCommand {
 @CommandHandler(BindBlogWithUserCommand)
 export class BindBlogWithUserUseCase implements ICommandHandler<BindBlogWithUserCommand> {
   constructor(protected blogsRepository: BlogsRepository, protected usersRepository: UsersRepository) {}
+
   async execute(command: BindBlogWithUserCommand) {
     const { userId, blogId } = command;
 

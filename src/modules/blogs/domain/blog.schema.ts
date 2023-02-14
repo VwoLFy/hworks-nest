@@ -19,6 +19,20 @@ export class BlogOwnerInfo {
 }
 export const BlogOwnerInfoSchema = SchemaFactory.createForClass(BlogOwnerInfo);
 
+@Schema({ _id: false })
+export class BanBlogInfo {
+  @Prop({ required: true })
+  isBanned: boolean;
+
+  @Prop()
+  banDate: Date;
+  constructor() {
+    this.isBanned = false;
+    this.banDate = null;
+  }
+}
+const BanBlogInfoSchema = SchemaFactory.createForClass(BanBlogInfo);
+
 @Schema()
 export class Blog {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
@@ -46,6 +60,9 @@ export class Blog {
   @Prop({ required: true, type: BlogOwnerInfoSchema })
   blogOwnerInfo: BlogOwnerInfo;
 
+  @Prop({ required: true, type: BanBlogInfoSchema })
+  banBlogInfo: BanBlogInfo;
+
   constructor(dto: CreateBlogDto, userId: string, userLogin: string) {
     this._id = new ObjectId();
     this.name = dto.name;
@@ -54,12 +71,23 @@ export class Blog {
     this.createdAt = new Date();
     this.isMembership = false;
     this.blogOwnerInfo = new BlogOwnerInfo(userId, userLogin);
+    this.banBlogInfo = new BanBlogInfo();
   }
 
   updateBlog(dto: UpdateBlogDto) {
     this.name = dto.name;
     this.description = dto.description;
     this.websiteUrl = dto.websiteUrl;
+  }
+
+  setBan(isBanned: boolean) {
+    this.banBlogInfo.isBanned = isBanned;
+
+    if (isBanned) {
+      this.banBlogInfo.banDate = new Date();
+    } else {
+      this.banBlogInfo.banDate = null;
+    }
   }
 }
 

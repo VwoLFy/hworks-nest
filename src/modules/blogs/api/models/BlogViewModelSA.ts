@@ -1,5 +1,6 @@
 import { BlogDocument } from '../../domain/blog.schema';
-import { BlogOwnerInfoViewModel } from './BlogOwnerInfoViewModel';
+import { BlogOwnerInfoViewModelSA } from './BlogOwnerInfoViewModelSA';
+import { BanBlogInfoViewModelSA } from './BanBlogInfoViewModelSA';
 
 export class BlogViewModelSA {
   id: string;
@@ -8,7 +9,8 @@ export class BlogViewModelSA {
   websiteUrl: string;
   createdAt: string;
   isMembership: boolean;
-  blogOwnerInfo: BlogOwnerInfoViewModel;
+  blogOwnerInfo: BlogOwnerInfoViewModelSA;
+  banInfo: BanBlogInfoViewModelSA;
 
   constructor(blog: BlogDocument) {
     this.id = blog.id;
@@ -18,5 +20,6 @@ export class BlogViewModelSA {
     this.createdAt = blog.createdAt.toISOString();
     this.isMembership = blog.isMembership;
     this.blogOwnerInfo = blog.blogOwnerInfo;
+    this.banInfo = new BanBlogInfoViewModelSA(blog.banBlogInfo);
   }
 }

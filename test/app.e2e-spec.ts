@@ -537,6 +537,10 @@ describe('AppController (e2e)', () => {
     let blog1: BlogViewModelSA;
     let blog2: BlogViewModelSA;
     let blog3: BlogViewModelSA;
+    let post1: PostViewModel;
+    let post2: PostViewModel;
+    let post3: PostViewModel;
+    let post4: PostViewModel;
     it('Create and login 2 users', async function () {
       let resultUser = await request(app.getHttpServer())
         .post('/sa/users')
@@ -609,17 +613,17 @@ describe('AppController (e2e)', () => {
         .post('/blogger/blogs')
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          name: ' NEW NAME   ',
-          description: 'description  ',
+          name: ' NEW NAME blog1  ',
+          description: 'description1 ',
           websiteUrl: ' https://localhost1.uuu/blogs  ',
         })
         .expect(HTTP_Status.CREATED_201);
-      blog1 = result.body;
+      const blogB1 = result.body;
 
-      expect(blog1).toEqual({
+      expect(blogB1).toEqual({
         id: expect.any(String),
-        name: 'NEW NAME',
-        description: 'description',
+        name: 'NEW NAME blog1',
+        description: 'description1',
         websiteUrl: 'https://localhost1.uuu/blogs',
         createdAt: expect.any(String),
         isMembership: false,
@@ -628,27 +632,39 @@ describe('AppController (e2e)', () => {
         .post('/blogger/blogs')
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
-          name: 'what name 2  ',
+          name: 'what name blog2  ',
           description: 'adescription  2',
           websiteUrl: ' https://localhost1.uuu/blogs2  ',
         })
         .expect(HTTP_Status.CREATED_201);
-      blog2 = result.body;
+      const blogB2 = result.body;
 
       result = await request(app.getHttpServer())
         .post('/blogger/blogs')
         .auth(token2.accessToken, { type: 'bearer' })
         .send({
           name: '  user2 blog  ',
-          description: 'description  3',
+          description: 'description3',
           websiteUrl: ' https://localhost1.uuu/blogs3  ',
         })
         .expect(HTTP_Status.CREATED_201);
-      blog3 = result.body;
+      const blogB3 = result.body;
 
-      blog1 = { ...blog1, blogOwnerInfo: { userId: user1.id, userLogin: user1.login } };
-      blog2 = { ...blog2, blogOwnerInfo: { userId: user1.id, userLogin: user1.login } };
-      blog3 = { ...blog3, blogOwnerInfo: { userId: user2.id, userLogin: user2.login } };
+      blog1 = {
+        ...blogB1,
+        blogOwnerInfo: { userId: user1.id, userLogin: user1.login },
+        banInfo: { isBanned: false, banDate: null },
+      };
+      blog2 = {
+        ...blogB2,
+        blogOwnerInfo: { userId: user1.id, userLogin: user1.login },
+        banInfo: { isBanned: false, banDate: null },
+      };
+      blog3 = {
+        ...blogB3,
+        blogOwnerInfo: { userId: user2.id, userLogin: user2.login },
+        banInfo: { isBanned: false, banDate: null },
+      };
     });
     it('GET by bloggers should return 200 and blogs', async function () {
       await request(app.getHttpServer())
@@ -777,6 +793,202 @@ describe('AppController (e2e)', () => {
         .put(`/sa/blogs/${blog1.id}/bind-with-user/${user1.id}`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('POST should create 2 posts blog1 and one for blog2 and blog3', async () => {
+      let result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post1 for blog1',
+          content: 'valid content1_1',
+          shortDescription: 'shortDescription       shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post1 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post2 for blog1',
+          content: 'valid content1_2',
+          shortDescription: 'shortDescription       shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post2 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog2.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post for blog2',
+          content: 'valid content2',
+          shortDescription: 'shortDescription       shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post3 = result.body;
+
+      result = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog3.id}/posts`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          title: 'post for blog3',
+          content: 'valid content3',
+          shortDescription: 'shortDescription       shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post4 = result.body;
+    });
+    it('GET all posts should return 200 and GET post by id should return post', async function () {
+      await request(app.getHttpServer())
+        .get('/posts')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 4,
+          items: [post4, post3, post2, post1],
+        });
+
+      const resultFoundPosts = await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [post2, post1],
+        });
+      const foundPosts = resultFoundPosts.body;
+
+      expect(foundPosts.items.length).toBe(2);
+
+      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post1);
+    });
+    it('Ban blog should return 400 with incorrect data', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ isBanned: 123 })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('Ban blog should return 401', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/ban`)
+        .send({ isBanned: true })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('Ban blog should return 404', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${user1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ isBanned: true })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/1/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ isBanned: true })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('Blog should be banned', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ isBanned: true })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      let result = await request(app.getHttpServer())
+        .get(`/sa/blogs?searchNameTerm=${blog1.name}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      blog1 = result.body.items[0];
+
+      result = await request(app.getHttpServer())
+        .get(`/sa/blogs?searchNameTerm=${blog2.name}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(blog2).toEqual(result.body.items[0]);
+      expect(blog1).toEqual({ ...blog1, banInfo: { isBanned: true, banDate: expect.any(String) } });
+    });
+    it('GET Banned blog by id should return 404', async function () {
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('GET blogs should return all blogs without banned', async function () {
+      const result = await request(app.getHttpServer()).get(`/blogs`).expect(HTTP_Status.OK_200);
+      expect(result.body.items.length).toBe(2);
+    });
+    it('GET all posts should all posts without banned and GET banned post by id should return 404', async function () {
+      await request(app.getHttpServer())
+        .get('/posts')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [post4, post3],
+        });
+
+      await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/posts/${post3.id}`).expect(HTTP_Status.OK_200, post3);
+    });
+    it('Blog should be unbanned', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/blogs/${blog1.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ isBanned: false })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      const result = await request(app.getHttpServer())
+        .get(`/sa/blogs?searchNameTerm=${blog1.name}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      blog1 = result.body.items[0];
+
+      expect(blog1).toEqual({ ...blog1, banInfo: { isBanned: false, banDate: null } });
+    });
+    it('GET unbanned blog by id should return blog', async function () {
+      const result = await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200);
+      expect(blog1).not.toEqual(result.body);
+    });
+    it('GET blogs should return all blogs with unbanned', async function () {
+      const result = await request(app.getHttpServer()).get(`/blogs`).expect(HTTP_Status.OK_200);
+      expect(result.body.items.length).toBe(3);
+    });
+    it('GET all posts should return 200 and GET post by id should return post after unban blog', async function () {
+      await request(app.getHttpServer())
+        .get('/posts')
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 4,
+          items: [post4, post3, post2, post1],
+        });
+
+      const resultFoundPosts = await request(app.getHttpServer())
+        .get(`/blogs/${blog1.id}/posts`)
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 2,
+          items: [post2, post1],
+        });
+      const foundPosts = resultFoundPosts.body;
+
+      expect(foundPosts.items.length).toBe(2);
+
+      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.OK_200, post1);
     });
   });
 
@@ -1578,7 +1790,7 @@ describe('AppController (e2e)', () => {
         email: 'string2@sdf.ee',
         createdAt: expect.any(String),
         banInfo: {
-          isBanned: expect.any(Boolean),
+          isBanned: false,
           banDate: null,
           banReason: null,
         },

@@ -44,6 +44,9 @@ export class Post {
   @Prop({ required: true })
   createdAt: Date;
 
+  @Prop({ required: true })
+  isBanned: boolean;
+
   @Prop({ required: true, type: ExtendedLikesInfoSchema })
   extendedLikesInfo: ExtendedLikesInfo;
 
@@ -55,6 +58,7 @@ export class Post {
     this.blogId = dto.blogId;
     this.blogName = blogName;
     this.createdAt = new Date();
+    this.isBanned = false;
     this.extendedLikesInfo = new ExtendedLikesInfo();
   }
 

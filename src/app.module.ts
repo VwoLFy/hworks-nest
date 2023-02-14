@@ -79,6 +79,7 @@ import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
 import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/bind-blog-with-user-use-case';
 import { CommentsService } from './modules/comments/application/comments.service';
 import { PostsService } from './modules/posts/application/posts.service';
+import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-use-case';
 
 const useCases = [
   DeleteAllUseCase,
@@ -106,6 +107,7 @@ const useCases = [
   GenerateNewTokensUseCase,
   BanUserUseCase,
   BindBlogWithUserUseCase,
+  BanBlogUseCase,
 ];
 
 @Module({

@@ -22,10 +22,11 @@ export class PostsQueryRepo {
       [sortBy]: sortDirection,
     };
 
-    const totalCount = await this.PostModel.countDocuments();
+    const totalCount = await this.PostModel.countDocuments().where('isBanned', false);
     const pagesCount = Math.ceil(totalCount / pageSize);
 
     const postsWith_id = await this.PostModel.find()
+      .where('isBanned', false)
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .sort(optionsSort)
@@ -46,8 +47,8 @@ export class PostsQueryRepo {
     };
   }
 
-  async findPostById(_id: string, userId: string | null): Promise<PostViewModel | null> {
-    const foundPost = await this.PostModel.findById({ _id }).lean();
+  async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
+    const foundPost = await this.PostModel.findOne({ _id: postId, isBanned: false }).lean();
     if (!foundPost) return null;
 
     return this.postWithReplaceId(foundPost, userId);
@@ -60,7 +61,7 @@ export class PostsQueryRepo {
       [sortBy]: sortDirection,
     };
 
-    const totalCount = await this.PostModel.countDocuments().where('blogId').equals(blogId);
+    const totalCount = await this.PostModel.countDocuments().where('blogId').equals(blogId).where('isBanned', false);
     if (totalCount == 0) throw new NotFoundException('blog not found');
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -68,6 +69,7 @@ export class PostsQueryRepo {
     const postsWith_id = await this.PostModel.find()
       .where('blogId')
       .equals(blogId)
+      .where('isBanned', false)
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .sort(optionsSort)

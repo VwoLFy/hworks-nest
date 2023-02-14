@@ -13,22 +13,30 @@ import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
 export class BlogsQueryRepo {
   constructor(@InjectModel(Blog.name) private BlogModel: Model<BlogDocument>) {}
 
-  private async findBlogsFromDb(userId: string, dto: FindBlogsQueryModel): Promise<BlogDocument[]> {
-    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+  async findBlogs(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
+    const { searchNameTerm, pageNumber, pageSize } = dto;
 
-    const optionsSort: { [key: string]: SortDirection } = { [sortBy]: sortDirection };
-
-    const foundBlogs = this.BlogModel.find()
+    const totalCount = await this.BlogModel.countDocuments()
       .where('name')
       .regex(new RegExp(searchNameTerm, 'i'))
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort(optionsSort);
-    return !userId ? foundBlogs : foundBlogs.where('blogOwnerInfo.userId', userId);
+      .where('banBlogInfo.isBanned', false);
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    const foundBlogs = await this.findBlogsFromDb(null, dto, false);
+
+    const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
+
+    const paginationPage = new PaginationPageModel({
+      pagesCount,
+      pageNumber,
+      pageSize,
+      totalCount,
+    });
+    return { ...paginationPage, items };
   }
 
-  async findBlogById(_id: string): Promise<BlogViewModel | null> {
-    const foundBlog = await this.BlogModel.findById(_id);
+  async findBlogById(blogId: string): Promise<BlogViewModel | null> {
+    const foundBlog = await this.BlogModel.findOne({ _id: blogId, 'banBlogInfo.isBanned': false });
     if (!foundBlog) return null;
 
     return new BlogViewModel(foundBlog);
@@ -43,28 +51,9 @@ export class BlogsQueryRepo {
       .where('blogOwnerInfo.userId', userId);
     const pagesCount = Math.ceil(totalCount / pageSize);
 
-    const foundBlogs = await this.findBlogsFromDb(userId, dto);
+    const foundBlogs = await this.findBlogsFromDb(userId, dto, true);
 
     const items = foundBlogs.map((b) => new BlogViewModel(b));
-
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
-  }
-
-  async findBlogs(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
-    const { searchNameTerm, pageNumber, pageSize } = dto;
-
-    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(searchNameTerm, 'i'));
-    const pagesCount = Math.ceil(totalCount / pageSize);
-
-    const foundBlogs = await this.findBlogsFromDb(null, dto);
-
-    const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
 
     const paginationPage = new PaginationPageModel({
       pagesCount,
@@ -81,7 +70,7 @@ export class BlogsQueryRepo {
     const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(searchNameTerm, 'i'));
     const pagesCount = Math.ceil(totalCount / pageSize);
 
-    const foundBlogs = await this.findBlogsFromDb(null, dto);
+    const foundBlogs = await this.findBlogsFromDb(null, dto, true);
 
     const items: BlogViewModelSA[] = foundBlogs.map((b) => new BlogViewModelSA(b));
 
@@ -92,5 +81,26 @@ export class BlogsQueryRepo {
       totalCount,
     });
     return { ...paginationPage, items };
+  }
+
+  private async findBlogsFromDb(
+    userId: string,
+    dto: FindBlogsQueryModel,
+    findBanned: boolean,
+  ): Promise<BlogDocument[]> {
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+
+    const optionsSort: { [key: string]: SortDirection } = { [sortBy]: sortDirection };
+
+    let foundBlogs = this.BlogModel.find()
+      .where('name')
+      .regex(new RegExp(searchNameTerm, 'i'))
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .sort(optionsSort);
+
+    foundBlogs = findBanned ? foundBlogs : foundBlogs.where('banBlogInfo.isBanned', false);
+    foundBlogs = !userId ? foundBlogs : foundBlogs.where('blogOwnerInfo.userId', userId);
+    return foundBlogs;
   }
 }

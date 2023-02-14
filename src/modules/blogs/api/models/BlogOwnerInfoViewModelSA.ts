@@ -1,4 +1,4 @@
-export class BlogOwnerInfoViewModel {
+export class BlogOwnerInfoViewModelSA {
   userId: string;
   userLogin: string;
 }
