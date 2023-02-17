@@ -3285,6 +3285,7 @@ describe('AppController (e2e)', () => {
           blogId: post1ForBlog1.blogId,
           blogName: post1ForBlog1.blogName,
         },
+        likesInfo: { likesCount: 0, dislikesCount: 0, myStatus: LikeStatus.None },
       };
 
       commentBl2 = {
@@ -3298,6 +3299,7 @@ describe('AppController (e2e)', () => {
           blogId: post2ForBlog1.blogId,
           blogName: post2ForBlog1.blogName,
         },
+        likesInfo: { likesCount: 0, dislikesCount: 0, myStatus: LikeStatus.None },
       };
 
       commentBl3 = {
@@ -3311,6 +3313,7 @@ describe('AppController (e2e)', () => {
           blogId: post1ForBlog2.blogId,
           blogName: post1ForBlog2.blogName,
         },
+        likesInfo: { likesCount: 0, dislikesCount: 0, myStatus: LikeStatus.None },
       };
 
       commentBl4 = {
@@ -3324,6 +3327,7 @@ describe('AppController (e2e)', () => {
           blogId: post2ForBlog2.blogId,
           blogName: post2ForBlog2.blogName,
         },
+        likesInfo: { likesCount: 0, dislikesCount: 0, myStatus: LikeStatus.None },
       };
     });
     it('GET all comments by blogger should return 401', async () => {

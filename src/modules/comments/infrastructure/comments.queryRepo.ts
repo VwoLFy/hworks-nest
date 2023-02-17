@@ -23,11 +23,12 @@ export class CommentsQueryRepo {
     private CommentLikeModel: Model<CommentLikeDocument>,
   ) {}
 
-  async findCommentById(_id: string, userId: string | null): Promise<CommentViewModel | null> {
-    const foundComment = await this.CommentModel.findOne({ _id, isBanned: false }).lean();
+  async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
+    const foundComment = await this.CommentModel.findOne({ _id: commentId, isBanned: false });
     if (!foundComment) throw new NotFoundException('comment not found');
 
-    return this.commentWithReplaceId(foundComment, userId);
+    const myStatus = await this.myLikeStatus(commentId, userId);
+    return new CommentViewModel(foundComment, myStatus);
   }
 
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
@@ -38,16 +39,15 @@ export class CommentsQueryRepo {
     if (!totalCount) return null;
 
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const commentsWith_id = await this.CommentModel.find({ postId, isBanned: false })
+    const foundComments = await this.CommentModel.find({ postId, isBanned: false })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
-      .sort(sortOptions)
-      .lean();
+      .sort(sortOptions);
 
-    let items: CommentViewModel[] = [];
-    for (const commentWith_id of commentsWith_id) {
-      const item = await this.commentWithReplaceId(commentWith_id, userId);
-      items = [...items, item];
+    const items: CommentViewModel[] = [];
+    for (const comment of foundComments) {
+      const myStatus = await this.myLikeStatus(comment.id, userId);
+      items.push(new CommentViewModel(comment, myStatus));
     }
 
     const paginationPage = new PaginationPageModel({
@@ -57,25 +57,6 @@ export class CommentsQueryRepo {
       totalCount,
     });
     return { ...paginationPage, items };
-  }
-
-  async commentWithReplaceId(comment: Comment, userId: string | null): Promise<CommentViewModel> {
-    let myStatus: LikeStatus = LikeStatus.None;
-    if (userId) {
-      const status = await this.CommentLikeModel.findOne({
-        commentId: comment._id,
-        userId,
-      }).lean();
-      if (status) myStatus = status.likeStatus;
-    }
-
-    return {
-      id: comment._id.toString(),
-      content: comment.content,
-      commentatorInfo: comment.commentatorInfo,
-      createdAt: comment.createdAt.toISOString(),
-      likesInfo: { ...comment.likesInfo, myStatus: myStatus },
-    };
   }
 
   async findCommentsForOwnBlogs(dto: FindCommentsForOwnBlogsDto): Promise<PageViewModel<CommentViewModelBl>> {
@@ -94,10 +75,12 @@ export class CommentsQueryRepo {
       .limit(pageSize)
       .sort({ [sortBy]: sortDirection });
 
-    const resultComments = foundComments.map((c) => {
-      const post = foundPosts.find((p) => p._id.toString() === c.postId);
-      return new CommentViewModelBl(c, post);
-    });
+    const items: CommentViewModelBl[] = [];
+    for (const comment of foundComments) {
+      const post = foundPosts.find((p) => p._id.toString() === comment.postId);
+      const myStatus = await this.myLikeStatus(comment.id, userId);
+      items.push(new CommentViewModelBl(comment, post, myStatus));
+    }
 
     const paginationPage = new PaginationPageModel({
       pagesCount,
@@ -105,6 +88,15 @@ export class CommentsQueryRepo {
       pageSize,
       totalCount,
     });
-    return { ...paginationPage, items: resultComments };
+    return { ...paginationPage, items };
+  }
+
+  async myLikeStatus(commentId: string, userId: string | null): Promise<LikeStatus> {
+    let myStatus: LikeStatus = LikeStatus.None;
+    if (userId) {
+      const status = await this.CommentLikeModel.findOne({ commentId, userId }).lean();
+      if (status) myStatus = status.likeStatus;
+    }
+    return myStatus;
   }
 }
