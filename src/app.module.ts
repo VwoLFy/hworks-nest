@@ -21,7 +21,7 @@ import { User, UserSchema } from './modules/users/domain/user.schema';
 import { UsersQueryRepo } from './modules/users/infrastructure/users.queryRepo';
 import { UsersRepository } from './modules/users/infrastructure/users.repository';
 import { CreateUserUseCase } from './modules/users/application/use-cases/create-user-use-case';
-import { UsersController } from './modules/users/api/users.controller';
+import { UsersControllerSA } from './modules/users/api/sa.users.controller';
 import { DeleteAllController } from './modules/delete_all/delete-all.controller';
 import { AttemptsData, AttemptsDataSchema } from './modules/auth/domain/attempts.schema';
 import { PasswordRecovery, PasswordRecoverySchema } from './modules/auth/domain/password-recovery.schema';
@@ -74,12 +74,15 @@ import { GenerateNewTokensUseCase } from './modules/auth/application/use-cases/g
 import { SecurityService } from './modules/security/application/security.service';
 import { CqrsModule } from '@nestjs/cqrs';
 import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-use-case';
-import { BlogsControllerBlogger } from './modules/blogs/api/blogger.blogs.controller';
+import { BlogsControllerBl } from './modules/blogs/api/blogger.blogs.controller';
 import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
 import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/bind-blog-with-user-use-case';
 import { CommentsService } from './modules/comments/application/comments.service';
 import { PostsService } from './modules/posts/application/posts.service';
 import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-use-case';
+import { BanUserForBlogUseCase } from './modules/users/application/use-cases/ban-user-for-blog-use-case';
+import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
+import { BannedUserForBlog, BannedUserForBlogSchema } from './modules/users/domain/banned-user-for-blog.schema';
 
 const useCases = [
   DeleteAllUseCase,
@@ -108,6 +111,7 @@ const useCases = [
   BanUserUseCase,
   BindBlogWithUserUseCase,
   BanBlogUseCase,
+  BanUserForBlogUseCase,
 ];
 
 @Module({
@@ -150,6 +154,7 @@ const useCases = [
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
       { name: User.name, schema: UserSchema },
+      { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
       { name: AttemptsData.name, schema: AttemptsDataSchema },
       { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
       { name: Session.name, schema: SessionSchema },
@@ -197,14 +202,15 @@ const useCases = [
   controllers: [
     AppController,
     BlogsController,
+    BlogsControllerBl,
+    BlogsControllerSA,
     PostsController,
     CommentsController,
-    UsersController,
+    UsersControllerSA,
+    UsersControllerBl,
     DeleteAllController,
     AuthController,
     SecurityController,
-    BlogsControllerBlogger,
-    BlogsControllerSA,
   ],
   providers: [
     BasicStrategy,

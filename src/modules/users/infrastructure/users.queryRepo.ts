@@ -7,10 +7,16 @@ import { Model } from 'mongoose';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
+import { FindBannedUsersForBlogQueryModel } from '../api/models/FindBannedUsersForBlogQueryModel';
+import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewModel';
+import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
 
 @Injectable()
 export class UsersQueryRepo {
-  constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private UserModel: Model<UserDocument>,
+    @InjectModel(BannedUserForBlog.name) private BannedUserForBlogModel: Model<BannedUserForBlogDocument>,
+  ) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
@@ -47,7 +53,7 @@ export class UsersQueryRepo {
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
         .lean()
-    ).map((foundBlog) => this.userWithReplaceId(foundBlog));
+    ).map((u) => this.userWithReplaceId(u));
 
     const paginationPage = new PaginationPageModel({
       pagesCount,
@@ -76,5 +82,38 @@ export class UsersQueryRepo {
         banDate: object.banInfo.banDate === null ? null : object.banInfo.banDate.toISOString(),
       },
     };
+  }
+
+  async findBannedUsersForBlog(
+    blogId: string,
+    dto: FindBannedUsersForBlogQueryModel,
+  ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
+    const { searchLoginTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+
+    let filterFind = {};
+    if (searchLoginTerm) {
+      filterFind = {
+        userLogin: { $regex: searchLoginTerm, $options: 'i' },
+      };
+    }
+
+    const totalCount = await this.BannedUserForBlogModel.countDocuments(filterFind).where('blogId', blogId);
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    const items = (
+      await this.BannedUserForBlogModel.find(filterFind)
+        .where('blogId', blogId)
+        .sort({ [sortBy]: sortDirection })
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
+    ).map((u) => new BannedUserForBlogViewModel(u));
+
+    const paginationPage = new PaginationPageModel({
+      pagesCount,
+      pageNumber,
+      pageSize,
+      totalCount,
+    });
+    return { ...paginationPage, items };
   }
 }

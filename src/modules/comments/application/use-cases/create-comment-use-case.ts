@@ -6,7 +6,7 @@ import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { Comment, CommentDocument } from '../../domain/comment.schema';
 import { CreateCommentDto } from '../dto/CreateCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 export class CreateCommentCommand {
   constructor(public dto: CreateCommentDto) {}
@@ -29,8 +29,11 @@ export class CreateCommentUseCase implements ICommandHandler<CreateCommentComman
   async createCommentDocument(dto: CreateCommentDto): Promise<CommentDocument> {
     const { postId, userId } = dto;
 
-    const isPostExist = await this.postsRepository.findPostById(postId);
-    if (!isPostExist) throw new NotFoundException('post not found');
+    const foundPost = await this.postsRepository.findPostById(postId);
+    if (!foundPost) throw new NotFoundException('post not found');
+
+    const isBannedForBlog = await this.usersRepository.findBannedUserForBlog(foundPost.blogId, userId);
+    if (isBannedForBlog) throw new ForbiddenException();
 
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
 

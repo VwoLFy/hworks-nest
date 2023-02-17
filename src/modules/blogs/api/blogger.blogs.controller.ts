@@ -27,7 +27,7 @@ import { CommentsQueryRepo } from '../../comments/infrastructure/comments.queryR
 
 @Controller('blogger/blogs')
 @UseGuards(JwtAuthGuard)
-export class BlogsControllerBlogger {
+export class BlogsControllerBl {
   constructor(
     protected blogsQueryRepo: BlogsQueryRepo,
     protected postsQueryRepo: PostsQueryRepo,

@@ -2,10 +2,14 @@ import { User, UserDocument } from '../domain/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
 
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectModel(User.name) private UserModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private UserModel: Model<UserDocument>,
+    @InjectModel(BannedUserForBlog.name) private BannedUserForBlogModel: Model<BannedUserForBlogDocument>,
+  ) {}
 
   async findUserByLoginOrEmail(loginOrEmail: string): Promise<UserDocument | null> {
     const foundUser = await this.UserModel.findOne({
@@ -43,5 +47,17 @@ export class UsersRepository {
 
   async deleteAll() {
     await this.UserModel.deleteMany();
+  }
+
+  async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
+    return this.BannedUserForBlogModel.findOne({ blogId, userId });
+  }
+
+  async saveBannedUserForBlog(bannedUserForBlogModel: BannedUserForBlogDocument) {
+    await bannedUserForBlogModel.save();
+  }
+
+  async deleteBannedUserForBlog(userId: string) {
+    await this.BannedUserForBlogModel.deleteOne({ userId });
   }
 }

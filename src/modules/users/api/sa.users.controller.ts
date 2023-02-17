@@ -15,7 +15,7 @@ import { PageViewModel } from '../../../main/types/PageViewModel';
 
 @Controller('sa/users')
 @UseGuards(BasicAuthGuard)
-export class UsersController {
+export class UsersControllerSA {
   constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Get()

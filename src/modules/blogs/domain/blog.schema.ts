@@ -17,7 +17,7 @@ export class BlogOwnerInfo {
     this.userLogin = userLogin;
   }
 }
-export const BlogOwnerInfoSchema = SchemaFactory.createForClass(BlogOwnerInfo);
+const BlogOwnerInfoSchema = SchemaFactory.createForClass(BlogOwnerInfo);
 
 @Schema({ _id: false })
 export class BanBlogInfo {

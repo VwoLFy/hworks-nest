@@ -3330,10 +3330,10 @@ describe('AppController (e2e)', () => {
         },
       };
     });
-    it('GET should return 401', async () => {
+    it('GET all comments by blogger should return 401', async () => {
       await request(app.getHttpServer()).get(`/blogger/blogs/comments`).expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('GET should return all comments of blog with query', async () => {
+    it('GET all comments by blogger should return all comments of blog with query', async () => {
       let result = await request(app.getHttpServer())
         .get(`/blogger/blogs/comments?sortDirection=asc`)
         .auth(token1.accessToken, { type: 'bearer' })
@@ -3372,6 +3372,467 @@ describe('AppController (e2e)', () => {
         totalCount: 0,
         items: [],
       });
+    });
+  });
+
+  describe('Blogger-    ban user for blog', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    let user1: UserViewModel;
+    let user2: UserViewModel;
+    let user3: UserViewModel;
+    let user4: UserViewModel;
+    let token1: LoginSuccessViewModel;
+    let token2: LoginSuccessViewModel;
+    let blog1: BlogViewModel;
+    let blog2: BlogViewModel;
+    let post1: PostViewModel;
+    let post2: PostViewModel;
+    it('Create 4 users, login 2 users, create blog & post by users', async function () {
+      let resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user1 = resultUser.body;
+
+      let resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token1 = resultToken.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login2',
+          password: 'password',
+          email: 'string2@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user2 = resultUser.body;
+
+      resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login2',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token2 = resultToken.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login3',
+          password: 'password',
+          email: 'string3@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user3 = resultUser.body;
+
+      resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login4',
+          password: 'password',
+          email: 'string4@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user4 = resultUser.body;
+
+      let resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName1',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog1 = resultBlog.body;
+
+      let resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog1.id}/posts`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          title: 'postForBlog1',
+          content: 'valid',
+          shortDescription: 'shortDescription        shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post1 = resultPost.body;
+
+      resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName2',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog2 = resultBlog.body;
+
+      resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog2.id}/posts`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          title: 'postForBlog2',
+          content: 'valid',
+          shortDescription: 'shortDescription        shortDescription',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post2 = resultPost.body;
+    });
+    it('GET comments should return 404', async () => {
+      await request(app.getHttpServer()).get(`/posts/${post1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('Ban User should return 401', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken + 'd', { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('Ban User2 should return 400 if data is incorrect', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: 'blog.id',
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: 'yes',
+          banReason: 'banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: user1.id,
+        })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('Ban User2 should return 404 if user not found', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${post1.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('Ban User2 should return 404 if blog is not own', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: 'banReason         banReason',
+          blogId: blog2.id,
+        })
+        .expect(HTTP_Status.FORBIDDEN_403);
+    });
+    it('Ban User2, user3 and user4 for blog', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: '2banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user3.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: '1banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user4.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: true,
+          banReason: '3banReason         banReason',
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('GET banned users should return 401', async () => {
+      await request(app.getHttpServer()).get(`/blogger/users/blog/${blog1.id}`).expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('GET banned users return 403', async () => {
+      await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.FORBIDDEN_403);
+
+      await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog2.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.FORBIDDEN_403);
+    });
+    it('GET banned users  with query should return banned users', async () => {
+      let result = await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 3,
+        items: [
+          {
+            id: user4.id,
+            login: user4.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '3banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+          {
+            id: user3.id,
+            login: user3.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '1banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+          {
+            id: user2.id,
+            login: user2.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '2banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+        ],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}?pageSize=2&pageNumber=2&sortDirection=asc`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 2,
+        page: 2,
+        pageSize: 2,
+        totalCount: 3,
+        items: [
+          {
+            id: user4.id,
+            login: user4.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '3banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+        ],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}?sortBy=banReason`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 3,
+        items: [
+          {
+            id: user4.id,
+            login: user4.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '3banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+          {
+            id: user2.id,
+            login: user2.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '2banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+          {
+            id: user3.id,
+            login: user3.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '1banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+        ],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}?searchLoginTerm=${user3.login}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 1,
+        items: [
+          {
+            id: user3.id,
+            login: user3.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '1banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+        ],
+      });
+    });
+    it('Banned by blogger user shouldn`t create comment in this blog, but can create comment in another blog', async () => {
+      await request(app.getHttpServer())
+        .post(`/posts/${post1.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment111111111',
+        })
+        .expect(HTTP_Status.FORBIDDEN_403);
+
+      await request(app.getHttpServer())
+        .post(`/posts/${post2.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment111111111',
+        })
+        .expect(HTTP_Status.CREATED_201);
+    });
+    it('Unban User3 for blog', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user3.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: false,
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('GET banned users should return user4 and user2', async () => {
+      const result = await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${blog1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 2,
+        items: [
+          {
+            id: user4.id,
+            login: user4.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '3banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+          {
+            id: user2.id,
+            login: user2.login,
+            banInfo: {
+              isBanned: true,
+              banReason: '2banReason         banReason',
+              banDate: expect.any(String),
+            },
+          },
+        ],
+      });
+    });
+    it('Unbanned by blogger user2 should create comment in this blog', async () => {
+      await request(app.getHttpServer())
+        .put(`/blogger/users/${user2.id}/ban`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({
+          isBanned: false,
+          blogId: blog1.id,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+
+      await request(app.getHttpServer())
+        .post(`/posts/${post1.id}/comments`)
+        .auth(token2.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment111111111',
+        })
+        .expect(HTTP_Status.CREATED_201);
     });
   });
 
