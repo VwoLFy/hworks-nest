@@ -9,15 +9,6 @@ export class SecurityQueryRepo {
   constructor(@InjectModel(Session.name) private SessionModel: Model<SessionDocument>) {}
 
   async findUserSessions(userId: string): Promise<DeviceViewModel[]> {
-    return (await this.SessionModel.find({ userId }).lean()).map((s) => this.getOutputModel(s));
-  }
-
-  getOutputModel(session: Session): DeviceViewModel {
-    return {
-      ip: session.ip,
-      title: session.title,
-      lastActiveDate: new Date(session.iat * 1000).toISOString(),
-      deviceId: session.deviceId,
-    };
+    return (await this.SessionModel.find({ userId }).lean()).map((s) => new DeviceViewModel(s));
   }
 }

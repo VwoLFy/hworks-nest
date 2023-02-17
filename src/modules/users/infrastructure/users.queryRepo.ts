@@ -6,7 +6,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';
-import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 import { FindBannedUsersForBlogQueryModel } from '../api/models/FindBannedUsersForBlogQueryModel';
 import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewModel';
 import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
@@ -53,35 +52,24 @@ export class UsersQueryRepo {
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
         .lean()
-    ).map((u) => this.userWithReplaceId(u));
+    ).map((u) => new UserViewModel(u));
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   async findUserById(_id: string): Promise<UserViewModel> {
     const foundUser = await this.UserModel.findById({ _id }).lean();
     if (!foundUser) throw new NotFoundException('User not found');
 
-    return this.userWithReplaceId(foundUser);
-  }
-
-  userWithReplaceId(object: User): UserViewModel {
-    return {
-      id: object._id.toString(),
-      login: object.accountData.login,
-      email: object.accountData.email,
-      createdAt: object.accountData.createdAt.toISOString(),
-      banInfo: {
-        ...object.banInfo,
-        banDate: object.banInfo.banDate === null ? null : object.banInfo.banDate.toISOString(),
-      },
-    };
+    return new UserViewModel(foundUser);
   }
 
   async findBannedUsersForBlog(
@@ -108,12 +96,14 @@ export class UsersQueryRepo {
         .limit(pageSize)
     ).map((u) => new BannedUserForBlogViewModel(u));
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 }

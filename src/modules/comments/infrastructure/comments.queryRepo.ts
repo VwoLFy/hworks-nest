@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
-import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
 import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
 import { Blog, BlogDocument } from '../../blogs/domain/blog.schema';
@@ -34,7 +33,6 @@ export class CommentsQueryRepo {
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
-    const sortOptions = { [sortBy]: sortDirection };
     const totalCount = await this.CommentModel.countDocuments({ postId, isBanned: false });
     if (!totalCount) return null;
 
@@ -42,7 +40,7 @@ export class CommentsQueryRepo {
     const foundComments = await this.CommentModel.find({ postId, isBanned: false })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
-      .sort(sortOptions);
+      .sort({ [sortBy]: sortDirection });
 
     const items: CommentViewModel[] = [];
     for (const comment of foundComments) {
@@ -50,13 +48,15 @@ export class CommentsQueryRepo {
       items.push(new CommentViewModel(comment, myStatus));
     }
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   async findCommentsForOwnBlogs(dto: FindCommentsForOwnBlogsDto): Promise<PageViewModel<CommentViewModelBl>> {
@@ -82,13 +82,15 @@ export class CommentsQueryRepo {
       items.push(new CommentViewModelBl(comment, post, myStatus));
     }
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   async myLikeStatus(commentId: string, userId: string | null): Promise<LikeStatus> {

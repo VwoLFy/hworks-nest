@@ -1,12 +1,11 @@
 import { Blog, BlogDocument } from '../domain/blog.schema';
 import { FindBlogsQueryModel } from '../api/models/FindBlogsQueryModel';
 import { BlogViewModel } from '../api/models/BlogViewModel';
-import { PageViewModel } from '../../../main/types/PageViewModel';
 import { SortDirection } from '../../../main/types/enums';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PaginationPageModel } from '../../../main/types/PaginationPageModel';
+import { PageViewModel } from '../../../main/types/PageViewModel';
 import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
 
 @Injectable()
@@ -26,13 +25,15 @@ export class BlogsQueryRepo {
 
     const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   async findBlogById(blogId: string): Promise<BlogViewModel | null> {
@@ -55,13 +56,15 @@ export class BlogsQueryRepo {
 
     const items = foundBlogs.map((b) => new BlogViewModel(b));
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   async findBlogsSA(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModelSA>> {
@@ -74,13 +77,15 @@ export class BlogsQueryRepo {
 
     const items: BlogViewModelSA[] = foundBlogs.map((b) => new BlogViewModelSA(b));
 
-    const paginationPage = new PaginationPageModel({
-      pagesCount,
-      pageNumber,
-      pageSize,
-      totalCount,
-    });
-    return { ...paginationPage, items };
+    return new PageViewModel(
+      {
+        pagesCount,
+        pageNumber,
+        pageSize,
+        totalCount,
+      },
+      items,
+    );
   }
 
   private async findBlogsFromDb(
