@@ -50,7 +50,7 @@ export class UsersRepository {
   }
 
   async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
-    return this.BannedUserForBlogModel.findOne({ blogId, userId });
+    return this.BannedUserForBlogModel.findOne({ blogId, id: userId });
   }
 
   async saveBannedUserForBlog(bannedUserForBlogModel: BannedUserForBlogDocument) {
@@ -58,6 +58,6 @@ export class UsersRepository {
   }
 
   async deleteBannedUserForBlog(userId: string) {
-    await this.BannedUserForBlogModel.deleteOne({ userId });
+    await this.BannedUserForBlogModel.deleteOne({ id: userId });
   }
 }

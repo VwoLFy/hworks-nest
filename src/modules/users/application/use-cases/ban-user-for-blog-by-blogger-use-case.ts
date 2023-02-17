@@ -7,28 +7,31 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BannedUserForBlog, BannedUserForBlogDocument } from '../../domain/banned-user-for-blog.schema';
 import { Model } from 'mongoose';
 
-export class BanUserForBlogCommand {
-  constructor(public userId: string, public bannedUserId: string, public dto: BanUserForBlogDto) {}
+export class BanUserForBlogByBloggerCommand {
+  constructor(public bloggerId: string, public bannedUserId: string, public dto: BanUserForBlogDto) {}
 }
 
-@CommandHandler(BanUserForBlogCommand)
-export class BanUserForBlogUseCase implements ICommandHandler<BanUserForBlogCommand> {
+@CommandHandler(BanUserForBlogByBloggerCommand)
+export class BanUserForBlogByBloggerUseCase implements ICommandHandler<BanUserForBlogByBloggerCommand> {
   constructor(
     protected usersRepository: UsersRepository,
     protected blogsRepository: BlogsRepository,
     @InjectModel(BannedUserForBlog.name) private BannedUserForBlogModel: Model<BannedUserForBlogDocument>,
   ) {}
 
-  async execute(command: BanUserForBlogCommand) {
-    const { userId, bannedUserId, dto } = command;
+  async execute(command: BanUserForBlogByBloggerCommand) {
+    const { bloggerId, bannedUserId, dto } = command;
 
     const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
-    if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException('blog is not yours');
+    if (foundBlog.blogOwnerInfo.userId !== bloggerId) throw new ForbiddenException('blog is not yours');
 
     const foundUser = await this.usersRepository.findUserById(bannedUserId);
     if (!foundUser) throw new NotFoundException('user not found');
 
     if (dto.isBanned) {
+      const userAlreadyIsBanned = await this.usersRepository.findBannedUserForBlog(dto.blogId, bannedUserId);
+      if (userAlreadyIsBanned) return;
+
       const bannedUser = new BannedUserForBlog(dto.blogId, bannedUserId, foundUser.accountData.login, dto.banReason);
       const bannedUserForBlogModel = new this.BannedUserForBlogModel(bannedUser);
       await this.usersRepository.saveBannedUserForBlog(bannedUserForBlogModel);

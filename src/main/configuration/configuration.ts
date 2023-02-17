@@ -1,3 +1,5 @@
+import * as process from 'process';
+
 export const configuration = () => ({
   NODE_ENV: process.env.NODE_ENV,
 
@@ -17,6 +19,8 @@ export const configuration = () => ({
   EMAIL: process.env.EMAIL,
   EMAIL_FROM: process.env.EMAIL_FROM,
   MY_EMAIL: process.env.MY_EMAIL,
+
+  ATTEMPTS_INTERVAL: process.env.ATTEMPTS_INTERVAL,
 });
 
 export type EnvType = ReturnType<typeof configuration>;

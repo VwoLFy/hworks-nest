@@ -1,11 +1,22 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, Param, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 import { BanUserForBlogDto } from '../application/dto/BanUserForBlogDto';
 import { FindBannedUsersForBlogQueryModel } from './models/FindBannedUsersForBlogQueryModel';
 import { findBannedUsersForBlogQueryPipe } from './models/FindBannedUsersForBlogQueryPipe';
-import { BanUserForBlogCommand } from '../application/use-cases/ban-user-for-blog-use-case';
+import { BanUserForBlogByBloggerCommand } from '../application/use-cases/ban-user-for-blog-by-blogger-use-case';
 import { UserId } from '../../../main/decorators/user.decorator';
 import { BannedUserForBlogViewModel } from './models/BannedUserForBlogViewModel';
 import { UsersQueryRepo } from '../infrastructure/users.queryRepo';
@@ -23,12 +34,13 @@ export class UsersControllerBl {
 
   @Get('blog/:blogId')
   async findBannedUsersForBlog(
-    @UserId() userId: string,
+    @UserId() bloggerId: string,
     @Query(findBannedUsersForBlogQueryPipe) query: FindBannedUsersForBlogQueryModel,
     @Param('blogId', checkObjectIdPipe) blogId: string,
   ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
     const foundBlog = await this.blogsRepository.findBlogById(blogId);
-    if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+    if (!foundBlog) throw new NotFoundException('blog not found');
+    if (foundBlog.blogOwnerInfo.userId !== bloggerId) throw new ForbiddenException();
 
     return await this.usersQueryRepo.findBannedUsersForBlog(blogId, query);
   }
@@ -36,10 +48,10 @@ export class UsersControllerBl {
   @Put(':bannedUserId/ban')
   @HttpCode(204)
   async banUserForBlog(
-    @UserId() userId: string,
+    @UserId() bloggerId: string,
     @Param('bannedUserId', checkObjectIdPipe) bannedUserId: string,
     @Body() body: BanUserForBlogDto,
   ) {
-    await this.commandBus.execute(new BanUserForBlogCommand(userId, bannedUserId, body));
+    await this.commandBus.execute(new BanUserForBlogByBloggerCommand(bloggerId, bannedUserId, body));
   }
 }

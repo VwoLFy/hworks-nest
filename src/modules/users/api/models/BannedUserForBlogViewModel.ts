@@ -16,8 +16,8 @@ export class BannedUserForBlogViewModel {
   login: string;
   banInfo: BanInfoForBlog;
   constructor(bannedUser: BannedUserForBlog) {
-    this.id = bannedUser.userId;
-    this.login = bannedUser.userLogin;
+    this.id = bannedUser.id;
+    this.login = bannedUser.login;
     this.banInfo = new BanInfoForBlog(bannedUser.banReason, bannedUser.banDate.toISOString());
   }
 }

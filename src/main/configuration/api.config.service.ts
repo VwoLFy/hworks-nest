@@ -59,4 +59,8 @@ export class ApiConfigService {
   get EMAIL_FROM(): string {
     return this.configService.get('EMAIL_FROM', { infer: true });
   }
+
+  get ATTEMPTS_INTERVAL(): number {
+    return +this.configService.get('ATTEMPTS_INTERVAL', { infer: true }) || 10;
+  }
 }

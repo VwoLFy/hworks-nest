@@ -93,7 +93,7 @@ export class UsersQueryRepo {
     let filterFind = {};
     if (searchLoginTerm) {
       filterFind = {
-        userLogin: { $regex: searchLoginTerm, $options: 'i' },
+        login: { $regex: searchLoginTerm, $options: 'i' },
       };
     }
 

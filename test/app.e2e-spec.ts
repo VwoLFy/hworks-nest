@@ -3627,6 +3627,17 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
+    it('GET banned users return 404', async () => {
+      await request(app.getHttpServer())
+        .get(`/blogger/users/blog/${user1.id}`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .get(`/blogger/users/blog/1`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
     it('GET banned users  with query should return banned users', async () => {
       let result = await request(app.getHttpServer())
         .get(`/blogger/users/blog/${blog1.id}`)

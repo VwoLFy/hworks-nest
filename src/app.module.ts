@@ -80,7 +80,7 @@ import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/b
 import { CommentsService } from './modules/comments/application/comments.service';
 import { PostsService } from './modules/posts/application/posts.service';
 import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-use-case';
-import { BanUserForBlogUseCase } from './modules/users/application/use-cases/ban-user-for-blog-use-case';
+import { BanUserForBlogByBloggerUseCase } from './modules/users/application/use-cases/ban-user-for-blog-by-blogger-use-case';
 import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
 import { BannedUserForBlog, BannedUserForBlogSchema } from './modules/users/domain/banned-user-for-blog.schema';
 
@@ -111,7 +111,7 @@ const useCases = [
   BanUserUseCase,
   BindBlogWithUserUseCase,
   BanBlogUseCase,
-  BanUserForBlogUseCase,
+  BanUserForBlogByBloggerUseCase,
 ];
 
 @Module({
@@ -136,6 +136,8 @@ const useCases = [
         EMAIL: Joi.string().email().required(),
         EMAIL_FROM: Joi.string().required(),
         MY_EMAIL: Joi.string().email().required(),
+
+        ATTEMPTS_INTERVAL: Joi.string().required(),
       }),
     }),
     MongooseModule.forRootAsync({
