@@ -2726,35 +2726,31 @@ describe('AppController (e2e)', () => {
         .auth(validAccessToken.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.OK_200);
     });
-    /*
-            it('GET shouldn`t get data about user when the AccessToken has expired', async () => {
-                await delay(10000);
-    
-                await request(app.getHttpServer())
-                    .get('/auth/me')
-                    .auth(validAccessToken.accessToken, {type: "bearer"})
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-            }, 15000)
-            it('POST should return an error when the "refresh" token has expired or there is no one in the cookie', async () => {
-                await request(app.getHttpServer())
-                    .post('/auth/refresh-token')
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/refresh-token')
-                    .set("Cookie", ``)
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-                await request(app.getHttpServer())
-                    .post('/auth/refresh-token')
-                    .set("Cookie", `refreshToken=${validRefreshToken}1`)
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-    
-                await delay(10000)
-                await request(app.getHttpServer())
-                    .post('/auth/refresh-token')
-                    .set("Cookie", `refreshToken=${validRefreshToken}`)
-                    .expect(HTTP_Status.UNAUTHORIZED_401)
-            }, 15000);
-           */
+    it.skip('GET shouldn`t get data about user when the AccessToken has expired', async () => {
+      await delay(10000);
+
+      await request(app.getHttpServer())
+        .get('/auth/me')
+        .auth(validAccessToken.accessToken, { type: 'bearer' })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    }, 15000);
+    it.skip('POST should return an error when the "refresh" token has expired or there is no one in the cookie', async () => {
+      await request(app.getHttpServer()).post('/auth/refresh-token').expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/refresh-token')
+        .set('Cookie', ``)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+      await request(app.getHttpServer())
+        .post('/auth/refresh-token')
+        .set('Cookie', `refreshToken=${validRefreshToken}1`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+
+      await delay(10000);
+      await request(app.getHttpServer())
+        .post('/auth/refresh-token')
+        .set('Cookie', `refreshToken=${validRefreshToken}`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    }, 15000);
     it('POST should authenticate user with correct email', async () => {
       //await delay(10000);
       const result = await request(app.getHttpServer())
@@ -4139,8 +4135,7 @@ describe('AppController (e2e)', () => {
       ]);
       expect(devices).not.toEqual(newDeviceList);
     });
-    /*
-    it('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
+    it.skip('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration')
         .send({
@@ -4201,7 +4196,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
     }, 35000);
-    it('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
+    it.skip('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
       await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -4255,7 +4250,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     }, 15000);
-    it('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+    it.skip('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration-email-resending')
         .send({
@@ -4302,7 +4297,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
     }, 15000);
-    it('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+    it.skip('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration-confirmation')
         .send({
@@ -4349,7 +4344,6 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
     }, 15000);
-  */
   });
 
   describe('comment likes', () => {

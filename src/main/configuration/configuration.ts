@@ -20,7 +20,7 @@ export const configuration = () => ({
   EMAIL_FROM: process.env.EMAIL_FROM,
   MY_EMAIL: process.env.MY_EMAIL,
 
-  ATTEMPTS_INTERVAL: process.env.ATTEMPTS_INTERVAL,
+  IP_RESTRICTION: process.env.IP_RESTRICTION,
 });
 
 export type EnvType = ReturnType<typeof configuration>;

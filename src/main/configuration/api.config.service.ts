@@ -60,7 +60,7 @@ export class ApiConfigService {
     return this.configService.get('EMAIL_FROM', { infer: true });
   }
 
-  get ATTEMPTS_INTERVAL(): number {
-    return +this.configService.get('ATTEMPTS_INTERVAL', { infer: true }) || 10;
+  get IP_RESTRICTION(): boolean {
+    return this.configService.get('IP_RESTRICTION') !== false;
   }
 }

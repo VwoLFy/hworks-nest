@@ -137,7 +137,7 @@ const useCases = [
         EMAIL_FROM: Joi.string().required(),
         MY_EMAIL: Joi.string().email().required(),
 
-        ATTEMPTS_INTERVAL: Joi.string().required(),
+        IP_RESTRICTION: Joi.boolean(),
       }),
     }),
     MongooseModule.forRootAsync({
