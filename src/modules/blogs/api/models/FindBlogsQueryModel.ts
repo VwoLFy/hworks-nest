@@ -1,19 +1,7 @@
-import { SortDirection } from '../../../../main/types/enums';
-import { Allow } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import { BasicQueryModel } from '../../../../main/types/BasicQueryModel';
 
-export class FindBlogsQueryModel {
-  @Allow()
+export class FindBlogsQueryModel extends BasicQueryModel {
+  @IsOptional()
   searchNameTerm: string;
-
-  @Allow()
-  pageNumber: number;
-
-  @Allow()
-  pageSize: number;
-
-  @Allow()
-  sortBy: string;
-
-  @Allow()
-  sortDirection: SortDirection;
 }

@@ -1,11 +1,14 @@
-import { BanStatuses, SortDirection } from '../../../../main/types/enums';
+import { IsOptional } from 'class-validator';
+import { BasicQueryModel } from '../../../../main/types/BasicQueryModel';
+import { BanStatuses } from '../../../../main/types/enums';
 
-export type FindUsersQueryModel = {
-  pageNumber: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: SortDirection;
-  searchLoginTerm: string;
-  searchEmailTerm: string;
+export class FindUsersQueryModel extends BasicQueryModel {
+  @IsOptional()
+  searchLoginTerm;
+
+  @IsOptional()
+  searchEmailTerm;
+
+  @IsOptional()
   banStatus: BanStatuses;
-};
+}

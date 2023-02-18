@@ -1,9 +1,7 @@
-import { SortDirection } from '../../../../main/types/enums';
+import { BasicQueryModel } from '../../../../main/types/BasicQueryModel';
+import { IsOptional } from 'class-validator';
 
-export type FindBannedUsersForBlogQueryModel = {
-  pageNumber: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: SortDirection;
+export class FindBannedUsersForBlogQueryModel extends BasicQueryModel {
+  @IsOptional()
   searchLoginTerm: string;
-};
+}

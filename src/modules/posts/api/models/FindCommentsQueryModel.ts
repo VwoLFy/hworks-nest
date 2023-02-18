@@ -1,8 +1,3 @@
-import { SortDirection } from '../../../../main/types/enums';
+import { BasicQueryModel } from '../../../../main/types/BasicQueryModel';
 
-export type FindCommentsQueryModel = {
-  pageNumber: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: SortDirection;
-};
+export class FindCommentsQueryModel extends BasicQueryModel {}
