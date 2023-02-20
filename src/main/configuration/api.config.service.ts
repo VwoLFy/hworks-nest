@@ -16,6 +16,30 @@ export class ApiConfigService {
     return node_env === 'development' || node_env === 'test' ? 'mongodb://0.0.0.0:27017/' : mongo_uri;
   }
 
+  get MONGO_DATABASE(): string {
+    return this.configService.get('MONGO_DATABASE', { infer: true }) || 'Homework';
+  }
+
+  get TYPEORM_USERNAME(): string {
+    return this.configService.get('TYPEORM_USERNAME', { infer: true });
+  }
+
+  get TYPEORM_PASSWORD(): string {
+    return this.configService.get('TYPEORM_PASSWORD', { infer: true });
+  }
+
+  get TYPEORM_PORT(): number {
+    return +this.configService.get('TYPEORM_PORT', { infer: true }) || 5432;
+  }
+
+  get TYPEORM_HOST(): string {
+    return this.configService.get('TYPEORM_HOST', { infer: true }) || 'localhost';
+  }
+
+  get TYPEORM_DATABASE(): string {
+    return this.configService.get('TYPEORM_DATABASE', { infer: true }) || 'Homework';
+  }
+
   get JWT_SECRET_FOR_ACCESSTOKEN(): string {
     return this.configService.get('JWT_SECRET_FOR_ACCESSTOKEN', { infer: true });
   }

@@ -83,6 +83,7 @@ import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-u
 import { BanUserForBlogByBloggerUseCase } from './modules/users/application/use-cases/ban-user-for-blog-by-blogger-use-case';
 import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
 import { BannedUserForBlog, BannedUserForBlogSchema } from './modules/users/domain/banned-user-for-blog.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 const useCases = [
   DeleteAllUseCase,
@@ -124,6 +125,9 @@ const useCases = [
         //NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development'),
         PORT: Joi.number(),
 
+        TYPEORM_USERNAME: Joi.string().required(),
+        TYPEORM_PASSWORD: Joi.string().required(),
+
         JWT_SECRET_FOR_ACCESSTOKEN: Joi.string().required(),
         EXPIRES_IN_TIME_OF_ACCESSTOKEN: Joi.string().required(),
         JWT_SECRET_FOR_REFRESHTOKEN: Joi.string().required(),
@@ -140,12 +144,28 @@ const useCases = [
         IP_RESTRICTION: Joi.boolean(),
       }),
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ApiConfigModule],
+      inject: [ApiConfigService],
+      useFactory: (apiConfigService: ApiConfigService) => {
+        return {
+          type: 'postgres',
+          host: apiConfigService.TYPEORM_HOST,
+          port: apiConfigService.TYPEORM_PORT,
+          username: apiConfigService.TYPEORM_USERNAME,
+          password: apiConfigService.TYPEORM_PASSWORD,
+          database: apiConfigService.TYPEORM_DATABASE,
+          entities: [],
+          synchronize: false,
+        };
+      },
+    }),
     MongooseModule.forRootAsync({
       imports: [ApiConfigModule],
       inject: [ApiConfigService],
       useFactory: (apiConfigService: ApiConfigService) => {
         const uri = apiConfigService.MONGO_URI;
-        const dbName = 'Homework';
+        const dbName = apiConfigService.MONGO_DATABASE;
         return { uri, dbName };
       },
     }),
