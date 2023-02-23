@@ -23,7 +23,6 @@ import { CreateUserUseCase } from './modules/users/application/use-cases/create-
 import { UsersControllerSA } from './modules/users/api/sa.users.controller';
 import { DeleteAllController } from './modules/delete_all/delete-all.controller';
 import { AttemptsData, AttemptsDataSchema } from './modules/auth/domain/attempts.schema';
-import { PasswordRecovery, PasswordRecoverySchema } from './modules/auth/domain/password-recovery.schema';
 import { AttemptsService } from './modules/auth/application/attempts.service';
 import { AttemptsRepository } from './modules/auth/infrastructure/attempts.repository';
 import { AuthService } from './modules/auth/application/auth.service';
@@ -175,7 +174,6 @@ const useCases = [
       { name: CommentLike.name, schema: CommentLikeSchema },
       { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
       { name: AttemptsData.name, schema: AttemptsDataSchema },
-      { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
     ]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
@@ -195,7 +193,7 @@ const useCases = [
             from: `${sender} <${user}>`,
           },
           template: {
-            dir: __dirname + '/auth/application/templates/',
+            dir: __dirname + '/modules/auth/application/templates/',
             adapter: new HandlebarsAdapter(),
             options: {
               strict: true,

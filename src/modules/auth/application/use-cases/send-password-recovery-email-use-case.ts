@@ -1,9 +1,7 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { EmailService } from '../email.service';
 import { PasswordRecoveryRepository } from '../../infrastructure/password-recovery.repository';
-import { PasswordRecovery, PasswordRecoveryDocument } from '../../domain/password-recovery.schema';
+import { PasswordRecovery } from '../../domain/password-recovery.schema';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class SendPasswordRecoveryCommand {
@@ -16,7 +14,6 @@ export class SendPasswordRecoveryEmailUseCase implements ICommandHandler<SendPas
     protected usersRepository: UsersRepository,
     protected emailManager: EmailService,
     protected passwordRepository: PasswordRecoveryRepository,
-    @InjectModel(PasswordRecovery.name) private PasswordRecoveryModel: Model<PasswordRecoveryDocument>,
   ) {}
 
   async execute(command: SendPasswordRecoveryCommand) {
@@ -26,11 +23,10 @@ export class SendPasswordRecoveryEmailUseCase implements ICommandHandler<SendPas
     if (!isUserExist) return;
 
     const passwordRecovery = new PasswordRecovery(email);
-    const passwordRecoveryModel = new this.PasswordRecoveryModel(passwordRecovery);
-    await this.passwordRepository.savePassRecovery(passwordRecoveryModel);
+    await this.passwordRepository.savePassRecovery(passwordRecovery);
 
     try {
-      await this.emailManager.sendEmailPasswordRecoveryMessage(email, passwordRecoveryModel.recoveryCode);
+      await this.emailManager.sendEmailPasswordRecoveryMessage(email, passwordRecovery.recoveryCode);
     } catch (e) {
       console.log(e);
     }

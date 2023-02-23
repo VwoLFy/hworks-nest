@@ -1,25 +1,33 @@
-import { PasswordRecovery, PasswordRecoveryDocument } from '../domain/password-recovery.schema';
+import { PasswordRecovery } from '../domain/password-recovery.schema';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { PasswordRecoveryFromDB } from './dto/PasswordRecoveryFromDB';
 
 @Injectable()
 export class PasswordRecoveryRepository {
-  constructor(@InjectModel(PasswordRecovery.name) private PasswordRecoveryModel: Model<PasswordRecoveryDocument>) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findPassRecovery(recoveryCode: string): Promise<PasswordRecovery | null> {
-    return this.PasswordRecoveryModel.findOne({ recoveryCode }).lean();
+    const passwordRecoveryFromDB: PasswordRecoveryFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."PasswordRecovery" WHERE "recoveryCode" = $1;`, [recoveryCode])
+    )[0];
+
+    return PasswordRecovery.createPasswordRecovery(passwordRecoveryFromDB);
   }
 
-  async savePassRecovery(passRecovery: PasswordRecoveryDocument) {
-    await passRecovery.save();
+  async savePassRecovery(passRecovery: PasswordRecovery) {
+    await this.dataSource.query(
+      `INSERT INTO public."PasswordRecovery" ("recoveryCode", "expirationDate", "email") VALUES ($1, $2, $3);`,
+      [passRecovery.recoveryCode, passRecovery.expirationDate, passRecovery.email],
+    );
   }
 
   async deletePassRecovery(recoveryCode: string) {
-    await this.PasswordRecoveryModel.deleteOne({ recoveryCode });
+    await this.dataSource.query(`DELETE FROM public."PasswordRecovery" WHERE "recoveryCode" = $1;`, [recoveryCode]);
   }
 
   async deleteAll() {
-    await this.PasswordRecoveryModel.deleteMany();
+    await this.dataSource.query(`DELETE FROM public."PasswordRecovery";`);
   }
 }
