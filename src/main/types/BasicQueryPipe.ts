@@ -10,7 +10,7 @@ export class BasicQueryPipe {
     pageSize = pageSize < 1 ? 10 : pageSize;
 
     let sortBy = query.sortBy;
-    sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? '_id' : sortBy;
+    sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? 'ownerId' : sortBy;
 
     let sortDirection = query.sortDirection;
     sortDirection = sortDirection !== SortDirection.asc ? SortDirection.desc : SortDirection.asc;

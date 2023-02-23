@@ -17,7 +17,6 @@ import { Comment, CommentSchema } from './modules/comments/domain/comment.schema
 import { CommentsQueryRepo } from './modules/comments/infrastructure/comments.queryRepo';
 import { CommentsRepository } from './modules/comments/infrastructure/comments.repository';
 import { CommentsController } from './modules/comments/api/comments.controller';
-import { User, UserSchema } from './modules/users/domain/user.schema';
 import { UsersQueryRepo } from './modules/users/infrastructure/users.queryRepo';
 import { UsersRepository } from './modules/users/infrastructure/users.repository';
 import { CreateUserUseCase } from './modules/users/application/use-cases/create-user-use-case';
@@ -175,7 +174,6 @@ const useCases = [
       { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
-      { name: User.name, schema: UserSchema },
       { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
       { name: AttemptsData.name, schema: AttemptsDataSchema },
       { name: PasswordRecovery.name, schema: PasswordRecoverySchema },

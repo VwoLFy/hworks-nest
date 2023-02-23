@@ -33,7 +33,7 @@ export class ChangePasswordUseCase implements ICommandHandler<ChangePasswordComm
     const passwordHash = await this.authService.getPasswordHash(newPassword);
 
     foundUser.updatePassword(passwordHash);
-    await this.usersRepository.saveUser(foundUser);
+    await this.usersRepository.updatePasswordHash(foundUser);
 
     await this.passwordRepository.deletePassRecovery(recoveryCode);
     return true;

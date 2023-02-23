@@ -1,35 +1,13 @@
-import mongoose, { HydratedDocument } from 'mongoose';
 import { add } from 'date-fns';
-import { ObjectId } from 'mongodb';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { randomUUID } from 'crypto';
 import { BanUserDto } from '../application/dto/BanUserDto';
+import { UserFromDB } from '../infrastructure/dto/UserFromDB';
 
-@Schema({ _id: false })
 export class AccountData {
-  @Prop({ required: true })
-  createdAt: Date;
-
-  @Prop({
-    required: true,
-    minlength: 3,
-    maxlength: 30,
-    validate: (val: string) => {
-      return val.match('^[a-zA-Z0-9_-]*$');
-    },
-  })
   login: string;
-
-  @Prop({ required: true })
   passwordHash: string;
-
-  @Prop({
-    required: true,
-    validate: (val: string) => {
-      return val.match('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$');
-    },
-  })
   email: string;
+  createdAt: Date;
 
   constructor(login: string, passwordHash: string, email: string) {
     this.createdAt = new Date();
@@ -38,37 +16,28 @@ export class AccountData {
     this.email = email;
   }
 }
-export const AccountDataSchema = SchemaFactory.createForClass(AccountData);
 
-@Schema({ _id: false })
 export class EmailConfirmation {
-  @Prop({ required: true })
-  confirmationCode: string;
-
-  @Prop({ required: true })
-  expirationDate: Date;
-
-  @Prop({ required: true })
   isConfirmed: boolean;
+  confirmationCode: string;
+  codeExpirationDate: Date;
 
   constructor(isConfirmed: boolean) {
-    this.confirmationCode = randomUUID();
-    this.expirationDate = add(new Date(), { hours: 1 });
     this.isConfirmed = isConfirmed;
+    if (isConfirmed) {
+      this.confirmationCode = null;
+      this.codeExpirationDate = null;
+    } else {
+      this.confirmationCode = randomUUID();
+      this.codeExpirationDate = add(new Date(), { hours: 1 });
+    }
   }
 }
-export const EmailConfirmationSchema = SchemaFactory.createForClass(EmailConfirmation);
 
-@Schema({ _id: false })
 export class BanInfo {
-  @Prop({ required: true })
   isBanned: boolean;
-
-  @Prop()
-  banDate: Date | null;
-
-  @Prop()
-  banReason: string | null;
+  banDate: Date;
+  banReason: string;
 
   constructor() {
     this.isBanned = false;
@@ -76,27 +45,30 @@ export class BanInfo {
     this.banReason = null;
   }
 }
-export const BanInfoSchema = SchemaFactory.createForClass(BanInfo);
 
-@Schema()
 export class User {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
-  _id: ObjectId;
-
-  @Prop({ required: true, type: AccountDataSchema })
+  id: string;
   accountData: AccountData;
-
-  @Prop({ required: true, type: EmailConfirmationSchema })
   emailConfirmation: EmailConfirmation;
-
-  @Prop({ required: true, type: BanInfoSchema })
   banInfo: BanInfo;
 
   constructor(login: string, passwordHash: string, email: string, isConfirmed: boolean) {
-    this._id = new ObjectId();
+    this.id = randomUUID();
     this.accountData = new AccountData(login, passwordHash, email);
     this.emailConfirmation = new EmailConfirmation(isConfirmed);
     this.banInfo = new BanInfo();
+  }
+
+  static createUserFromDB(userFromDB: UserFromDB): User {
+    const user = new User(userFromDB.login, userFromDB.passwordHash, userFromDB.email, userFromDB.isConfirmed);
+    user.id = userFromDB.id;
+    user.accountData.createdAt = userFromDB.createdAt;
+    user.emailConfirmation.confirmationCode = userFromDB.confirmationCode;
+    user.emailConfirmation.codeExpirationDate = userFromDB.codeExpirationDate;
+    user.banInfo.isBanned = userFromDB.isBanned;
+    user.banInfo.banDate = userFromDB.banDate;
+    user.banInfo.banReason = userFromDB.banReason;
+    return user;
   }
 
   confirmUser() {
@@ -105,7 +77,7 @@ export class User {
 
   updateEmailConfirmation() {
     this.emailConfirmation.confirmationCode = randomUUID();
-    this.emailConfirmation.expirationDate = add(new Date(), { hours: 1 });
+    this.emailConfirmation.codeExpirationDate = add(new Date(), { hours: 1 });
   }
 
   updatePassword(passwordHash: string) {
@@ -124,8 +96,3 @@ export class User {
     }
   }
 }
-
-export type UserDocument = HydratedDocument<User>;
-
-export const UserSchema = SchemaFactory.createForClass(User);
-UserSchema.loadClass(User);

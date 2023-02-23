@@ -16,11 +16,18 @@ export class AppController {
 
   @Get('/sql')
   async getData() {
-    const data = await this.dataSource.query(
-      `SELECT "Id", "Name", "Age", "Balance"
-            FROM public."Test_Table";`,
-    );
+    const data = await this.dataSource.query(`SELECT "Id" FROM public."Users";`);
     console.log(data);
     return data;
+  }
+
+  @Get('/sql/add')
+  async addData() {
+    await this.dataSource.query(`INSERT INTO public."Users"("Id") VALUES (default);`);
+  }
+
+  @Get('/sql/delete')
+  async deleteData() {
+    await this.dataSource.query(`DELETE FROM public."Users"`);
   }
 }

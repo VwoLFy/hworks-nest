@@ -3,7 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { SecurityService } from '../../../security/application/security.service';
-import { UserDocument } from '../../domain/user.schema';
+import { User } from '../../domain/user.schema';
 import { CommentsService } from '../../../comments/application/comments.service';
 import { PostsService } from '../../../posts/application/posts.service';
 
@@ -36,8 +36,8 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     await this.securityService.deleteAllUserSessions(userId);
   }
 
-  async banUser(user: UserDocument, dto: BanUserDto) {
+  async banUser(user: User, dto: BanUserDto) {
     user.banUser(dto);
-    await this.usersRepository.saveUser(user);
+    await this.usersRepository.updateBanInfo(user);
   }
 }

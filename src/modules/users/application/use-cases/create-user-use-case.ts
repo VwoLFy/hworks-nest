@@ -1,9 +1,7 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/CreateUserDto';
-import { User, UserDocument } from '../../domain/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { User } from '../../domain/user.schema';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class CreateUserCommand {
@@ -12,10 +10,7 @@ export class CreateUserCommand {
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
-  constructor(
-    protected usersRepository: UsersRepository,
-    @InjectModel(User.name) private UserModel: Model<UserDocument>,
-  ) {}
+  constructor(protected usersRepository: UsersRepository) {}
 
   async execute(command: CreateUserCommand): Promise<string> {
     const { login, password, email } = command.dto;
@@ -23,10 +18,9 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
     const passwordHash = await this.getPasswordHash(password);
 
     const user = new User(login, passwordHash, email, true);
-    const userModel = new this.UserModel(user);
+    await this.usersRepository.saveUser(user);
 
-    await this.usersRepository.saveUser(userModel);
-    return userModel.id;
+    return user.id;
   }
 
   private async getPasswordHash(password: string): Promise<string> {

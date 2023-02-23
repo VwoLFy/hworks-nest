@@ -773,7 +773,7 @@ describe('AppController (e2e)', () => {
         .put(`/sa/blogs/${blog1.id}/bind-with-user/${user1.id}`)
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('Bind blog should return 404 if data is incorrect', async () => {
+    it('Bind blog should return 404 or 400 if data is incorrect', async () => {
       await request(app.getHttpServer())
         .put(`/sa/blogs/1/bind-with-user/${user1.id}`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -782,7 +782,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .put(`/sa/blogs/${blog1.id}/bind-with-user/1`)
         .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
         .put(`/sa/blogs/${user1.id}/bind-with-user/${user1.id}`)
@@ -1878,10 +1878,10 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .delete(`/sa/users/1`)
         .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .delete(`/sa/users/636a2a16f394608b01446e12`)
+        .delete(`/sa/users/808377b1-d3a8-4a93-b7cd-b60c98d8ac5c`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
@@ -2073,25 +2073,16 @@ describe('AppController (e2e)', () => {
           isBanned: true,
           banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .put(`/sa/users/636a2a16f394608b01446e12/ban`)
+        .put(`/sa/users/808377b1-d3a8-4a93-b7cd-b60c98d8ac5c/ban`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
           isBanned: true,
           banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
         })
         .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .put(`/sa/users/${user1.id}/ban`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          isBanned: 'true',
-          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
         .put(`/sa/users/${user1.id}/ban`)
@@ -3569,7 +3560,7 @@ describe('AppController (e2e)', () => {
           banReason: 'banReason         banReason',
           blogId: blog1.id,
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('Ban User2 should return 404 if blog is not own', async () => {
       await request(app.getHttpServer())

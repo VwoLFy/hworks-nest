@@ -1,6 +1,6 @@
 import { BlogsQueryRepo } from '../infrastructure/blogs.queryRepo';
 import { FindBlogsQueryModel } from './models/FindBlogsQueryModel';
-import { Body, Controller, Get, HttpCode, Param, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Put, Query, UseGuards } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
@@ -25,7 +25,7 @@ export class BlogsControllerSA {
   @HttpCode(204)
   async bindBlogWithUser(
     @Param('blogId', checkObjectIdPipe) blogId: string,
-    @Param('userId', checkObjectIdPipe) userId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
   ) {
     await this.commandBus.execute(new BindBlogWithUserCommand(userId, blogId));
   }

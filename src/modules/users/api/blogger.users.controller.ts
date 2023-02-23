@@ -6,6 +6,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Put,
   Query,
   UseGuards,
@@ -49,7 +50,7 @@ export class UsersControllerBl {
   @HttpCode(204)
   async banUserForBlog(
     @UserId() bloggerId: string,
-    @Param('bannedUserId', checkObjectIdPipe) bannedUserId: string,
+    @Param('bannedUserId', ParseUUIDPipe) bannedUserId: string,
     @Body() body: BanUserForBlogDto,
   ) {
     await this.commandBus.execute(new BanUserForBlogByBloggerCommand(bloggerId, bannedUserId, body));

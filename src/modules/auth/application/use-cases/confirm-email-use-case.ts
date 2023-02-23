@@ -17,11 +17,11 @@ export class ConfirmEmailUseCase implements ICommandHandler<ConfirmEmailCommand>
 
     const { emailConfirmation } = foundUser;
     if (emailConfirmation.isConfirmed) return false;
-    if (emailConfirmation.expirationDate < new Date()) return false;
+    if (emailConfirmation.codeExpirationDate < new Date()) return false;
     if (emailConfirmation.confirmationCode !== confirmationCode) return false;
 
     foundUser.confirmUser();
-    await this.usersRepository.saveUser(foundUser);
+    await this.usersRepository.updateEmailConfirmation(foundUser);
     return true;
   }
 }

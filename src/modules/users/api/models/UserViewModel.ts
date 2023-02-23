@@ -9,7 +9,7 @@ export class UserViewModel {
   banInfo: BanUserInfoViewModel;
 
   constructor(dto: User) {
-    this.id = dto._id.toString();
+    this.id = dto.id;
     this.login = dto.accountData.login;
     this.email = dto.accountData.email;
     this.createdAt = dto.accountData.createdAt.toISOString();
