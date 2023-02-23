@@ -1,30 +1,33 @@
-import { AttemptsData, AttemptsDataDocument } from '../domain/attempts.schema';
 import { AttemptsDataDto } from '../application/dto/AttemptsDataDto';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { AttemptsData } from '../domain/attempts.schema';
 
 @Injectable()
 export class AttemptsRepository {
-  constructor(@InjectModel(AttemptsData.name) private AttemptsDataModel: Model<AttemptsDataDocument>) {}
-  async findAttempts(dto: AttemptsDataDto, fromDate: number): Promise<number> {
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  async findAttempts(dto: AttemptsDataDto, fromDate: Date): Promise<number> {
     const { ip, url } = dto;
 
-    const query = this.AttemptsDataModel.countDocuments()
-      .where('ip')
-      .equals(ip)
-      .where('url')
-      .equals(url)
-      .where('date')
-      .gte(fromDate);
-    return query.exec();
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT count(*) FROM public."AttemptsData" WHERE "ip" = $1 AND "url" = $2 AND "date" >= $3`,
+        [ip, url, fromDate],
+      )
+    )[0];
+    return count;
   }
 
-  async save(attempt: AttemptsDataDocument) {
-    await attempt.save();
+  async saveAttempt(attempt: AttemptsData) {
+    await this.dataSource.query(`INSERT INTO public."AttemptsData"("date", "ip", "url") VALUES ($1, $2, $3);`, [
+      attempt.date,
+      attempt.ip,
+      attempt.url,
+    ]);
   }
 
   async deleteAll() {
-    await this.AttemptsDataModel.deleteMany();
+    await this.dataSource.query(`DELETE FROM public."AttemptsData";`);
   }
 }

@@ -22,7 +22,6 @@ import { UsersRepository } from './modules/users/infrastructure/users.repository
 import { CreateUserUseCase } from './modules/users/application/use-cases/create-user-use-case';
 import { UsersControllerSA } from './modules/users/api/sa.users.controller';
 import { DeleteAllController } from './modules/delete_all/delete-all.controller';
-import { AttemptsData, AttemptsDataSchema } from './modules/auth/domain/attempts.schema';
 import { AttemptsService } from './modules/auth/application/attempts.service';
 import { AttemptsRepository } from './modules/auth/infrastructure/attempts.repository';
 import { AuthService } from './modules/auth/application/auth.service';
@@ -173,7 +172,6 @@ const useCases = [
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
       { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
-      { name: AttemptsData.name, schema: AttemptsDataSchema },
     ]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
