@@ -1,14 +1,17 @@
-import { Session, SessionDocument } from '../domain/session.schema';
 import { DeviceViewModel } from '../api/models/DeviceViewModel';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Session } from '../domain/session.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class SecurityQueryRepo {
-  constructor(@InjectModel(Session.name) private SessionModel: Model<SessionDocument>) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findUserSessions(userId: string): Promise<DeviceViewModel[]> {
-    return (await this.SessionModel.find({ userId }).lean()).map((s) => new DeviceViewModel(s));
+    const foundSessions: Session[] = (
+      await this.dataSource.query(`SELECT * FROM public."Sessions" WHERE "userId" = $1`, [userId])
+    ).map((u) => Session.createSessionFromDB(u));
+    return foundSessions.map((s) => new DeviceViewModel(s));
   }
 }

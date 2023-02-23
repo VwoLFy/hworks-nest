@@ -1,33 +1,18 @@
-import mongoose, { HydratedDocument } from 'mongoose';
 import { SessionExtendedDto } from '../application/dto/SessionExtendedDto';
-import { ObjectId } from 'mongodb';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { randomUUID } from 'crypto';
+import { SessionFromDB } from '../infrastructure/dto/SessionFromDB';
 
-@Schema()
 export class Session {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
-  _id: ObjectId;
-
-  @Prop({ required: true })
+  id: string;
   userId: string;
-
-  @Prop({ required: true })
   exp: number;
-
-  @Prop({ required: true })
   ip: string;
-
-  @Prop({ required: true })
   title: string;
-
-  @Prop({ required: true })
   iat: number;
-
-  @Prop({ required: true })
   deviceId: string;
 
   constructor(dto: SessionExtendedDto) {
-    this._id = new ObjectId();
+    this.id = randomUUID();
     this.userId = dto.userId;
     this.exp = dto.exp;
     this.ip = dto.ip;
@@ -42,9 +27,8 @@ export class Session {
     this.exp = dto.exp;
     this.iat = dto.iat;
   }
+
+  static createSessionFromDB(sessionFromDB: SessionFromDB): Session {
+    return new Session(sessionFromDB);
+  }
 }
-
-export type SessionDocument = HydratedDocument<Session>;
-
-export const SessionSchema = SchemaFactory.createForClass(Session);
-SessionSchema.loadClass(Session);

@@ -10,6 +10,6 @@ export class DeleteSessionsExceptCurrentUseCase implements ICommandHandler<Delet
   constructor(protected securityRepository: SecurityRepository) {}
 
   async execute(command: DeleteSessionsExceptCurrentCommand) {
-    await this.securityRepository.DeleteSessionsExceptCurrent(command.userId, command.deviceId);
+    await this.securityRepository.deleteSessionsExceptCurrent(command.userId, command.deviceId);
   }
 }

@@ -1,41 +1,65 @@
-import { Session, SessionDocument } from '../domain/session.schema';
+import { Session } from '../domain/session.schema';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { SessionFromDB } from './dto/SessionFromDB';
 
 @Injectable()
 export class SecurityRepository {
-  constructor(@InjectModel(Session.name) private SessionModel: Model<SessionDocument>) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  async findSessionByDeviceId(deviceId: string): Promise<SessionDocument | null> {
-    return this.SessionModel.findOne({ deviceId });
+  async findSessionByDeviceId(deviceId: string): Promise<Session | null> {
+    const sessionFromDB: SessionFromDB = (
+      await this.dataSource.query(
+        `SELECT *
+            FROM public."Sessions" 
+            WHERE "deviceId" = $1`,
+        [deviceId],
+      )
+    )[0];
+
+    if (!sessionFromDB) return null;
+    return Session.createSessionFromDB(sessionFromDB);
   }
 
-  async saveSession(session: SessionDocument): Promise<void> {
-    await session.save();
-  }
-
-  async maxValueActiveDeviceId(): Promise<number> {
-    return (await this.SessionModel.find().sort({ deviceId: -1 }).limit(1).lean()).reduce(
-      (acc, it) => (acc > +it.deviceId ? acc : +it.deviceId),
-      0,
+  async saveSession(session: Session): Promise<void> {
+    await this.dataSource.query(
+      `INSERT INTO public."Sessions"("id", "userId", "exp", "ip", "title", "iat", "deviceId")	VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+      [session.id, session.userId, session.exp, session.ip, session.title, session.iat, session.deviceId],
     );
   }
 
-  async DeleteSessionsExceptCurrent(userId: string, deviceId: string) {
-    const deleteFilter = { userId, deviceId: { $ne: deviceId } };
-    await this.SessionModel.deleteMany(deleteFilter);
+  async maxValueActiveDeviceId(): Promise<number> {
+    const sessionFromDB: SessionFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."Sessions" ORDER BY "deviceId" desc`)
+    )[0];
+    return sessionFromDB ? +sessionFromDB.deviceId : 0;
+  }
+
+  async deleteSessionsExceptCurrent(userId: string, deviceId: string) {
+    await this.dataSource.query(
+      `DELETE FROM public."Sessions" WHERE "userId" = '${userId}' AND "deviceId" != '${deviceId}';`,
+    );
   }
 
   async deleteSessionByDeviceId(deviceId: string) {
-    await this.SessionModel.deleteOne({ deviceId });
+    await this.dataSource.query(`DELETE FROM public."Sessions" WHERE "deviceId" = '${deviceId}';`);
   }
 
   async deleteAll() {
-    await this.SessionModel.deleteMany();
+    await this.dataSource.query(`DELETE FROM public."Sessions";`);
   }
 
   async deleteAllUserSessions(userId: string) {
-    await this.SessionModel.deleteMany({ userId });
+    await this.dataSource.query(`DELETE FROM public."Sessions" WHERE "userId" = '${userId}';`);
+  }
+
+  async updateSession(session: Session) {
+    await this.dataSource.query(
+      `UPDATE public."Sessions" 
+            SET "exp"=$1, "ip"=$2, "title"=$3, "iat"=$4
+            WHERE "deviceId" = $5`,
+      [session.exp, session.ip, session.title, session.iat, session.deviceId],
+    );
   }
 }

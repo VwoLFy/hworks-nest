@@ -35,7 +35,6 @@ import { DeleteSessionsExceptCurrentUseCase } from './modules/security/applicati
 import { SecurityRepository } from './modules/security/infrastructure/security.repository';
 import { SecurityQueryRepo } from './modules/security/infrastructure/security.queryRepo';
 import { SecurityController } from './modules/security/api/security.controller';
-import { Session, SessionSchema } from './modules/security/domain/session.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { IsBlogExistConstraint } from './main/decorators/is-blog-exist.decorator';
 import { IsFreeLoginOrEmailConstraint } from './main/decorators/is-free-login-or-email.decorator';
@@ -177,7 +176,6 @@ const useCases = [
       { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
       { name: AttemptsData.name, schema: AttemptsDataSchema },
       { name: PasswordRecovery.name, schema: PasswordRecoverySchema },
-      { name: Session.name, schema: SessionSchema },
     ]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],

@@ -1,22 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { SessionExtendedDto } from './dto/SessionExtendedDto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Session, SessionDocument } from '../domain/session.schema';
-import { Model } from 'mongoose';
+import { Session } from '../domain/session.schema';
 import { SecurityRepository } from '../infrastructure/security.repository';
 import { SessionDto } from './dto/SessionDto';
 
 @Injectable()
 export class SecurityService {
-  constructor(
-    protected securityRepository: SecurityRepository,
-    @InjectModel(Session.name) private SessionModel: Model<SessionDocument>,
-  ) {}
+  constructor(protected securityRepository: SecurityRepository) {}
 
   async createSession(dto: SessionExtendedDto) {
     const session = new Session(dto);
-    const sessionModel = new this.SessionModel(session);
-    await this.securityRepository.saveSession(sessionModel);
+    await this.securityRepository.saveSession(session);
   }
 
   async updateSession(dto: SessionExtendedDto) {
@@ -24,7 +18,7 @@ export class SecurityService {
     if (!foundSession) return;
 
     foundSession.updateSessionData(dto);
-    await this.securityRepository.saveSession(foundSession);
+    await this.securityRepository.updateSession(foundSession);
   }
 
   async isActiveSession(dto: SessionDto): Promise<boolean> {
