@@ -1,4 +1,4 @@
-import { BlogDocument } from '../../domain/blog.schema';
+import { Blog } from '../../domain/blog.schema';
 
 export class BlogViewModel {
   id: string;
@@ -8,8 +8,8 @@ export class BlogViewModel {
   createdAt: string;
   isMembership: boolean;
 
-  constructor(blog: BlogDocument) {
-    this.id = blog.id;
+  constructor(blog: Blog) {
+    this.id = String(blog.id);
     this.name = blog.name;
     this.description = blog.description;
     this.websiteUrl = blog.websiteUrl;

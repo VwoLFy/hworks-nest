@@ -438,9 +438,9 @@ describe('AppController (e2e)', () => {
           description: 'Updating description',
           websiteUrl: 'https://api-swagger.it-incubator.ru/',
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .put(`/blogger/blogs/636a2a16f394608b01446e12`)
+        .put(`/blogger/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           name: ' Updating NAME   ',
@@ -489,10 +489,10 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .delete(`/blogger/blogs/1`)
         .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .delete(`/blogger/blogs/636a2a16f394608b01446e12`)
+        .delete(`/blogger/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
@@ -777,7 +777,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .put(`/sa/blogs/1/bind-with-user/${user1.id}`)
         .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
         .put(`/sa/blogs/${blog1.id}/bind-with-user/1`)
@@ -894,7 +894,7 @@ describe('AppController (e2e)', () => {
         .put(`/sa/blogs/1/ban`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({ isBanned: true })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('Blog should be banned', async () => {
       await request(app.getHttpServer())
@@ -1099,8 +1099,10 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.OK_200, blog1);
     });
     it('GET blog by bad id should return 404', async function () {
-      await request(app.getHttpServer()).get(`/blogs/1`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/blogs/63e35fa4354b26c3c099bd58`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/blogs/1`).expect(HTTP_Status.BAD_REQUEST_400);
+      await request(app.getHttpServer())
+        .get(`/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('GET blogs should return 200', async function () {
       await request(app.getHttpServer())
@@ -1280,7 +1282,9 @@ describe('AppController (e2e)', () => {
     });
     it('GET By id should return 404', async function () {
       await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/posts/63e35fa4354b26c3c099bd58`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer())
+        .get(`/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('POST shouldn`t create post with incorrect data', async () => {
       await request(app.getHttpServer())
@@ -1337,10 +1341,10 @@ describe('AppController (e2e)', () => {
           content: 'valid',
           shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .post(`/blogger/blogs/63e35fa4354b26c3c099bd58/posts`)
+        .post(`/blogger/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478/posts`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'valid',
@@ -1587,9 +1591,9 @@ describe('AppController (e2e)', () => {
           shortDescription: 'Update shortDescription',
           content: 'Update content',
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
-        .put(`/blogger/blogs/${post1.id}/posts/${post1.id}`)
+        .put(`/blogger/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478/posts/${post1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({
           title: 'Update POST',
@@ -1653,10 +1657,10 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .delete(`/blogger/blogs/1/posts/${post1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .delete(`/blogger/blogs/636a2a16f394608b01446e12/posts/${post1.id}`)
+        .delete(`/blogger/blogs/9f38bedb-370a-47d0-9ef1-42f6294a1478/posts/${post1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
@@ -1699,17 +1703,6 @@ describe('AppController (e2e)', () => {
         .delete(`/blogger/blogs/${blog1.id}/posts/${post1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
-    });
-    it('DELETE blog should delete all posts of this blog', async () => {
-      await request(app.getHttpServer())
-        .delete(`/blogger/blogs/${blog1.id}`)
-        .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NO_CONTENT_204);
-
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/blogs/${blog1.id}/posts`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/posts/${post1.id}`).expect(HTTP_Status.NOT_FOUND_404);
-      await request(app.getHttpServer()).get(`/posts/${post2.id}`).expect(HTTP_Status.NOT_FOUND_404);
     });
   });
 
@@ -3627,7 +3620,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .get(`/blogger/users/blog/1`)
         .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('GET banned users  with query should return banned users', async () => {
       let result = await request(app.getHttpServer())

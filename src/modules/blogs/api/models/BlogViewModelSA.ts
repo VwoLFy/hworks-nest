@@ -1,4 +1,4 @@
-import { BlogDocument } from '../../domain/blog.schema';
+import { Blog } from '../../domain/blog.schema';
 import { BlogOwnerInfoViewModelSA } from './BlogOwnerInfoViewModelSA';
 import { BanBlogInfoViewModelSA } from './BanBlogInfoViewModelSA';
 
@@ -12,8 +12,8 @@ export class BlogViewModelSA {
   blogOwnerInfo: BlogOwnerInfoViewModelSA;
   banInfo: BanBlogInfoViewModelSA;
 
-  constructor(blog: BlogDocument) {
-    this.id = blog.id;
+  constructor(blog: Blog) {
+    this.id = String(blog.id);
     this.name = blog.name;
     this.description = blog.description;
     this.websiteUrl = blog.websiteUrl;

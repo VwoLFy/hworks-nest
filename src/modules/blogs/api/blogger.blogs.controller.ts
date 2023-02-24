@@ -6,7 +6,19 @@ import { BlogPostInputModel } from './models/BlogPostInputModel';
 import { PostViewModel } from '../../posts/api/models/PostViewModel';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
 import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
@@ -60,7 +72,7 @@ export class BlogsControllerBl {
   @Put(':blogId')
   @HttpCode(204)
   async updateBlog(
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
     @Body() body: UpdateBlogDto,
     @UserId() userId: string,
   ) {
@@ -69,13 +81,13 @@ export class BlogsControllerBl {
 
   @Delete(':blogId')
   @HttpCode(204)
-  async deleteBlog(@Param('blogId', checkObjectIdPipe) blogId: string, @UserId() userId: string) {
+  async deleteBlog(@Param('blogId', ParseUUIDPipe) blogId: string, @UserId() userId: string) {
     await this.commandBus.execute(new DeleteBlogCommand(userId, blogId));
   }
 
   @Post(':blogId/posts')
   async createBlogPost(
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
     @Body() body: BlogPostInputModel,
     @UserId() userId: string,
   ): Promise<PostViewModel> {
@@ -87,7 +99,7 @@ export class BlogsControllerBl {
   @Put(':blogId/posts/:postId')
   @HttpCode(204)
   async updateBlogPost(
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
     @Param('postId', checkObjectIdPipe) postId: string,
     @Body() body: UpdatePostDto,
     @UserId() userId: string,
@@ -98,7 +110,7 @@ export class BlogsControllerBl {
   @Delete(':blogId/posts/:postId')
   @HttpCode(204)
   async deleteBlogPost(
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
     @Param('postId', checkObjectIdPipe) postId: string,
     @UserId() userId: string,
   ) {

@@ -1,8 +1,4 @@
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
-import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
-import { Blog, BlogDocument } from '../../domain/blog.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
@@ -12,11 +8,7 @@ export class DeleteBlogCommand {
 
 @CommandHandler(DeleteBlogCommand)
 export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
-  constructor(
-    protected blogsRepository: BlogsRepository,
-    protected postsRepository: PostsRepository,
-    @InjectModel(Blog.name) private BlogModel: Model<BlogDocument>,
-  ) {}
+  constructor(protected blogsRepository: BlogsRepository) {}
 
   async execute(command: DeleteBlogCommand) {
     const { userId, blogId } = command;
@@ -26,6 +18,5 @@ export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
     if (blog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
 
     await this.blogsRepository.deleteBlog(blogId);
-    await this.postsRepository.deleteAllPostsOfBlog(blogId);
   }
 }

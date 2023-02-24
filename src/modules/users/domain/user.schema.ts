@@ -1,7 +1,7 @@
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import { BanUserDto } from '../application/dto/BanUserDto';
-import { UserFromDB } from '../infrastructure/dto/UserFromDB';
+import { UserFromDB } from '../infrastructure/types/UserFromDB';
 
 export class AccountData {
   login: string;

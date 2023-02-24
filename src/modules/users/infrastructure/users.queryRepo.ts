@@ -11,7 +11,7 @@ import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewM
 import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { UserFromDB } from './dto/UserFromDB';
+import { UserFromDB } from './types/UserFromDB';
 
 @Injectable()
 export class UsersQueryRepo {

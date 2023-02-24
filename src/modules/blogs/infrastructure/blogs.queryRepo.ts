@@ -1,27 +1,49 @@
-import { Blog, BlogDocument } from '../domain/blog.schema';
+import { Blog } from '../domain/blog.schema';
 import { FindBlogsQueryModel } from '../api/models/FindBlogsQueryModel';
 import { BlogViewModel } from '../api/models/BlogViewModel';
-import { SortDirection } from '../../../main/types/enums';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
+import { BlogFromDB } from './types/BlogFromDB';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsQueryRepo {
-  constructor(@InjectModel(Blog.name) private BlogModel: Model<BlogDocument>) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findBlogs(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
-    const { searchNameTerm, pageNumber, pageSize } = dto;
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    let filterFind = `true`;
+    let filterFindPar = [];
 
-    const totalCount = await this.BlogModel.countDocuments()
-      .where('name')
-      .regex(new RegExp(searchNameTerm, 'i'))
-      .where('banBlogInfo.isBanned', false);
+    if (searchNameTerm) {
+      filterFind = `(LOWER("name") like LOWER($1))`;
+      filterFindPar = [`%${searchNameTerm}%`];
+    }
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT COUNT(*)
+	          FROM public."Blogs" 
+	          WHERE "isBanned" = false AND ${filterFind}`,
+        filterFindPar,
+      )
+    )[0];
+
+    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs = await this.findBlogsFromDb(null, dto, false);
+    const foundBlogs: Blog[] = (
+      await this.dataSource.query(
+        `SELECT *
+	          FROM public."Blogs" 
+	          WHERE "isBanned" = false AND ${filterFind}
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        filterFindPar,
+      )
+    ).map((u) => Blog.createBlogFromDB(u));
 
     const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
 
@@ -37,22 +59,47 @@ export class BlogsQueryRepo {
   }
 
   async findBlogById(blogId: string): Promise<BlogViewModel | null> {
-    const foundBlog = await this.BlogModel.findOne({ _id: blogId, 'banBlogInfo.isBanned': false });
-    if (!foundBlog) return null;
+    const blogFromDB: BlogFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."Blogs" WHERE id = $1 AND "isBanned" = false`, [blogId])
+    )[0];
+    if (!blogFromDB) return null;
 
-    return new BlogViewModel(foundBlog);
+    const blog = Blog.createBlogFromDB(blogFromDB);
+    return new BlogViewModel(blog);
   }
 
   async findOwnBlogs(userId: string, dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
-    const { searchNameTerm, pageNumber, pageSize } = dto;
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    let filterFind = `true`;
+    let filterFindPar = [];
 
-    const totalCount = await this.BlogModel.countDocuments()
-      .where('name')
-      .regex(new RegExp(searchNameTerm, 'i'))
-      .where('blogOwnerInfo.userId', userId);
+    if (searchNameTerm) {
+      filterFind = `(LOWER("name") like LOWER($2))`;
+      filterFindPar = [`%${searchNameTerm}%`];
+    }
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT COUNT(*)
+	          FROM public."Blogs" 
+	          WHERE "userId" = $1 AND ${filterFind}`,
+        [userId, ...filterFindPar],
+      )
+    )[0];
+
+    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs = await this.findBlogsFromDb(userId, dto, true);
+    const foundBlogs: Blog[] = (
+      await this.dataSource.query(
+        `SELECT *
+	          FROM public."Blogs" 
+	          WHERE "userId" = $1 AND ${filterFind}
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        [userId, ...filterFindPar],
+      )
+    ).map((u) => Blog.createBlogFromDB(u));
 
     const items = foundBlogs.map((b) => new BlogViewModel(b));
 
@@ -68,12 +115,37 @@ export class BlogsQueryRepo {
   }
 
   async findBlogsSA(dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModelSA>> {
-    const { searchNameTerm, pageNumber, pageSize } = dto;
+    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    let filterFind = `true`;
+    let filterFindPar = [];
 
-    const totalCount = await this.BlogModel.countDocuments().where('name').regex(new RegExp(searchNameTerm, 'i'));
+    if (searchNameTerm) {
+      filterFind = `(LOWER("name") like LOWER($1))`;
+      filterFindPar = [`%${searchNameTerm}%`];
+    }
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT COUNT(*)
+	          FROM public."Blogs" 
+	          WHERE ${filterFind}`,
+        filterFindPar,
+      )
+    )[0];
+
+    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs = await this.findBlogsFromDb(null, dto, true);
+    const foundBlogs: Blog[] = (
+      await this.dataSource.query(
+        `SELECT *
+	          FROM public."Blogs" 
+	          WHERE ${filterFind}
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        filterFindPar,
+      )
+    ).map((u) => Blog.createBlogFromDB(u));
 
     const items: BlogViewModelSA[] = foundBlogs.map((b) => new BlogViewModelSA(b));
 
@@ -86,26 +158,5 @@ export class BlogsQueryRepo {
       },
       items,
     );
-  }
-
-  private async findBlogsFromDb(
-    userId: string,
-    dto: FindBlogsQueryModel,
-    findBanned: boolean,
-  ): Promise<BlogDocument[]> {
-    const { searchNameTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
-
-    const optionsSort: { [key: string]: SortDirection } = { [sortBy]: sortDirection };
-
-    let foundBlogs = this.BlogModel.find()
-      .where('name')
-      .regex(new RegExp(searchNameTerm, 'i'))
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort(optionsSort);
-
-    foundBlogs = findBanned ? foundBlogs : foundBlogs.where('banBlogInfo.isBanned', false);
-    foundBlogs = !userId ? foundBlogs : foundBlogs.where('blogOwnerInfo.userId', userId);
-    return foundBlogs;
   }
 }

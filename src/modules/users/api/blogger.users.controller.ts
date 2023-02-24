@@ -11,7 +11,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
 import { BanUserForBlogDto } from '../application/dto/BanUserForBlogDto';
@@ -37,7 +36,7 @@ export class UsersControllerBl {
   async findBannedUsersForBlog(
     @UserId() bloggerId: string,
     @Query(findBannedUsersForBlogQueryPipe) query: FindBannedUsersForBlogQueryModel,
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
   ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
     const foundBlog = await this.blogsRepository.findBlogById(blogId);
     if (!foundBlog) throw new NotFoundException('blog not found');

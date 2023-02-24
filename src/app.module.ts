@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './_Test/app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BlogsQueryRepo } from './modules/blogs/infrastructure/blogs.queryRepo';
-import { Blog, BlogSchema } from './modules/blogs/domain/blog.schema';
 import { BlogsRepository } from './modules/blogs/infrastructure/blogs.repository';
 import { DeleteBlogUseCase } from './modules/blogs/application/use-cases/delete-blog-use-case';
 import { BlogsController } from './modules/blogs/api/blogs.controller';
@@ -166,7 +165,6 @@ const useCases = [
       },
     }),
     MongooseModule.forFeature([
-      { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
       { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },

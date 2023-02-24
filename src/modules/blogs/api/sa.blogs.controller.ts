@@ -5,7 +5,6 @@ import { PageViewModel } from '../../../main/types/PageViewModel';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { BasicAuthGuard } from '../../auth/api/guards/basic-auth.guard';
 import { BlogViewModelSA } from './models/BlogViewModelSA';
-import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { CommandBus } from '@nestjs/cqrs';
 import { BindBlogWithUserCommand } from '../application/use-cases/bind-blog-with-user-use-case';
 import { BanBlogDto } from '../application/dto/BanBlogDto';
@@ -24,7 +23,7 @@ export class BlogsControllerSA {
   @Put(':blogId/bind-with-user/:userId')
   @HttpCode(204)
   async bindBlogWithUser(
-    @Param('blogId', checkObjectIdPipe) blogId: string,
+    @Param('blogId', ParseUUIDPipe) blogId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
   ) {
     await this.commandBus.execute(new BindBlogWithUserCommand(userId, blogId));
@@ -32,7 +31,7 @@ export class BlogsControllerSA {
 
   @Put(':blogId/ban')
   @HttpCode(204)
-  async banBlog(@Param('blogId', checkObjectIdPipe) blogId: string, @Body() body: BanBlogDto) {
+  async banBlog(@Param('blogId', ParseUUIDPipe) blogId: string, @Body() body: BanBlogDto) {
     await this.commandBus.execute(new BanBlogCommand(blogId, body.isBanned));
   }
 }

@@ -9,7 +9,7 @@ export class PostInfoViewModel {
   constructor(post: PostDocument) {
     this.id = post._id.toString();
     this.title = post.title;
-    this.blogId = post.blogId;
+    this.blogId = String(post.blogId);
     this.blogName = post.blogName;
   }
 }

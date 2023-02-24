@@ -21,6 +21,6 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
 
     await this.postsRepository.updateBanOnPostsOfBlog(foundBlog.id, isBanned);
 
-    await this.blogsRepository.saveBlog(foundBlog);
+    await this.blogsRepository.updateBanBlogInfo(foundBlog);
   }
 }

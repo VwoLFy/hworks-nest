@@ -1,4 +1,4 @@
-import { IsMongoId, IsString, Length } from 'class-validator';
+import { IsString, IsUUID, Length } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsBlogExist } from '../../../../main/decorators/is-blog-exist.decorator';
 
@@ -20,6 +20,6 @@ export class CreatePostDto {
   content: string;
 
   @IsBlogExist()
-  @IsMongoId()
+  @IsUUID()
   blogId: string;
 }

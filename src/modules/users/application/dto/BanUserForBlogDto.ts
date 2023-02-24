@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsMongoId, IsString, Length, ValidateIf } from 'class-validator';
+import { IsBoolean, IsString, IsUUID, Length, ValidateIf } from 'class-validator';
 import { IsBlogExist } from '../../../../main/decorators/is-blog-exist.decorator';
 
 export class BanUserForBlogDto {
@@ -13,6 +13,6 @@ export class BanUserForBlogDto {
   banReason: string;
 
   @IsBlogExist()
-  @IsMongoId()
+  @IsUUID()
   blogId: string;
 }

@@ -18,7 +18,7 @@ export class PostViewModel {
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
-    this.blogId = dto.blogId;
+    this.blogId = String(dto.blogId);
     this.blogName = dto.blogName;
     this.createdAt = dto.createdAt.toISOString();
     this.extendedLikesInfo = new PostLikesInfoViewModel(dto.extendedLikesInfo, myStatus, newestLikes);

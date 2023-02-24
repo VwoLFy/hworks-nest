@@ -9,17 +9,18 @@ import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
 import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
-import { Blog, BlogDocument } from '../../blogs/domain/blog.schema';
 import { Post, PostDocument } from '../../posts/domain/post.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepo {
   constructor(
-    @InjectModel(Blog.name) private BlogModel: Model<BlogDocument>,
     @InjectModel(Post.name) private PostModel: Model<PostDocument>,
     @InjectModel(Comment.name) private CommentModel: Model<CommentDocument>,
     @InjectModel(CommentLike.name)
     private CommentLikeModel: Model<CommentLikeDocument>,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
   async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
@@ -62,8 +63,9 @@ export class CommentsQueryRepo {
   async findCommentsForOwnBlogs(dto: FindCommentsForOwnBlogsDto): Promise<PageViewModel<CommentViewModelBl>> {
     const { userId, pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const foundBlogs = await this.BlogModel.find().where('blogOwnerInfo.userId', userId);
-    const blogIds = foundBlogs.map((b) => b._id);
+    const blogIds: string[] = (
+      await this.dataSource.query(`SELECT "id" FROM public."Blogs" WHERE "userId" = $1`, [userId])
+    ).map((b) => b.id);
     const foundPosts = await this.PostModel.find({ blogId: blogIds });
     const postIds = foundPosts.map((p) => p._id);
 

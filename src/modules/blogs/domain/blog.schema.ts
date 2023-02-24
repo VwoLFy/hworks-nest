@@ -1,15 +1,10 @@
-import mongoose, { HydratedDocument } from 'mongoose';
 import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
-import { ObjectId } from 'mongodb';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
+import { BlogFromDB } from '../infrastructure/types/BlogFromDB';
+import { randomUUID } from 'crypto';
 
-@Schema({ _id: false })
 export class BlogOwnerInfo {
-  @Prop({ required: true })
   userId: string;
-
-  @Prop({ required: true })
   userLogin: string;
 
   constructor(userId: string, userLogin: string) {
@@ -17,54 +12,27 @@ export class BlogOwnerInfo {
     this.userLogin = userLogin;
   }
 }
-const BlogOwnerInfoSchema = SchemaFactory.createForClass(BlogOwnerInfo);
-
-@Schema({ _id: false })
 export class BanBlogInfo {
-  @Prop({ required: true })
   isBanned: boolean;
-
-  @Prop()
   banDate: Date;
+
   constructor() {
     this.isBanned = false;
     this.banDate = null;
   }
 }
-const BanBlogInfoSchema = SchemaFactory.createForClass(BanBlogInfo);
-
-@Schema()
 export class Blog {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
-  _id: ObjectId;
-
-  @Prop({ required: true, maxlength: 15 })
+  id: string;
   name: string;
-
-  @Prop({ required: true, maxlength: 500 })
   description: string;
-
-  @Prop({
-    required: true,
-    maxlength: 100,
-    validate: (val: string) => val.match('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$'),
-  })
   websiteUrl: string;
-
-  @Prop({ required: true })
   createdAt: Date;
-
-  @Prop({ required: true })
   isMembership: boolean;
-
-  @Prop({ required: true, type: BlogOwnerInfoSchema })
   blogOwnerInfo: BlogOwnerInfo;
-
-  @Prop({ required: true, type: BanBlogInfoSchema })
   banBlogInfo: BanBlogInfo;
 
   constructor(dto: CreateBlogDto, userId: string, userLogin: string) {
-    this._id = new ObjectId();
+    this.id = randomUUID();
     this.name = dto.name;
     this.description = dto.description;
     this.websiteUrl = dto.websiteUrl;
@@ -89,9 +57,22 @@ export class Blog {
       this.banBlogInfo.banDate = null;
     }
   }
+
+  bindBlogWithUser(userId: string, userLogin: string) {
+    this.blogOwnerInfo.userId = userId;
+    this.blogOwnerInfo.userLogin = userLogin;
+  }
+
+  static createBlogFromDB(blogFromDB: BlogFromDB): Blog {
+    const blog = new Blog(blogFromDB, blogFromDB.userId, blogFromDB.userLogin);
+    blog.id = blogFromDB.id;
+    blog.createdAt = blogFromDB.createdAt;
+    blog.isMembership = blogFromDB.isMembership;
+    blog.blogOwnerInfo.userId = blogFromDB.userId;
+    blog.blogOwnerInfo.userLogin = blogFromDB.userLogin;
+    blog.banBlogInfo.isBanned = blogFromDB.isBanned;
+    blog.banBlogInfo.banDate = blogFromDB.banDate;
+
+    return blog;
+  }
 }
-
-export type BlogDocument = HydratedDocument<Blog>;
-
-export const BlogSchema = SchemaFactory.createForClass(Blog);
-BlogSchema.loadClass(Blog);
