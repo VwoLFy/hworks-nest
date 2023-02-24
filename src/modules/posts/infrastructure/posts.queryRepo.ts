@@ -1,4 +1,4 @@
-import { Post, PostDocument } from '../domain/post.schema';
+import { Post } from '../domain/post.schema';
 import { FindPostsQueryModel } from '../api/models/FindPostsQueryModel';
 import { PostViewModel } from '../api/models/PostViewModel';
 import { LikeStatus } from '../../../main/types/enums';
@@ -8,25 +8,34 @@ import { Model } from 'mongoose';
 import { PostLike, PostLikeDocument } from '../domain/postLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { PostLikeDetailsViewModel } from '../api/models/PostLikeDetailsViewModel';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { PostFromDB } from './types/PostFromDB';
 
 @Injectable()
 export class PostsQueryRepo {
   constructor(
-    @InjectModel(Post.name) private PostModel: Model<PostDocument>,
+    @InjectDataSource() private dataSource: DataSource,
     @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
   ) {}
 
   async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const totalCount = await this.PostModel.countDocuments().where('isBanned', false);
-    const pagesCount = Math.ceil(totalCount / pageSize);
+    const { count } = (await this.dataSource.query(`SELECT count(*) FROM public."Posts" WHERE "isBanned" = false`))[0];
 
-    const foundPosts = await this.PostModel.find()
-      .where('isBanned', false)
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort({ [sortBy]: sortDirection });
+    const totalCount = +count;
+    const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
+
+    const foundPosts: Post[] = (
+      await this.dataSource.query(
+        `SELECT * FROM public."Posts"
+                WHERE "isBanned" = false
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+      )
+    ).map((p) => Post.createPostFromDB(p));
 
     const items: PostViewModel[] = [];
     for (const post of foundPosts) {
@@ -47,8 +56,12 @@ export class PostsQueryRepo {
   }
 
   async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
-    const foundPost = await this.PostModel.findOne({ _id: postId, isBanned: false }).lean();
-    if (!foundPost) return null;
+    const postFromDB: PostFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."Posts" WHERE "id" = $1 AND "isBanned" = false`, [postId])
+    )[0];
+
+    if (!postFromDB) return null;
+    const foundPost = Post.createPostFromDB(postFromDB);
 
     const myStatus = await this.myLikeStatus(postId, userId);
     const newestLikes = await this.newestLikes(postId);
@@ -62,17 +75,30 @@ export class PostsQueryRepo {
   ): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const totalCount = await this.PostModel.countDocuments().where('blogId', blogId).where('isBanned', false);
-    if (totalCount == 0) throw new NotFoundException('blog not found');
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT count(*)
+            FROM public."Posts"
+            WHERE "blogId" = $1 AND "isBanned" = false`,
+        [blogId],
+      )
+    )[0];
+
+    const totalCount = +count;
+    if (!totalCount) throw new NotFoundException('blog not found');
 
     const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const foundPosts = await this.PostModel.find()
-      .where('blogId', blogId)
-      .where('isBanned', false)
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort({ [sortBy]: sortDirection });
+    const foundPosts: Post[] = (
+      await this.dataSource.query(
+        `SELECT * FROM public."Posts"
+            WHERE "blogId" = $1 AND "isBanned" = false
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        [blogId],
+      )
+    ).map((p) => Post.createPostFromDB(p));
 
     const items: PostViewModel[] = [];
     for (const post of foundPosts) {

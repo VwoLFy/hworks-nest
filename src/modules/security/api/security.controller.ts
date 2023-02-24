@@ -29,10 +29,10 @@ export class SecurityController {
     );
   }
 
-  @Delete(':id')
+  @Delete(':deviceId')
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteSession(@Param('id') deviceId: string, @SessionData() sessionData: SessionDto) {
+  async deleteSession(@Param('deviceId') deviceId: string, @SessionData() sessionData: SessionDto) {
     await this.commandBus.execute(new DeleteSessionCommand(sessionData.userId, deviceId));
   }
 }

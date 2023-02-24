@@ -9,14 +9,13 @@ import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
 import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
-import { Post, PostDocument } from '../../posts/domain/post.schema';
+import { Post } from '../../posts/domain/post.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepo {
   constructor(
-    @InjectModel(Post.name) private PostModel: Model<PostDocument>,
     @InjectModel(Comment.name) private CommentModel: Model<CommentDocument>,
     @InjectModel(CommentLike.name)
     private CommentLikeModel: Model<CommentLikeDocument>,
@@ -63,11 +62,17 @@ export class CommentsQueryRepo {
   async findCommentsForOwnBlogs(dto: FindCommentsForOwnBlogsDto): Promise<PageViewModel<CommentViewModelBl>> {
     const { userId, pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const blogIds: string[] = (
-      await this.dataSource.query(`SELECT "id" FROM public."Blogs" WHERE "userId" = $1`, [userId])
-    ).map((b) => b.id);
-    const foundPosts = await this.PostModel.find({ blogId: blogIds });
-    const postIds = foundPosts.map((p) => p._id);
+    const foundPosts: Post[] = (
+      await this.dataSource.query(
+        `SELECT po.*
+            FROM public."Blogs" b
+            LEFT JOIN public."Posts" po
+            ON b.id = po."blogId"
+            WHERE b."userId" = $1`,
+        [userId],
+      )
+    ).map((p) => Post.createPostFromDB(p));
+    const postIds = foundPosts.map((p) => p.id);
 
     const totalCount = await this.CommentModel.countDocuments({ postId: postIds });
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -79,7 +84,7 @@ export class CommentsQueryRepo {
 
     const items: CommentViewModelBl[] = [];
     for (const comment of foundComments) {
-      const post = foundPosts.find((p) => p._id.toString() === comment.postId);
+      const post = foundPosts.find((p) => p.id === comment.postId);
       const myStatus = await this.myLikeStatus(comment.id, userId);
       items.push(new CommentViewModelBl(comment, post, myStatus));
     }

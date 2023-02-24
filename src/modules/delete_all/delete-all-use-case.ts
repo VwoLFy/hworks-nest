@@ -12,8 +12,8 @@ export class DeleteAllCommand {}
 @CommandHandler(DeleteAllCommand)
 export class DeleteAllUseCase implements ICommandHandler<DeleteAllCommand> {
   constructor(
-    private blogsRepository: BlogsRepository,
     private postsRepository: PostsRepository,
+    private blogsRepository: BlogsRepository,
     private usersRepository: UsersRepository,
     private commentsRepository: CommentsRepository,
     private securityRepository: SecurityRepository,
@@ -21,8 +21,8 @@ export class DeleteAllUseCase implements ICommandHandler<DeleteAllCommand> {
     private passwordRecoveryRepository: PasswordRecoveryRepository,
   ) {}
   async execute() {
-    await this.blogsRepository.deleteAll();
     await this.postsRepository.deleteAll();
+    await this.blogsRepository.deleteAll();
     await this.usersRepository.deleteAll();
     await this.commentsRepository.deleteAll();
     await this.securityRepository.deleteAll();

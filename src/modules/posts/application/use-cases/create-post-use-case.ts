@@ -1,8 +1,6 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
-import { Post, PostDocument } from '../../domain/post.schema';
+import { Post } from '../../domain/post.schema';
 import { CreatePostDto } from '../dto/CreatePostDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
@@ -13,18 +11,13 @@ export class CreatePostCommand {
 
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
-  constructor(
-    protected postsRepository: PostsRepository,
-    protected blogsRepository: BlogsRepository,
-    @InjectModel(Post.name) private PostModel: Model<PostDocument>,
-  ) {}
+  constructor(protected postsRepository: PostsRepository, protected blogsRepository: BlogsRepository) {}
 
   async execute(command: CreatePostCommand): Promise<string> {
-    const post = await this.createPostDocument(command);
-    return post.id;
+    return await this.createPostDocument(command);
   }
 
-  async createPostDocument(command: CreatePostCommand): Promise<PostDocument> {
+  async createPostDocument(command: CreatePostCommand): Promise<string> {
     const { userId, dto } = command;
 
     const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
@@ -32,9 +25,8 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
 
     const post = new Post(dto, foundBlog.name);
-    const postModel = new this.PostModel(post);
-    await this.postsRepository.savePost(postModel);
+    await this.postsRepository.savePost(post);
 
-    return postModel;
+    return post.id;
   }
 }

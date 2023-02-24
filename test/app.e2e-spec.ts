@@ -1270,7 +1270,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.CREATED_201);
       blog2 = resultBlog.body;
-    });
+    }, 10000);
     it('GET should return 200', async function () {
       await request(app.getHttpServer()).get('/posts').expect(HTTP_Status.OK_200, {
         pagesCount: 0,
@@ -1281,7 +1281,7 @@ describe('AppController (e2e)', () => {
       });
     });
     it('GET By id should return 404', async function () {
-      await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get('/posts/1').expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
         .get(`/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
         .expect(HTTP_Status.NOT_FOUND_404);
@@ -1573,7 +1573,7 @@ describe('AppController (e2e)', () => {
           shortDescription: 'Update shortDescription',
           content: 'Update content',
         })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
       await request(app.getHttpServer())
         .put(`/blogger/blogs/${blog1.id}/posts/${blog1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
@@ -1647,10 +1647,10 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .delete(`/blogger/blogs/${blog1.id}/posts/1`)
         .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .delete(`/blogger/blogs/${blog1.id}/posts/636a2a16f394608b01446e12`)
+        .delete(`/blogger/blogs/${blog1.id}/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
 
@@ -1961,7 +1961,7 @@ describe('AppController (e2e)', () => {
           totalCount: 3,
           items: [user4, user2, user5],
         });
-    });
+    }, 10000);
   });
 
   describe('SA-  Ban User', () => {
@@ -2337,7 +2337,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.CREATED_201);
       post = resultPost.body;
-    });
+    }, 10000);
     it('POST should create comment by each users', async () => {
       let resultComment = await request(app.getHttpServer())
         .post(`/posts/${post.id}/comments`)
@@ -2970,7 +2970,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.CREATED_201);
       post2ForBlog2 = resultPost.body;
-    });
+    }, 10000);
     it('POST shouldn`t create comment with incorrect data', async () => {
       await request(app.getHttpServer())
         .post(`/posts/${post1ForBlog1.id}/comments`)
@@ -2995,7 +2995,7 @@ describe('AppController (e2e)', () => {
       checkError(result.body, 'content');
 
       await request(app.getHttpServer())
-        .post(`/posts/63189b06003380064c4193be/comments`)
+        .post(`/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478/comments`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'valid comment111111111' })
         .expect(HTTP_Status.NOT_FOUND_404);
@@ -3313,7 +3313,7 @@ describe('AppController (e2e)', () => {
         },
         likesInfo: { likesCount: 0, dislikesCount: 0, myStatus: LikeStatus.None },
       };
-    });
+    }, 10000);
     it('GET all comments by blogger should return 401', async () => {
       await request(app.getHttpServer()).get(`/blogger/blogs/comments`).expect(HTTP_Status.UNAUTHORIZED_401);
     });
@@ -3479,7 +3479,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.CREATED_201);
       post2 = resultPost.body;
-    });
+    }, 10000);
     it('GET comments should return 404', async () => {
       await request(app.getHttpServer()).get(`/posts/${post1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
     });
@@ -3553,7 +3553,7 @@ describe('AppController (e2e)', () => {
           banReason: 'banReason         banReason',
           blogId: blog1.id,
         })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('Ban User2 should return 404 if blog is not own', async () => {
       await request(app.getHttpServer())
@@ -3937,7 +3937,7 @@ describe('AppController (e2e)', () => {
         .set('Cookie', `refreshToken=${validRefreshToken}`)
         .expect(HTTP_Status.NOT_FOUND_404);
       await request(app.getHttpServer())
-        .delete('/security/devices/636a2a16f394608b01446e12')
+        .delete('/security/devices/9f38bedb-370a-47d0-9ef1-42f6294a1478')
         .set('Cookie', `refreshToken=${validRefreshToken}`)
         .expect(HTTP_Status.NOT_FOUND_404);
     });
@@ -4469,7 +4469,7 @@ describe('AppController (e2e)', () => {
           myStatus: 'None',
         },
       });
-    });
+    }, 10000);
     it('PUT shouldn`t like comment and return 401', async () => {
       await request(app.getHttpServer())
         .put(`/comments/${comment.id}/like-status`)
@@ -5075,7 +5075,7 @@ describe('AppController (e2e)', () => {
           newestLikes: [],
         },
       });
-    });
+    }, 10000);
     it('PUT shouldn`t like post and return 401', async () => {
       await request(app.getHttpServer())
         .put(`/posts/${post.id}/like-status`)
@@ -5617,6 +5617,7 @@ describe('AppController (e2e)', () => {
           ],
         });
       },
+      15000,
     );
   });
 

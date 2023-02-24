@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { PostLike, PostLikeDocument } from '../../domain/postLike.schema';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
-import { PostDocument } from '../../domain/post.schema';
+import { Post } from '../../domain/post.schema';
 
 export class LikePostCommand {
   constructor(public dto: LikePostDto) {}
@@ -27,7 +27,7 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
     await this.setLikeStatus(command.dto, foundPost);
   }
 
-  async setLikeStatus(dto: LikePostDto, foundPost: PostDocument) {
+  async setLikeStatus(dto: LikePostDto, foundPost: Post) {
     const { postId, userId, likeStatus } = dto;
 
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(userId);
@@ -35,7 +35,7 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
 
     const newLike = foundPost.setLikeStatus(this.PostLikeModel, oldLike, userId, userLogin, likeStatus);
 
-    await this.postsRepository.savePost(foundPost);
+    await this.postsRepository.updatePostLikesCount(foundPost);
     await this.postsRepository.savePostLike(newLike);
   }
 }

@@ -1,4 +1,4 @@
-import { PostDocument } from '../../../posts/domain/post.schema';
+import { Post } from '../../../posts/domain/post.schema';
 
 export class PostInfoViewModel {
   id: string;
@@ -6,8 +6,8 @@ export class PostInfoViewModel {
   blogId: string;
   blogName: string;
 
-  constructor(post: PostDocument) {
-    this.id = post._id.toString();
+  constructor(post: Post) {
+    this.id = post.id;
     this.title = post.title;
     this.blogId = String(post.blogId);
     this.blogName = post.blogName;

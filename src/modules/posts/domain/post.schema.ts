@@ -1,17 +1,13 @@
-import mongoose, { HydratedDocument, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { LikeStatus } from '../../../main/types/enums';
-import { ObjectId } from 'mongodb';
 import { PostLike, PostLikeDocument } from './postLike.schema';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreatePostDto } from '../application/dto/CreatePostDto';
+import { randomUUID } from 'crypto';
+import { PostFromDB } from '../infrastructure/types/PostFromDB';
 
-@Schema({ _id: false })
 export class ExtendedLikesInfo {
-  @Prop({ required: true })
   likesCount: number;
-
-  @Prop({ required: true })
   dislikesCount: number;
 
   constructor() {
@@ -19,39 +15,20 @@ export class ExtendedLikesInfo {
     this.dislikesCount = 0;
   }
 }
-export const ExtendedLikesInfoSchema = SchemaFactory.createForClass(ExtendedLikesInfo);
 
-@Schema()
 export class Post {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
-  _id: ObjectId;
-
-  @Prop({ required: true, maxlength: 30 })
+  id: string;
   title: string;
-
-  @Prop({ required: true, maxlength: 100 })
   shortDescription: string;
-
-  @Prop({ required: true, maxlength: 1000 })
   content: string;
-
-  @Prop({ required: true })
   blogId: string;
-
-  @Prop({ required: true, maxlength: 15 })
   blogName: string;
-
-  @Prop({ required: true })
   createdAt: Date;
-
-  @Prop({ required: true })
   isBanned: boolean;
-
-  @Prop({ required: true, type: ExtendedLikesInfoSchema })
   extendedLikesInfo: ExtendedLikesInfo;
 
   constructor(dto: CreatePostDto, blogName: string) {
-    this._id = new ObjectId();
+    this.id = randomUUID();
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
@@ -87,7 +64,7 @@ export class Post {
 
   createLikeStatus(PostLikeModel: Model<PostLikeDocument>, userId: string, userLogin: string): PostLikeDocument {
     const like = new PostLike({
-      postId: this._id.toString(),
+      postId: this.id,
       userId,
       userLogin,
     });
@@ -106,9 +83,14 @@ export class Post {
       this.extendedLikesInfo.dislikesCount -= 1;
     }
   }
+
+  static createPostFromDB(postFromDB: PostFromDB) {
+    const post = new Post(postFromDB, postFromDB.blogName);
+    post.id = postFromDB.id;
+    post.createdAt = postFromDB.createdAt;
+    post.isBanned = postFromDB.isBanned;
+    post.extendedLikesInfo.likesCount = postFromDB.likesCount;
+    post.extendedLikesInfo.dislikesCount = postFromDB.dislikesCount;
+    return post;
+  }
 }
-
-export type PostDocument = HydratedDocument<Post>;
-
-export const PostSchema = SchemaFactory.createForClass(Post);
-PostSchema.loadClass(Post);

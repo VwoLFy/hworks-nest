@@ -14,11 +14,11 @@ export class PostViewModel {
   extendedLikesInfo: PostLikesInfoViewModel;
 
   constructor(dto: Post, myStatus: LikeStatus, newestLikes: PostLikeDetailsViewModel[]) {
-    this.id = dto._id.toString();
+    this.id = dto.id;
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
-    this.blogId = String(dto.blogId);
+    this.blogId = dto.blogId;
     this.blogName = dto.blogName;
     this.createdAt = dto.createdAt.toISOString();
     this.extendedLikesInfo = new PostLikesInfoViewModel(dto.extendedLikesInfo, myStatus, newestLikes);

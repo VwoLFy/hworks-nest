@@ -5,11 +5,22 @@ import { FindPostsQueryModel } from './models/FindPostsQueryModel';
 import { PostViewModel } from './models/PostViewModel';
 import { HTTP_Status } from '../../../main/types/enums';
 import { FindCommentsQueryModel } from './models/FindCommentsQueryModel';
-import { Body, Controller, Get, HttpCode, HttpException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
-import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
 import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
 import { UserId } from '../../../main/decorators/user.decorator';
@@ -39,7 +50,7 @@ export class PostsController {
   @Get(':postId')
   @UseGuards(GetUserIdGuard)
   async findPostById(
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @UserId() userId: string | null,
   ): Promise<PostViewModel> {
     const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
@@ -51,7 +62,7 @@ export class PostsController {
   @Get(':postId/comments')
   @UseGuards(GetUserIdGuard)
   async findCommentsByPostId(
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
   ): Promise<PageViewModel<CommentViewModel>> {
@@ -64,7 +75,7 @@ export class PostsController {
   @Post(':postId/comments')
   @UseGuards(JwtAuthGuard)
   async createCommentForPost(
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @Body() body: CommentInputModel,
     @UserId() userId: string,
   ): Promise<CommentViewModel> {
@@ -79,7 +90,7 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async likePost(
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @Body() body: PostLikeInputModel,
     @UserId() userId: string,
   ) {

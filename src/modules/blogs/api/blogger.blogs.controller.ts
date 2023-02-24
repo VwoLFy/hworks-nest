@@ -20,7 +20,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
-import { checkObjectIdPipe } from '../../../main/checkObjectIdPipe';
 import { findBlogsQueryPipe } from './models/FindBlogsQueryPipe';
 import { UserId } from '../../../main/decorators/user.decorator';
 import { CreateBlogCommand } from '../application/use-cases/create-blog-use-case';
@@ -100,7 +99,7 @@ export class BlogsControllerBl {
   @HttpCode(204)
   async updateBlogPost(
     @Param('blogId', ParseUUIDPipe) blogId: string,
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @Body() body: UpdatePostDto,
     @UserId() userId: string,
   ) {
@@ -111,7 +110,7 @@ export class BlogsControllerBl {
   @HttpCode(204)
   async deleteBlogPost(
     @Param('blogId', ParseUUIDPipe) blogId: string,
-    @Param('postId', checkObjectIdPipe) postId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
     @UserId() userId: string,
   ) {
     await this.commandBus.execute(new DeletePostCommand(userId, postId, blogId));

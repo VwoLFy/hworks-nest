@@ -1,7 +1,7 @@
 import { CommentatorInfoModel } from './CommentatorInfoModel';
 import { PostInfoViewModel } from './PostInfoViewModel';
 import { CommentDocument } from '../../domain/comment.schema';
-import { PostDocument } from '../../../posts/domain/post.schema';
+import { Post } from '../../../posts/domain/post.schema';
 import { CommentLikesInfoViewModel } from './CommentLikesInfoViewModel';
 import { LikeStatus } from '../../../../main/types/enums';
 
@@ -13,7 +13,7 @@ export class CommentViewModelBl {
   postInfo: PostInfoViewModel;
   likesInfo: CommentLikesInfoViewModel;
 
-  constructor(comment: CommentDocument, post: PostDocument, myStatus: LikeStatus) {
+  constructor(comment: CommentDocument, post: Post, myStatus: LikeStatus) {
     this.id = comment._id.toString();
     this.content = comment.content;
     this.commentatorInfo = comment.commentatorInfo;
