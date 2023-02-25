@@ -2,23 +2,18 @@ import { User } from '../domain/user.schema';
 import { UserViewModel } from '../api/models/UserViewModel';
 import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindBannedUsersForBlogQueryModel } from '../api/models/FindBannedUsersForBlogQueryModel';
 import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewModel';
-import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';
+import { BannedUserForBlog } from '../domain/banned-user-for-blog.schema';
 
 @Injectable()
 export class UsersQueryRepo {
-  constructor(
-    @InjectModel(BannedUserForBlog.name) private BannedUserForBlogModel: Model<BannedUserForBlogDocument>,
-    @InjectDataSource() private dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
@@ -109,25 +104,39 @@ export class UsersQueryRepo {
     dto: FindBannedUsersForBlogQueryModel,
   ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
     const { searchLoginTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
+    let filterFind = `true`;
+    let filterFindPar = [];
 
-    let filterFind = {};
     if (searchLoginTerm) {
-      filterFind = {
-        login: { $regex: searchLoginTerm, $options: 'i' },
-      };
+      filterFind = `(LOWER("login") like LOWER($2))`;
+      filterFindPar = [`%${searchLoginTerm}%`];
     }
 
-    const totalCount = await this.BannedUserForBlogModel.countDocuments(filterFind).where('blogId', blogId);
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT COUNT(*)
+	          FROM public."BannedUsersForBlog" 
+	          WHERE "blogId" = $1 AND ${filterFind}`,
+        [blogId, ...filterFindPar],
+      )
+    )[0];
+
+    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const items = (
-      await this.BannedUserForBlogModel.find(filterFind)
-        .where('blogId', blogId)
-        .sort({ [sortBy]: sortDirection })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-    ).map((u) => new BannedUserForBlogViewModel(u));
+    const foundUsers: BannedUserForBlog[] = (
+      await this.dataSource.query(
+        `SELECT *
+	          FROM public."BannedUsersForBlog" 
+	          WHERE "blogId" = $1 AND ${filterFind}
+	          ORDER BY "${sortBy}" ${sortDirection}
+            LIMIT ${pageSize} OFFSET ${offset};`,
+        [blogId, ...filterFindPar],
+      )
+    ).map((u) => BannedUserForBlog.createBannedUserForBlog(u));
 
+    const items = foundUsers.map((u) => new BannedUserForBlogViewModel(u));
     return new PageViewModel(
       {
         pagesCount,

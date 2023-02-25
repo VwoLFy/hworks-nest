@@ -1,18 +1,14 @@
 import { User } from '../domain/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BannedUserForBlog, BannedUserForBlogDocument } from '../domain/banned-user-for-blog.schema';
+import { BannedUserForBlog } from '../domain/banned-user-for-blog.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';
+import { BannedUserForBlogFromDB } from './types/BannedUserForBlogFromDB';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @InjectModel(BannedUserForBlog.name) private BannedUserForBlogModel: Model<BannedUserForBlogDocument>,
-    @InjectDataSource() private dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findUserByLoginOrEmail(loginOrEmail: string): Promise<User | null> {
     const userFromDB: UserFromDB = (
@@ -130,7 +126,7 @@ export class UsersRepository {
     );
   }
 
-  async deleteAll() {
+  async deleteAllUsers() {
     await this.dataSource.query(
       `DELETE FROM public."BanInfo";
              DELETE FROM public."AccountData";
@@ -139,16 +135,37 @@ export class UsersRepository {
     );
   }
 
-  async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
-    return this.BannedUserForBlogModel.findOne({ blogId, id: userId });
+  async deleteAllBannedUsersForBlogs() {
+    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog"`);
   }
 
-  async saveBannedUserForBlog(bannedUserForBlogModel: BannedUserForBlogDocument) {
-    await bannedUserForBlogModel.save();
+  async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
+    const bannedUserForBlogFromDB: BannedUserForBlogFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."BannedUsersForBlog" WHERE "id" = $1 AND "blogId" = $2`, [
+        userId,
+        blogId,
+      ])
+    )[0];
+
+    if (!bannedUserForBlogFromDB) return null;
+    return BannedUserForBlog.createBannedUserForBlog(bannedUserForBlogFromDB);
+  }
+
+  async saveBannedUserForBlog(bannedUserForBlog: BannedUserForBlog) {
+    await this.dataSource.query(
+      `INSERT INTO public."BannedUsersForBlog"("id", "login", "banReason", "banDate", "blogId")	VALUES ($1, $2, $3, $4, $5);`,
+      [
+        bannedUserForBlog.id,
+        bannedUserForBlog.login,
+        bannedUserForBlog.banReason,
+        bannedUserForBlog.banDate,
+        bannedUserForBlog.blogId,
+      ],
+    );
   }
 
   async deleteBannedUserForBlog(userId: string) {
-    await this.BannedUserForBlogModel.deleteOne({ id: userId });
+    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog" WHERE "id" = $1`, [userId]);
   }
 
   async updateBanInfo(user: User) {

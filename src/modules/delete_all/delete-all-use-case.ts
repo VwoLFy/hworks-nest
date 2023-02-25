@@ -22,8 +22,9 @@ export class DeleteAllUseCase implements ICommandHandler<DeleteAllCommand> {
   ) {}
   async execute() {
     await this.postsRepository.deleteAll();
+    await this.usersRepository.deleteAllBannedUsersForBlogs();
     await this.blogsRepository.deleteAll();
-    await this.usersRepository.deleteAll();
+    await this.usersRepository.deleteAllUsers();
     await this.commentsRepository.deleteAll();
     await this.securityRepository.deleteAll();
     await this.attemptsRepository.deleteAll();

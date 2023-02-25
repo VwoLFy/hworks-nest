@@ -76,7 +76,6 @@ import { PostsService } from './modules/posts/application/posts.service';
 import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-use-case';
 import { BanUserForBlogByBloggerUseCase } from './modules/users/application/use-cases/ban-user-for-blog-by-blogger-use-case';
 import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
-import { BannedUserForBlog, BannedUserForBlogSchema } from './modules/users/domain/banned-user-for-blog.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 const useCases = [
@@ -167,7 +166,6 @@ const useCases = [
       { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
-      { name: BannedUserForBlog.name, schema: BannedUserForBlogSchema },
     ]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
