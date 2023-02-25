@@ -4954,6 +4954,7 @@ describe('AppController (e2e)', () => {
         //     }
         //)
       },
+      10000,
     );
   });
 

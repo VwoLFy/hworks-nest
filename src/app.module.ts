@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './_Test/app.controller';
-import { MongooseModule } from '@nestjs/mongoose';
 import { BlogsQueryRepo } from './modules/blogs/infrastructure/blogs.queryRepo';
 import { BlogsRepository } from './modules/blogs/infrastructure/blogs.repository';
 import { DeleteBlogUseCase } from './modules/blogs/application/use-cases/delete-blog-use-case';
@@ -9,7 +8,6 @@ import { PostsQueryRepo } from './modules/posts/infrastructure/posts.queryRepo';
 import { PostsRepository } from './modules/posts/infrastructure/posts.repository';
 import { LikePostUseCase } from './modules/posts/application/use-cases/like-post-use-case';
 import { PostsController } from './modules/posts/api/posts.controller';
-import { CommentLike, CommentLikeSchema } from './modules/comments/domain/commentLike.schema';
 import { CommentsQueryRepo } from './modules/comments/infrastructure/comments.queryRepo';
 import { CommentsRepository } from './modules/comments/infrastructure/comments.repository';
 import { CommentsController } from './modules/comments/api/comments.controller';
@@ -151,16 +149,6 @@ const useCases = [
         };
       },
     }),
-    MongooseModule.forRootAsync({
-      imports: [ApiConfigModule],
-      inject: [ApiConfigService],
-      useFactory: (apiConfigService: ApiConfigService) => {
-        const uri = apiConfigService.MONGO_URI;
-        const dbName = apiConfigService.MONGO_DATABASE;
-        return { uri, dbName };
-      },
-    }),
-    MongooseModule.forFeature([{ name: CommentLike.name, schema: CommentLikeSchema }]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
       inject: [ApiConfigService],

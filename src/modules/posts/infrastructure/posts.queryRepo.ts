@@ -8,7 +8,7 @@ import { PostLikeDetailsViewModel } from '../api/models/PostLikeDetailsViewModel
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostFromDB } from './types/PostFromDB';
-import { PostLike } from '../domain/postLike.schema';
+import { PostLikeFromDB } from './types/PostLikeFromDB';
 
 @Injectable()
 export class PostsQueryRepo {
@@ -116,14 +116,14 @@ export class PostsQueryRepo {
   private async myLikeStatus(postId: string, userId: string | null): Promise<LikeStatus> {
     let myStatus: LikeStatus = LikeStatus.None;
     if (userId) {
-      const postLike: PostLike = (
+      const postLikeFromDB: PostLikeFromDB = (
         await this.dataSource.query(
           `SELECT "likeStatus" FROM public."PostLikes" WHERE "postId" = $1 AND "userId" = $2`,
           [postId, userId],
         )
       )[0];
 
-      if (postLike) myStatus = postLike.likeStatus;
+      if (postLikeFromDB) myStatus = postLikeFromDB.likeStatus;
     }
     return myStatus;
   }

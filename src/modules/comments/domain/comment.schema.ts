@@ -1,6 +1,5 @@
-import { Model } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
-import { CommentLike, CommentLikeDocument } from './commentLike.schema';
+import { CommentLike } from './commentLike.schema';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
 import { randomUUID } from 'crypto';
 import { CommentFromDB } from '../infrastructure/dto/CommentFromDB';
@@ -44,13 +43,8 @@ export class Comment {
     this.isBanned = false;
   }
 
-  setLikeStatus(
-    CommentLikeModel: Model<CommentLikeDocument>,
-    like: CommentLikeDocument | null,
-    userId: string,
-    likeStatus: LikeStatus,
-  ): CommentLikeDocument {
-    if (!like) like = this.createLikeStatus(CommentLikeModel, userId);
+  setLikeStatus(like: CommentLike | null, userId: string, likeStatus: LikeStatus): CommentLike {
+    if (!like) like = this.createLikeStatus(userId);
 
     const oldLikeStatus = like.likeStatus;
     like.updateLikeStatus(likeStatus);
@@ -60,9 +54,8 @@ export class Comment {
     return like;
   }
 
-  createLikeStatus(CommentLikeModel: Model<CommentLikeDocument>, userId: string): CommentLikeDocument {
-    const like = new CommentLike(this.id, userId);
-    return new CommentLikeModel(like);
+  createLikeStatus(userId: string): CommentLike {
+    return new CommentLike(this.id, userId);
   }
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {

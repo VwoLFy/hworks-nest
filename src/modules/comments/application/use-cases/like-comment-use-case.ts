@@ -1,7 +1,4 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { CommentLike, CommentLikeDocument } from '../../domain/commentLike.schema';
 import { LikeCommentDto } from '../dto/LikeCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Comment } from '../../domain/comment.schema';
@@ -12,10 +9,7 @@ export class LikeCommentCommand {
 
 @CommandHandler(LikeCommentCommand)
 export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
-  constructor(
-    protected commentsRepository: CommentsRepository,
-    @InjectModel(CommentLike.name) private CommentLikeModel: Model<CommentLikeDocument>,
-  ) {}
+  constructor(protected commentsRepository: CommentsRepository) {}
 
   async execute(command: LikeCommentCommand) {
     const foundComment = await this.commentsRepository.findCommentOrThrowError(command.dto.commentId);
@@ -28,9 +22,13 @@ export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
 
     const oldLike = await this.commentsRepository.findCommentLike(commentId, userId);
 
-    const newLike = foundComment.setLikeStatus(this.CommentLikeModel, oldLike, userId, likeStatus);
+    const newLike = foundComment.setLikeStatus(oldLike, userId, likeStatus);
 
     await this.commentsRepository.updateCommentLikesCount(foundComment);
-    await this.commentsRepository.saveCommentLike(newLike);
+    if (oldLike) {
+      await this.commentsRepository.updateCommentLike(newLike);
+    } else {
+      await this.commentsRepository.saveCommentLike(newLike);
+    }
   }
 }

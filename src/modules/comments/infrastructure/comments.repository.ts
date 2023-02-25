@@ -1,19 +1,14 @@
 import { Comment } from '../domain/comment.schema';
-import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { CommentLike } from '../domain/commentLike.schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CommentFromDB } from './dto/CommentFromDB';
+import { CommentLikeFromDB } from './dto/CommentLikeFromDB';
 
 @Injectable()
 export class CommentsRepository {
-  constructor(
-    @InjectDataSource() private dataSource: DataSource,
-    @InjectModel(CommentLike.name)
-    private CommentLikeModel: Model<CommentLikeDocument>,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findCommentOrThrowError(commentId: string): Promise<Comment> {
     const commentFromDB: CommentFromDB = (
@@ -63,29 +58,50 @@ export class CommentsRepository {
     );
   }
 
-  async findUserCommentLikes(userId: string): Promise<CommentLikeDocument[]> {
-    return this.CommentLikeModel.find({ userId });
+  async findUserCommentLikes(userId: string): Promise<CommentLike[]> {
+    const commentLikesFromDB: CommentLikeFromDB[] = await this.dataSource.query(
+      `SELECT * FROM public."CommentLikes" WHERE "userId" = $1`,
+      [userId],
+    );
+    return commentLikesFromDB.map((l) => CommentLike.createCommentLike(l));
   }
 
   async updateBanOnUserCommentsLikes(userId: string, isBanned: boolean) {
-    await this.CommentLikeModel.updateMany({ userId }, { $set: { isBanned } });
+    await this.dataSource.query(
+      `UPDATE public."CommentLikes"
+            SET "isBanned" = $1
+            WHERE "userId" = $2`,
+      [isBanned, userId],
+    );
   }
 
-  async findCommentLike(commentId: string, userId: string): Promise<CommentLikeDocument | null> {
-    return this.CommentLikeModel.findOne({ commentId, userId });
+  async findCommentLike(commentId: string, userId: string): Promise<CommentLike | null> {
+    const commentLikeFromDB: CommentLikeFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."CommentLikes" WHERE "commentId" = $1 AND "userId" = $2`, [
+        commentId,
+        userId,
+      ])
+    )[0];
+
+    if (!commentLikeFromDB) return null;
+    return CommentLike.createCommentLike(commentLikeFromDB);
   }
 
-  async saveCommentLike(like: CommentLikeDocument): Promise<void> {
-    await like.save();
+  async saveCommentLike(like: CommentLike): Promise<void> {
+    await this.dataSource.query(
+      `INSERT INTO public."CommentLikes"("addedAt", "commentId", "userId", "likeStatus", "isBanned")
+            VALUES ($1, $2, $3, $4, $5);`,
+      [like.addedAt, like.commentId, like.userId, like.likeStatus, like.isBanned],
+    );
   }
 
   async deleteComment(commentId: string) {
-    await this.CommentLikeModel.deleteMany({ commentId: commentId });
+    await this.dataSource.query(`DELETE FROM public."CommentLikes" WHERE "commentId" = $1`, [commentId]);
     await this.dataSource.query(`DELETE FROM public."Comments" WHERE "id" = $1`, [commentId]);
   }
 
   async deleteAll() {
-    await this.CommentLikeModel.deleteMany();
+    await this.dataSource.query(`DELETE FROM public."CommentLikes"`);
     await this.dataSource.query(`DELETE FROM public."Comments"`);
   }
 
@@ -95,6 +111,15 @@ export class CommentsRepository {
             SET "content" = $1
             WHERE "id" = $2`,
       [comment.content, comment.id],
+    );
+  }
+
+  async updateCommentLike(like: CommentLike) {
+    await this.dataSource.query(
+      `UPDATE public."CommentLikes"
+            SET "likeStatus" = $1
+            WHERE "commentId" = $2 AND "userId" = $3`,
+      [like.likeStatus, like.commentId, like.userId],
     );
   }
 }

@@ -3,9 +3,6 @@ import { FindCommentsByPostIdDto } from './dto/FindCommentsByPostIdDto';
 import { CommentViewModel } from '../api/models/CommentViewModel';
 import { LikeStatus } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { CommentLike, CommentLikeDocument } from '../domain/commentLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
 import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
@@ -13,14 +10,11 @@ import { Post } from '../../posts/domain/post.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CommentFromDB } from './dto/CommentFromDB';
+import { CommentLikeFromDB } from './dto/CommentLikeFromDB';
 
 @Injectable()
 export class CommentsQueryRepo {
-  constructor(
-    @InjectModel(CommentLike.name)
-    private CommentLikeModel: Model<CommentLikeDocument>,
-    @InjectDataSource() private dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
     const commentFromDB: CommentFromDB = (
@@ -139,8 +133,14 @@ export class CommentsQueryRepo {
   async myLikeStatus(commentId: string, userId: string | null): Promise<LikeStatus> {
     let myStatus: LikeStatus = LikeStatus.None;
     if (userId) {
-      const status = await this.CommentLikeModel.findOne({ commentId, userId }).lean();
-      if (status) myStatus = status.likeStatus;
+      const commentLikeFromDB: CommentLikeFromDB = (
+        await this.dataSource.query(`SELECT * FROM public."CommentLikes" WHERE "commentId" = $1 AND "userId" = $2`, [
+          commentId,
+          userId,
+        ])
+      )[0];
+
+      if (commentLikeFromDB) myStatus = commentLikeFromDB.likeStatus;
     }
     return myStatus;
   }

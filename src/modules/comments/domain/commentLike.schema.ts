@@ -1,23 +1,12 @@
-import { HydratedDocument } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { CommentLikeFromDB } from '../infrastructure/dto/CommentLikeFromDB';
 
-@Schema()
 export class CommentLike {
-  @Prop({ required: true })
-  addedAt: Date;
-
-  @Prop({ required: true })
+  public addedAt: Date;
   public commentId: string;
-
-  @Prop({ required: true })
   public userId: string;
-
-  @Prop({ required: true })
   public likeStatus: LikeStatus;
-
-  @Prop({ required: true })
-  private isBanned: boolean;
+  public isBanned: boolean;
 
   constructor(commentId: string, userId: string) {
     this.commentId = commentId;
@@ -30,9 +19,13 @@ export class CommentLike {
   updateLikeStatus(likeStatus: LikeStatus): void {
     this.likeStatus = likeStatus;
   }
+
+  static createCommentLike(commentLikeFromDB: CommentLikeFromDB): CommentLike {
+    const like = new CommentLike(commentLikeFromDB.commentId, commentLikeFromDB.userId);
+    like.addedAt = commentLikeFromDB.addedAt;
+    like.likeStatus = commentLikeFromDB.likeStatus;
+    like.isBanned = commentLikeFromDB.isBanned;
+
+    return like;
+  }
 }
-
-export type CommentLikeDocument = HydratedDocument<CommentLike>;
-
-export const CommentLikeSchema = SchemaFactory.createForClass(CommentLike);
-CommentLikeSchema.loadClass(CommentLike);
