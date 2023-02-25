@@ -4,7 +4,7 @@ import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { CommentLike, CommentLikeDocument } from '../../domain/commentLike.schema';
 import { LikeCommentDto } from '../dto/LikeCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CommentDocument } from '../../domain/comment.schema';
+import { Comment } from '../../domain/comment.schema';
 
 export class LikeCommentCommand {
   constructor(public dto: LikeCommentDto) {}
@@ -23,14 +23,14 @@ export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
     await this.setLikeStatus(command.dto, foundComment);
   }
 
-  async setLikeStatus(dto: LikeCommentDto, foundComment: CommentDocument) {
+  async setLikeStatus(dto: LikeCommentDto, foundComment: Comment) {
     const { commentId, userId, likeStatus } = dto;
 
     const oldLike = await this.commentsRepository.findCommentLike(commentId, userId);
 
     const newLike = foundComment.setLikeStatus(this.CommentLikeModel, oldLike, userId, likeStatus);
 
-    await this.commentsRepository.saveComment(foundComment);
+    await this.commentsRepository.updateCommentLikesCount(foundComment);
     await this.commentsRepository.saveCommentLike(newLike);
   }
 }

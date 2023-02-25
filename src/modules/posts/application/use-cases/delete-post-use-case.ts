@@ -27,6 +27,5 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
     if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
 
     await this.postsRepository.deletePost(postId);
-    await this.commentsRepository.deleteAllCommentsOfPost(postId);
   }
 }

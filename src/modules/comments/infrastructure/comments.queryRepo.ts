@@ -1,4 +1,4 @@
-import { Comment, CommentDocument } from '../domain/comment.schema';
+import { Comment } from '../domain/comment.schema';
 import { FindCommentsByPostIdDto } from './dto/FindCommentsByPostIdDto';
 import { CommentViewModel } from '../api/models/CommentViewModel';
 import { LikeStatus } from '../../../main/types/enums';
@@ -12,19 +12,27 @@ import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
 import { Post } from '../../posts/domain/post.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { CommentFromDB } from './dto/CommentFromDB';
 
 @Injectable()
 export class CommentsQueryRepo {
   constructor(
-    @InjectModel(Comment.name) private CommentModel: Model<CommentDocument>,
     @InjectModel(CommentLike.name)
     private CommentLikeModel: Model<CommentLikeDocument>,
     @InjectDataSource() private dataSource: DataSource,
   ) {}
 
   async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
-    const foundComment = await this.CommentModel.findOne({ _id: commentId, isBanned: false });
-    if (!foundComment) throw new NotFoundException('comment not found');
+    const commentFromDB: CommentFromDB = (
+      await this.dataSource.query(
+        `SELECT * FROM public."Comments"
+            WHERE "id" = $1 AND "isBanned" = false`,
+        [commentId],
+      )
+    )[0];
+
+    if (!commentFromDB) throw new NotFoundException('comment not found');
+    const foundComment = Comment.createCommentFromDB(commentFromDB);
 
     const myStatus = await this.myLikeStatus(commentId, userId);
     return new CommentViewModel(foundComment, myStatus);
@@ -33,14 +41,26 @@ export class CommentsQueryRepo {
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
-    const totalCount = await this.CommentModel.countDocuments({ postId, isBanned: false });
-    if (!totalCount) return null;
+    const { count } = (
+      await this.dataSource.query(`SELECT count(*) FROM public."Comments" WHERE "postId" = $1 AND "isBanned" = false`, [
+        postId,
+      ])
+    )[0];
+
+    const totalCount = +count;
 
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const foundComments = await this.CommentModel.find({ postId, isBanned: false })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort({ [sortBy]: sortDirection });
+    const offset = (pageNumber - 1) * pageSize;
+
+    const foundComments: Comment[] = (
+      await this.dataSource.query(
+        `SELECT * FROM public."Comments"
+            WHERE "postId" = $1 AND "isBanned" = false
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        [postId],
+      )
+    ).map((c) => Comment.createCommentFromDB(c));
 
     const items: CommentViewModel[] = [];
     for (const comment of foundComments) {
@@ -74,13 +94,29 @@ export class CommentsQueryRepo {
     ).map((p) => Post.createPostFromDB(p));
     const postIds = foundPosts.map((p) => p.id);
 
-    const totalCount = await this.CommentModel.countDocuments({ postId: postIds });
+    const { count } = (
+      await this.dataSource.query(
+        `SELECT count(*) 
+              FROM public."Comments"
+              WHERE "postId" = ANY($1)`,
+        [postIds],
+      )
+    )[0];
+
+    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
 
-    const foundComments = await this.CommentModel.find({ postId: postIds })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort({ [sortBy]: sortDirection });
+    const offset = (pageNumber - 1) * pageSize;
+
+    const foundComments: Comment[] = (
+      await this.dataSource.query(
+        `SELECT * FROM public."Comments"
+            WHERE "postId" = ANY($1)
+	          ORDER BY "${sortBy}" ${sortDirection}
+	          LIMIT ${pageSize} OFFSET ${offset};`,
+        [postIds],
+      )
+    ).map((c) => Comment.createCommentFromDB(c));
 
     const items: CommentViewModelBl[] = [];
     for (const comment of foundComments) {

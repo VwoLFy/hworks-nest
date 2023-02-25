@@ -23,7 +23,7 @@ export class CommentsService {
         foundComment.updateLikesCount(foundCommentLike.likeStatus, LikeStatus.None);
       }
 
-      await this.commentsRepository.saveComment(foundComment);
+      await this.commentsRepository.updateCommentLikesCount(foundComment);
     }
   }
 }

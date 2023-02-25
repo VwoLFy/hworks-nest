@@ -18,6 +18,6 @@ export class UpdateCommentUseCase implements ICommandHandler<UpdateCommentComman
     if (foundComment.commentatorInfo.userId !== userId) throw new ForbiddenException();
 
     foundComment.updateComment(content);
-    await this.commentsRepository.saveComment(foundComment);
+    await this.commentsRepository.updateComment(foundComment);
   }
 }

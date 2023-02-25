@@ -1,16 +1,12 @@
-import mongoose, { HydratedDocument, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { LikeStatus } from '../../../main/types/enums';
-import { ObjectId } from 'mongodb';
 import { CommentLike, CommentLikeDocument } from './commentLike.schema';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
+import { randomUUID } from 'crypto';
+import { CommentFromDB } from '../infrastructure/dto/CommentFromDB';
 
-@Schema({ _id: false })
 export class CommentatorInfo {
-  @Prop({ required: true })
   userId: string;
-
-  @Prop({ required: true, minlength: 3, maxlength: 30 })
   userLogin: string;
 
   constructor(userId: string, userLogin: string) {
@@ -18,14 +14,9 @@ export class CommentatorInfo {
     this.userLogin = userLogin;
   }
 }
-const CommentatorInfoSchema = SchemaFactory.createForClass(CommentatorInfo);
 
-@Schema({ _id: false })
 export class LikesInfo {
-  @Prop({ required: true })
   likesCount: number;
-
-  @Prop({ required: true })
   dislikesCount: number;
 
   constructor() {
@@ -33,33 +24,18 @@ export class LikesInfo {
     this.dislikesCount = 0;
   }
 }
-export const LikesInfoSchema = SchemaFactory.createForClass(LikesInfo);
 
-@Schema()
 export class Comment {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
-  _id: ObjectId;
-
-  @Prop({ required: true, minlength: 20, maxlength: 300 })
+  id: string;
   content: string;
-
-  @Prop({ required: true, type: CommentatorInfoSchema })
   commentatorInfo: CommentatorInfo;
-
-  @Prop({ required: true })
   postId: string;
-
-  @Prop({ required: true })
   createdAt: Date;
-
-  @Prop({ required: true, type: LikesInfoSchema })
   likesInfo: LikesInfo;
-
-  @Prop({ required: true })
   isBanned: boolean;
 
   constructor(dto: CreateCommentDto, userLogin: string) {
-    this._id = new ObjectId();
+    this.id = randomUUID();
     this.content = dto.content;
     this.commentatorInfo = new CommentatorInfo(dto.userId, userLogin);
     this.postId = dto.postId;
@@ -85,7 +61,7 @@ export class Comment {
   }
 
   createLikeStatus(CommentLikeModel: Model<CommentLikeDocument>, userId: string): CommentLikeDocument {
-    const like = new CommentLike(this._id.toString(), userId);
+    const like = new CommentLike(this.id, userId);
     return new CommentLikeModel(like);
   }
 
@@ -104,9 +80,14 @@ export class Comment {
   updateComment(content: string) {
     this.content = content;
   }
+
+  static createCommentFromDB(commentFromDB: CommentFromDB): Comment {
+    const comment = new Comment(commentFromDB, commentFromDB.userLogin);
+    comment.id = commentFromDB.id;
+    comment.createdAt = commentFromDB.createdAt;
+    comment.isBanned = commentFromDB.isBanned;
+    comment.likesInfo.likesCount = commentFromDB.likesCount;
+    comment.likesInfo.dislikesCount = commentFromDB.dislikesCount;
+    return comment;
+  }
 }
-
-export type CommentDocument = HydratedDocument<Comment>;
-
-export const CommentSchema = SchemaFactory.createForClass(Comment);
-CommentSchema.loadClass(Comment);

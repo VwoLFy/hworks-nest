@@ -66,10 +66,10 @@ export class PostsController {
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
   ): Promise<PageViewModel<CommentViewModel>> {
-    const foundComments = await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
-    if (!foundComments) throw new HttpException('comments not found', HTTP_Status.NOT_FOUND_404);
+    const foundPost = await this.postsQueryRepo.findPostById(postId, null);
+    if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
 
-    return foundComments;
+    return await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
   }
 
   @Post(':postId/comments')

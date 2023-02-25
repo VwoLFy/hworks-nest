@@ -10,7 +10,6 @@ import { PostsRepository } from './modules/posts/infrastructure/posts.repository
 import { LikePostUseCase } from './modules/posts/application/use-cases/like-post-use-case';
 import { PostsController } from './modules/posts/api/posts.controller';
 import { CommentLike, CommentLikeSchema } from './modules/comments/domain/commentLike.schema';
-import { Comment, CommentSchema } from './modules/comments/domain/comment.schema';
 import { CommentsQueryRepo } from './modules/comments/infrastructure/comments.queryRepo';
 import { CommentsRepository } from './modules/comments/infrastructure/comments.repository';
 import { CommentsController } from './modules/comments/api/comments.controller';
@@ -161,10 +160,7 @@ const useCases = [
         return { uri, dbName };
       },
     }),
-    MongooseModule.forFeature([
-      { name: Comment.name, schema: CommentSchema },
-      { name: CommentLike.name, schema: CommentLikeSchema },
-    ]),
+    MongooseModule.forFeature([{ name: CommentLike.name, schema: CommentLikeSchema }]),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
       inject: [ApiConfigService],

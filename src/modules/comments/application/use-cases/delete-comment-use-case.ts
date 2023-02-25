@@ -16,6 +16,6 @@ export class DeleteCommentUseCase implements ICommandHandler<DeleteCommentComman
     const foundComment = await this.commentsRepository.findCommentOrThrowError(commentId);
     if (foundComment.commentatorInfo.userId !== userId) throw new ForbiddenException();
 
-    await this.commentsRepository.deleteComment(foundComment._id);
+    await this.commentsRepository.deleteComment(commentId);
   }
 }

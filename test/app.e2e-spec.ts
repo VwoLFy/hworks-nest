@@ -3001,7 +3001,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('GET comments should return 404', async () => {
-      await request(app.getHttpServer()).get(`/posts/${post1ForBlog1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/posts/${blog1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('POST should create comment with correct data', async () => {
       const result = await request(app.getHttpServer())
@@ -3043,7 +3043,7 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer()).get(`/comments/${comment1.id}`).expect(HTTP_Status.OK_200, comment1);
     });
     it('GET should return 404', async () => {
-      await request(app.getHttpServer()).get(`/comments/1`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/comments/1`).expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('PUT shouldn`t update comment and return 400', async () => {
       await request(app.getHttpServer())
@@ -3072,7 +3072,7 @@ describe('AppController (e2e)', () => {
         .put(`/comments/1`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'new content!!!!!!!!!!!' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
         .put(`/comments/${blog1.id}`)
@@ -3105,14 +3105,14 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken + 'd', { type: 'bearer' })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('DELETE shouldn`t delete comment and return 404', async () => {
+    it('DELETE shouldn`t delete comment and return 400 and 404', async () => {
       await request(app.getHttpServer())
         .delete(`/comments/1`)
         .auth(token1.accessToken, { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
-        .delete(`/comments/636a2a16f394608b01446e12`)
+        .delete(`/comments/${blog1.id}`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
@@ -3481,7 +3481,13 @@ describe('AppController (e2e)', () => {
       post2 = resultPost.body;
     }, 10000);
     it('GET comments should return 404', async () => {
-      await request(app.getHttpServer()).get(`/posts/${post1.id}/comments`).expect(HTTP_Status.NOT_FOUND_404);
+      await request(app.getHttpServer()).get(`/posts/${post1.id}/comments`).expect(HTTP_Status.OK_200, {
+        pagesCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        items: [],
+      });
     });
     it('Ban User should return 401', async () => {
       await request(app.getHttpServer())
@@ -4488,16 +4494,16 @@ describe('AppController (e2e)', () => {
         .put(`/comments/${comment.id}/like-status`)
         .auth(token1.accessToken, { type: 'bearer' })
         .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/comments/1/like-status`)
+        .auth(token1.accessToken, { type: 'bearer' })
+        .send({ likeStatus: 'Like' })
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('PUT shouldn`t like comment and return 404', async () => {
       await request(app.getHttpServer())
         .put(`/comments/${blog.id}/like-status`)
-        .auth(token1.accessToken, { type: 'bearer' })
-        .send({ likeStatus: 'Like' })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .put(`/comments/1/like-status`)
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ likeStatus: 'Like' })
         .expect(HTTP_Status.NOT_FOUND_404);
