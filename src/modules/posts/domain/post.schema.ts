@@ -1,7 +1,6 @@
-import { Model } from 'mongoose';
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { LikeStatus } from '../../../main/types/enums';
-import { PostLike, PostLikeDocument } from './postLike.schema';
+import { PostLike } from './postLike.schema';
 import { CreatePostDto } from '../application/dto/CreatePostDto';
 import { randomUUID } from 'crypto';
 import { PostFromDB } from '../infrastructure/types/PostFromDB';
@@ -45,14 +44,8 @@ export class Post {
     this.content = dto.content;
   }
 
-  setLikeStatus(
-    PostLikeModel: Model<PostLikeDocument>,
-    like: PostLikeDocument | null,
-    userId: string,
-    userLogin: string,
-    likeStatus: LikeStatus,
-  ): PostLikeDocument {
-    if (!like) like = this.createLikeStatus(PostLikeModel, userId, userLogin);
+  setLikeStatus(like: PostLike | null, userId: string, userLogin: string, likeStatus: LikeStatus): PostLike {
+    if (!like) like = this.createLikeStatus(userId, userLogin);
 
     const oldLikeStatus = like.likeStatus;
     like.updateLikeStatus(likeStatus);
@@ -62,13 +55,12 @@ export class Post {
     return like;
   }
 
-  createLikeStatus(PostLikeModel: Model<PostLikeDocument>, userId: string, userLogin: string): PostLikeDocument {
-    const like = new PostLike({
+  createLikeStatus(userId: string, userLogin: string): PostLike {
+    return new PostLike({
       postId: this.id,
       userId,
       userLogin,
     });
-    return new PostLikeModel(like);
   }
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {

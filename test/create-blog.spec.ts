@@ -1,9 +1,8 @@
 import { AuthService } from '../src/modules/auth/application/auth.service';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose, { Model } from 'mongoose';
+import mongoose from 'mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserDocument, UserSchema } from '../src/modules/users/domain/user.schema';
 import { UsersRepository } from '../src/modules/users/infrastructure/users.repository';
 import { CreateUserUseCase } from '../src/modules/users/application/use-cases/create-user-use-case';
 
@@ -13,25 +12,13 @@ describe('Create user', () => {
   let authService: AuthService;
   let mongoServer: MongoMemoryServer;
   let userId: string;
-  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const app: TestingModule = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(mongoServer.getUri()),
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-      ],
+      imports: [MongooseModule.forRoot(mongoServer.getUri())],
       controllers: [],
-      providers: [
-        CreateUserUseCase,
-        UsersRepository,
-        AuthService,
-        {
-          provide: User.name,
-          useValue: UserModel,
-        },
-      ],
+      providers: [CreateUserUseCase, UsersRepository, AuthService],
     }).compile();
 
     createUserUseCase = app.get<CreateUserUseCase>(CreateUserUseCase);
@@ -67,24 +54,13 @@ describe('Create user', () => {
 describe('Create user with mock', () => {
   let createUserUseCase: CreateUserUseCase;
   let mongoServer: MongoMemoryServer;
-  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const app: TestingModule = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(mongoServer.getUri()),
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-      ],
+      imports: [MongooseModule.forRoot(mongoServer.getUri())],
       controllers: [],
-      providers: [
-        CreateUserUseCase,
-        UsersRepository,
-        {
-          provide: User.name,
-          useValue: UserModel,
-        },
-      ],
+      providers: [CreateUserUseCase, UsersRepository],
     })
       .overrideProvider(UsersRepository)
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -113,24 +89,13 @@ describe('Create user with mock2', () => {
   let createUserUseCase: CreateUserUseCase;
   let usersRepository: UsersRepository;
   let mongoServer: MongoMemoryServer;
-  let UserModel: Model<UserDocument>;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const app: TestingModule = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(mongoServer.getUri()),
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-      ],
+      imports: [MongooseModule.forRoot(mongoServer.getUri())],
       controllers: [],
-      providers: [
-        CreateUserUseCase,
-        UsersRepository,
-        {
-          provide: User.name,
-          useValue: UserModel,
-        },
-      ],
+      providers: [CreateUserUseCase, UsersRepository],
     }).compile();
 
     createUserUseCase = app.get<CreateUserUseCase>(CreateUserUseCase);

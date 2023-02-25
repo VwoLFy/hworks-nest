@@ -7,7 +7,6 @@ import { DeleteBlogUseCase } from './modules/blogs/application/use-cases/delete-
 import { BlogsController } from './modules/blogs/api/blogs.controller';
 import { PostsQueryRepo } from './modules/posts/infrastructure/posts.queryRepo';
 import { PostsRepository } from './modules/posts/infrastructure/posts.repository';
-import { PostLike, PostLikeSchema } from './modules/posts/domain/postLike.schema';
 import { LikePostUseCase } from './modules/posts/application/use-cases/like-post-use-case';
 import { PostsController } from './modules/posts/api/posts.controller';
 import { CommentLike, CommentLikeSchema } from './modules/comments/domain/commentLike.schema';
@@ -163,7 +162,6 @@ const useCases = [
       },
     }),
     MongooseModule.forFeature([
-      { name: PostLike.name, schema: PostLikeSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: CommentLike.name, schema: CommentLikeSchema },
     ]),

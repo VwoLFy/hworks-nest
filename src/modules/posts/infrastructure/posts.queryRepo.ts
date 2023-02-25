@@ -3,21 +3,16 @@ import { FindPostsQueryModel } from '../api/models/FindPostsQueryModel';
 import { PostViewModel } from '../api/models/PostViewModel';
 import { LikeStatus } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { PostLike, PostLikeDocument } from '../domain/postLike.schema';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { PostLikeDetailsViewModel } from '../api/models/PostLikeDetailsViewModel';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostFromDB } from './types/PostFromDB';
+import { PostLike } from '../domain/postLike.schema';
 
 @Injectable()
 export class PostsQueryRepo {
-  constructor(
-    @InjectDataSource() private dataSource: DataSource,
-    @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
@@ -121,21 +116,26 @@ export class PostsQueryRepo {
   private async myLikeStatus(postId: string, userId: string | null): Promise<LikeStatus> {
     let myStatus: LikeStatus = LikeStatus.None;
     if (userId) {
-      const status = await this.PostLikeModel.findOne({ postId, userId }).lean();
-      if (status) myStatus = status.likeStatus;
+      const postLike: PostLike = (
+        await this.dataSource.query(
+          `SELECT "likeStatus" FROM public."PostLikes" WHERE "postId" = $1 AND "userId" = $2`,
+          [postId, userId],
+        )
+      )[0];
+
+      if (postLike) myStatus = postLike.likeStatus;
     }
     return myStatus;
   }
 
   private async newestLikes(postId: string): Promise<PostLikeDetailsViewModel[]> {
-    const newestLikes = await this.PostLikeModel.find({
-      postId,
-      likeStatus: LikeStatus.Like,
-      isBanned: false,
-    })
-      .sort('-addedAt')
-      .limit(3)
-      .select({ _id: 0, addedAt: 1, userId: 1, login: 1 });
+    const newestLikes = await this.dataSource.query(
+      `SELECT "addedAt", "userId", "login" FROM public."PostLikes" 
+              WHERE "postId" = $1 AND "likeStatus" = $2 AND "isBanned" = $3
+              ORDER BY "addedAt" desc
+              LIMIT 3`,
+      [postId, LikeStatus.Like, false],
+    );
 
     return newestLikes.map((l) => new PostLikeDetailsViewModel(l));
   }

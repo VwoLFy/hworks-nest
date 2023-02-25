@@ -1,18 +1,14 @@
 import { Post } from '../domain/post.schema';
-import { PostLike, PostLikeDocument } from '../domain/postLike.schema';
+import { PostLike } from '../domain/postLike.schema';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostFromDB } from './types/PostFromDB';
+import { PostLikeFromDB } from './types/PostLikeFromDB';
 
 @Injectable()
 export class PostsRepository {
-  constructor(
-    @InjectDataSource() private dataSource: DataSource,
-    @InjectModel(PostLike.name) private PostLikeModel: Model<PostLikeDocument>,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async findPostById(postId: string): Promise<Post | null> {
     const postFromDB: PostFromDB = (
@@ -46,31 +42,6 @@ export class PostsRepository {
     await this.dataSource.query(`UPDATE public."Posts" SET "isBanned" = $1 WHERE "blogId" = $2`, [isBanned, blogId]);
   }
 
-  async findPostLike(postId: string, userId: string): Promise<PostLikeDocument | null> {
-    return this.PostLikeModel.findOne({ postId, userId });
-  }
-
-  async findUserPostLikes(userId: string): Promise<PostLikeDocument[]> {
-    return this.PostLikeModel.find({ userId });
-  }
-
-  async updateBanOnUserPostsLikes(userId: string, isBanned: boolean) {
-    await this.PostLikeModel.updateMany({ userId }, { $set: { isBanned } });
-  }
-
-  async savePostLike(like: PostLikeDocument) {
-    await like.save();
-  }
-
-  async deletePost(postId: string) {
-    await this.dataSource.query(`DELETE FROM public."Posts" WHERE "id" = $1`, [postId]);
-  }
-
-  async deleteAll() {
-    await this.dataSource.query(`DELETE FROM public."Posts"`);
-    await this.PostLikeModel.deleteMany();
-  }
-
   async updatePostLikesCount(post: Post) {
     await this.dataSource.query(
       `UPDATE public."Posts" 
@@ -86,6 +57,61 @@ export class PostsRepository {
             SET "title" = $1, "shortDescription" = $2, "content" = $3
             WHERE "id" = $4`,
       [post.title, post.shortDescription, post.content, post.id],
+    );
+  }
+
+  async deletePost(postId: string) {
+    await this.dataSource.query(`DELETE FROM public."Posts" WHERE "id" = $1`, [postId]);
+  }
+
+  async findPostLike(postId: string, userId: string): Promise<PostLike | null> {
+    const postLikeFromDB: PostLikeFromDB = (
+      await this.dataSource.query(`SELECT * FROM public."PostLikes" WHERE "postId" = $1 AND "userId" = $2`, [
+        postId,
+        userId,
+      ])
+    )[0];
+
+    if (!postLikeFromDB) return null;
+    return PostLike.createPostLike(postLikeFromDB);
+  }
+
+  async findUserPostLikes(userId: string): Promise<PostLike[]> {
+    const postLikesFromDB: PostLikeFromDB[] = await this.dataSource.query(
+      `SELECT * FROM public."PostLikes" WHERE "userId" = $1`,
+      [userId],
+    );
+    return postLikesFromDB.map((l) => PostLike.createPostLike(l));
+  }
+
+  async updateBanOnUserPostsLikes(userId: string, isBanned: boolean) {
+    await this.dataSource.query(
+      `UPDATE public."PostLikes"
+            SET "isBanned" = $1
+            WHERE "userId" = $2`,
+      [isBanned, userId],
+    );
+  }
+
+  async savePostLike(like: PostLike) {
+    await this.dataSource.query(
+      `INSERT INTO public."PostLikes"("addedAt", "postId", "userId", "login", "likeStatus", "isBanned")
+            VALUES ($1, $2, $3, $4, $5, $6);`,
+      [like.addedAt, like.postId, like.userId, like.login, like.likeStatus, like.isBanned],
+    );
+  }
+
+  async deleteAll() {
+    await this.dataSource.query(`DELETE FROM public."PostLikes"`);
+    await this.dataSource.query(`DELETE FROM public."Posts"`);
+  }
+
+  async updatePostLike(like: PostLike) {
+    await this.dataSource.query(
+      `UPDATE public."PostLikes"
+            SET "likeStatus" = $1
+            WHERE "postId" = $2 AND "userId" = $3`,
+      [like.likeStatus, like.postId, like.userId],
     );
   }
 }

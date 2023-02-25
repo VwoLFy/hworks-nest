@@ -1,27 +1,14 @@
 import { LikeStatus } from '../../../main/types/enums';
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
+import { PostLikeFromDB } from '../infrastructure/types/PostLikeFromDB';
 
-@Schema()
 export class PostLike {
-  @Prop({ required: true })
   addedAt: Date;
-
-  @Prop({ required: true })
   postId: string;
-
-  @Prop({ required: true })
   userId: string;
-
-  @Prop({ required: true })
   login: string;
-
-  @Prop({ required: true })
   likeStatus: LikeStatus;
-
-  @Prop({ required: true })
-  private isBanned: boolean;
+  isBanned: boolean;
 
   constructor(dto: CreatePostLikeDto) {
     this.postId = dto.postId;
@@ -35,8 +22,12 @@ export class PostLike {
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;
   }
-}
-export type PostLikeDocument = HydratedDocument<PostLike>;
 
-export const PostLikeSchema = SchemaFactory.createForClass(PostLike);
-PostLikeSchema.loadClass(PostLike);
+  static createPostLike(postLikeFromDB: PostLikeFromDB): PostLike {
+    const postLike = new PostLike({ ...postLikeFromDB, userLogin: postLikeFromDB.login });
+    postLike.addedAt = postLikeFromDB.addedAt;
+    postLike.likeStatus = postLikeFromDB.likeStatus;
+    postLike.isBanned = postLikeFromDB.isBanned;
+    return postLike;
+  }
+}

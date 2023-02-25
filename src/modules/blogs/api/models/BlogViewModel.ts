@@ -9,7 +9,7 @@ export class BlogViewModel {
   isMembership: boolean;
 
   constructor(blog: Blog) {
-    this.id = String(blog.id);
+    this.id = blog.id;
     this.name = blog.name;
     this.description = blog.description;
     this.websiteUrl = blog.websiteUrl;

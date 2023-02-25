@@ -9,7 +9,7 @@ export class PostInfoViewModel {
   constructor(post: Post) {
     this.id = post.id;
     this.title = post.title;
-    this.blogId = String(post.blogId);
+    this.blogId = post.blogId;
     this.blogName = post.blogName;
   }
 }
