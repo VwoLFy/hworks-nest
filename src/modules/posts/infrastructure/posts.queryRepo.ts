@@ -8,7 +8,6 @@ import { PostLikeDetailsViewModel } from '../api/models/PostLikeDetailsViewModel
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostFromDB } from './types/PostFromDB';
-import { PostLikeFromDB } from './types/PostLikeFromDB';
 
 @Injectable()
 export class PostsQueryRepo {
@@ -23,21 +22,19 @@ export class PostsQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundPosts: Post[] = (
-      await this.dataSource.query(
-        `SELECT * FROM public."Posts"
-                WHERE "isBanned" = false
-	          ORDER BY "${sortBy}" ${sortDirection}
-	          LIMIT ${pageSize} OFFSET ${offset};`,
-      )
-    ).map((p) => Post.createPostFromDB(p));
+    const postsFromDB: PostFromDB[] = await this.dataSource.query(
+      `SELECT *,
+             COALESCE((SELECT "likeStatus"
+                       FROM public."PostLikes"
+                       WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
+             FROM public."Posts" p
+             WHERE "isBanned" = false
+	           ORDER BY "${sortBy}" ${sortDirection}
+	           LIMIT ${pageSize} OFFSET ${offset};`,
+      [userId],
+    );
 
-    const items: PostViewModel[] = [];
-    for (const post of foundPosts) {
-      const myStatus = await this.myLikeStatus(post.id, userId);
-      const newestLikes = await this.newestLikes(post.id);
-      items.push(new PostViewModel(post, myStatus, newestLikes));
-    }
+    const items = await Promise.all(postsFromDB.map((p) => this.getPostViewModel(p)));
 
     return new PageViewModel(
       {
@@ -52,15 +49,19 @@ export class PostsQueryRepo {
 
   async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
     const postFromDB: PostFromDB = (
-      await this.dataSource.query(`SELECT * FROM public."Posts" WHERE "id" = $1 AND "isBanned" = false`, [postId])
+      await this.dataSource.query(
+        `SELECT *,
+               COALESCE((SELECT "likeStatus"
+                         FROM public."PostLikes"
+                         WHERE "postId" = p."id" AND "userId" = $2), 'None') as "myStatus"
+               FROM public."Posts" as p
+               WHERE "id" = $1 AND "isBanned" = false`,
+        [postId, userId],
+      )
     )[0];
 
     if (!postFromDB) return null;
-    const foundPost = Post.createPostFromDB(postFromDB);
-
-    const myStatus = await this.myLikeStatus(postId, userId);
-    const newestLikes = await this.newestLikes(postId);
-    return new PostViewModel(foundPost, myStatus, newestLikes);
+    return this.getPostViewModel(postFromDB);
   }
 
   async findPostsForBlog(
@@ -73,8 +74,8 @@ export class PostsQueryRepo {
     const { count } = (
       await this.dataSource.query(
         `SELECT count(*)
-            FROM public."Posts"
-            WHERE "blogId" = $1 AND "isBanned" = false`,
+               FROM public."Posts"
+               WHERE "blogId" = $1 AND "isBanned" = false`,
         [blogId],
       )
     )[0];
@@ -85,22 +86,19 @@ export class PostsQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundPosts: Post[] = (
-      await this.dataSource.query(
-        `SELECT * FROM public."Posts"
+    const postsFromDB: PostFromDB[] = await this.dataSource.query(
+      `SELECT *,
+            COALESCE((SELECT "likeStatus"
+                      FROM public."PostLikes"
+                      WHERE "postId" = p."id" AND "userId" = $2), 'None') as "myStatus"
+            FROM public."Posts" p
             WHERE "blogId" = $1 AND "isBanned" = false
 	          ORDER BY "${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
-        [blogId],
-      )
-    ).map((p) => Post.createPostFromDB(p));
+      [blogId, userId],
+    );
 
-    const items: PostViewModel[] = [];
-    for (const post of foundPosts) {
-      const myStatus = await this.myLikeStatus(post.id, userId);
-      const newestLikes = await this.newestLikes(post.id);
-      items.push(new PostViewModel(post, myStatus, newestLikes));
-    }
+    const items = await Promise.all(postsFromDB.map((p) => this.getPostViewModel(p)));
 
     return new PageViewModel(
       {
@@ -113,19 +111,12 @@ export class PostsQueryRepo {
     );
   }
 
-  private async myLikeStatus(postId: string, userId: string | null): Promise<LikeStatus> {
-    let myStatus: LikeStatus = LikeStatus.None;
-    if (userId) {
-      const postLikeFromDB: PostLikeFromDB = (
-        await this.dataSource.query(
-          `SELECT "likeStatus" FROM public."PostLikes" WHERE "postId" = $1 AND "userId" = $2`,
-          [postId, userId],
-        )
-      )[0];
+  private async getPostViewModel(postFromDB: PostFromDB): Promise<PostViewModel> {
+    const post = Post.createPostFromDB(postFromDB);
+    const myStatus = postFromDB.myStatus;
+    const newestLikes = await this.newestLikes(post.id);
 
-      if (postLikeFromDB) myStatus = postLikeFromDB.likeStatus;
-    }
-    return myStatus;
+    return new PostViewModel(post, myStatus, newestLikes);
   }
 
   private async newestLikes(postId: string): Promise<PostLikeDetailsViewModel[]> {

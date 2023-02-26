@@ -1,3 +1,5 @@
+import { LikeStatus } from '../../../../main/types/enums';
+
 export class PostFromDB {
   id: string;
   title: string;
@@ -9,4 +11,5 @@ export class PostFromDB {
   isBanned: boolean;
   likesCount: number;
   dislikesCount: number;
+  myStatus: LikeStatus;
 }
