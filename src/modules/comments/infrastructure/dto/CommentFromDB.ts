@@ -1,3 +1,5 @@
+import { LikeStatus } from '../../../../main/types/enums';
+
 export class CommentFromDB {
   id: string;
   content: string;
@@ -8,4 +10,5 @@ export class CommentFromDB {
   userLogin: string;
   likesCount: number;
   dislikesCount: number;
+  myStatus: LikeStatus;
 }

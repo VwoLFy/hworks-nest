@@ -53,10 +53,10 @@ export class PostsQueryRepo {
         `SELECT *,
                COALESCE((SELECT "likeStatus"
                          FROM public."PostLikes"
-                         WHERE "postId" = p."id" AND "userId" = $2), 'None') as "myStatus"
+                         WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
                FROM public."Posts" as p
-               WHERE "id" = $1 AND "isBanned" = false`,
-        [postId, userId],
+               WHERE "id" = $2 AND "isBanned" = false`,
+        [userId, postId],
       )
     )[0];
 
@@ -90,12 +90,12 @@ export class PostsQueryRepo {
       `SELECT *,
             COALESCE((SELECT "likeStatus"
                       FROM public."PostLikes"
-                      WHERE "postId" = p."id" AND "userId" = $2), 'None') as "myStatus"
+                      WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
             FROM public."Posts" p
-            WHERE "blogId" = $1 AND "isBanned" = false
+            WHERE "blogId" = $2 AND "isBanned" = false
 	          ORDER BY "${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
-      [blogId, userId],
+      [userId, blogId],
     );
 
     const items = await Promise.all(postsFromDB.map((p) => this.getPostViewModel(p)));
