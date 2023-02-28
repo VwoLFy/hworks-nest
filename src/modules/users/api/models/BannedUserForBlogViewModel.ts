@@ -1,4 +1,4 @@
-import { BannedUserForBlog } from '../../domain/banned-user-for-blog.schema';
+import { BannedUserForBlog } from '../../domain/banned-user-for-blog.entity';
 
 class BanInfoForBlog {
   isBanned: boolean;

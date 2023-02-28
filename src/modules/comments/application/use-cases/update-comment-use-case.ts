@@ -15,7 +15,7 @@ export class UpdateCommentUseCase implements ICommandHandler<UpdateCommentComman
     const { commentId, content, userId } = command.dto;
 
     const foundComment = await this.commentsRepository.findCommentOrThrowError(commentId);
-    if (foundComment.commentatorInfo.userId !== userId) throw new ForbiddenException();
+    if (foundComment.userId !== userId) throw new ForbiddenException();
 
     foundComment.updateComment(content);
     await this.commentsRepository.updateComment(foundComment);

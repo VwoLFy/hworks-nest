@@ -1,4 +1,4 @@
-import { User } from '../domain/user.schema';
+import { User } from '../domain/user.entity';
 import { UserViewModel } from '../api/models/UserViewModel';
 import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -9,7 +9,7 @@ import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewM
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.schema';
+import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
 
 @Injectable()
 export class UsersQueryRepo {

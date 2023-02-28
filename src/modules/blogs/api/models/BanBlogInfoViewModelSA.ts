@@ -1,11 +1,9 @@
-import { BanBlogInfo } from '../../domain/blog.schema';
-
 export class BanBlogInfoViewModelSA {
   isBanned: boolean;
   banDate: string;
 
-  constructor(banBlogInfo: BanBlogInfo) {
-    this.isBanned = banBlogInfo.isBanned;
-    this.banDate = banBlogInfo.banDate ? banBlogInfo.banDate.toISOString() : null;
+  constructor(isBanned: boolean, banDate: Date) {
+    this.isBanned = isBanned;
+    this.banDate = banDate ? banDate.toISOString() : null;
   }
 }

@@ -1,4 +1,3 @@
-import { Blog } from '../domain/blog.schema';
 import { FindBlogsQueryModel } from '../api/models/FindBlogsQueryModel';
 import { BlogViewModel } from '../api/models/BlogViewModel';
 import { Injectable } from '@nestjs/common';
@@ -34,18 +33,16 @@ export class BlogsQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs: Blog[] = (
-      await this.dataSource.query(
-        `SELECT *
+    const foundBlogsFromDB: BlogFromDB[] = await this.dataSource.query(
+      `SELECT *
 	          FROM public."Blogs" 
 	          WHERE "isBanned" = false AND ${filterFind}
 	          ORDER BY "${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
-        filterFindPar,
-      )
-    ).map((u) => Blog.createBlogFromDB(u));
+      filterFindPar,
+    );
 
-    const items: BlogViewModel[] = foundBlogs.map((b) => new BlogViewModel(b));
+    const items: BlogViewModel[] = foundBlogsFromDB.map((b) => new BlogViewModel(b));
 
     return new PageViewModel(
       {
@@ -64,8 +61,7 @@ export class BlogsQueryRepo {
     )[0];
     if (!blogFromDB) return null;
 
-    const blog = Blog.createBlogFromDB(blogFromDB);
-    return new BlogViewModel(blog);
+    return new BlogViewModel(blogFromDB);
   }
 
   async findOwnBlogs(userId: string, dto: FindBlogsQueryModel): Promise<PageViewModel<BlogViewModel>> {
@@ -90,18 +86,16 @@ export class BlogsQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs: Blog[] = (
-      await this.dataSource.query(
-        `SELECT *
+    const foundBlogsFromDB: BlogFromDB[] = await this.dataSource.query(
+      `SELECT *
 	          FROM public."Blogs" 
 	          WHERE "userId" = $1 AND ${filterFind}
 	          ORDER BY "${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
-        [userId, ...filterFindPar],
-      )
-    ).map((u) => Blog.createBlogFromDB(u));
+      [userId, ...filterFindPar],
+    );
 
-    const items = foundBlogs.map((b) => new BlogViewModel(b));
+    const items = foundBlogsFromDB.map((b) => new BlogViewModel(b));
 
     return new PageViewModel(
       {
@@ -136,18 +130,16 @@ export class BlogsQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundBlogs: Blog[] = (
-      await this.dataSource.query(
-        `SELECT *
+    const foundBlogsFromDB: BlogFromDB[] = await this.dataSource.query(
+      `SELECT *
 	          FROM public."Blogs" 
 	          WHERE ${filterFind}
 	          ORDER BY "${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
-        filterFindPar,
-      )
-    ).map((u) => Blog.createBlogFromDB(u));
+      filterFindPar,
+    );
 
-    const items: BlogViewModelSA[] = foundBlogs.map((b) => new BlogViewModelSA(b));
+    const items: BlogViewModelSA[] = foundBlogsFromDB.map((b) => new BlogViewModelSA(b));
 
     return new PageViewModel(
       {

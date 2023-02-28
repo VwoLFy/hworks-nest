@@ -3,7 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { BannedUserForBlog } from '../../domain/banned-user-for-blog.schema';
+import { BannedUserForBlog } from '../../domain/banned-user-for-blog.entity';
 
 export class BanUserForBlogByBloggerCommand {
   constructor(public bloggerId: string, public bannedUserId: string, public dto: BanUserForBlogDto) {}
@@ -17,7 +17,7 @@ export class BanUserForBlogByBloggerUseCase implements ICommandHandler<BanUserFo
     const { bloggerId, bannedUserId, dto } = command;
 
     const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
-    if (foundBlog.blogOwnerInfo.userId !== bloggerId) throw new ForbiddenException('blog is not yours');
+    if (foundBlog.userId !== bloggerId) throw new ForbiddenException('blog is not yours');
 
     const foundUser = await this.usersRepository.findUserById(bannedUserId);
     if (!foundUser) throw new NotFoundException('user not found');

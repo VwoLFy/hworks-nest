@@ -1,4 +1,4 @@
-import { BanInfo } from '../../domain/user.schema';
+import { BanInfo } from '../../domain/banInfo.entity';
 
 export class BanUserInfoViewModel {
   isBanned: boolean;

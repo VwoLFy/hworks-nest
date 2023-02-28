@@ -1,4 +1,4 @@
-import { Post } from '../../../posts/domain/post.schema';
+import { PostFromDB } from '../../../posts/infrastructure/types/PostFromDB';
 
 export class PostInfoViewModel {
   id: string;
@@ -6,10 +6,10 @@ export class PostInfoViewModel {
   blogId: string;
   blogName: string;
 
-  constructor(post: Post) {
-    this.id = post.id;
-    this.title = post.title;
-    this.blogId = post.blogId;
-    this.blogName = post.blogName;
+  constructor(postFromDB: PostFromDB) {
+    this.id = postFromDB.id;
+    this.title = postFromDB.title;
+    this.blogId = postFromDB.blogId;
+    this.blogName = postFromDB.blogName;
   }
 }

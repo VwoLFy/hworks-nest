@@ -1,5 +1,5 @@
 import { BanUserInfoViewModel } from './BanUserInfoViewModel';
-import { User } from '../../domain/user.schema';
+import { User } from '../../domain/user.entity';
 
 export class UserViewModel {
   id: string;

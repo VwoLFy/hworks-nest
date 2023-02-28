@@ -1,4 +1,4 @@
-import { Blog } from '../../domain/blog.schema';
+import { BlogFromDB } from '../../infrastructure/types/BlogFromDB';
 
 export class BlogViewModel {
   id: string;
@@ -8,12 +8,12 @@ export class BlogViewModel {
   createdAt: string;
   isMembership: boolean;
 
-  constructor(blog: Blog) {
-    this.id = blog.id;
-    this.name = blog.name;
-    this.description = blog.description;
-    this.websiteUrl = blog.websiteUrl;
-    this.createdAt = blog.createdAt.toISOString();
-    this.isMembership = blog.isMembership;
+  constructor(blogFromDB: BlogFromDB) {
+    this.id = blogFromDB.id;
+    this.name = blogFromDB.name;
+    this.description = blogFromDB.description;
+    this.websiteUrl = blogFromDB.websiteUrl;
+    this.createdAt = blogFromDB.createdAt.toISOString();
+    this.isMembership = blogFromDB.isMembership;
   }
 }

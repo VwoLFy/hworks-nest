@@ -3,7 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { SecurityService } from '../../../security/application/security.service';
-import { User } from '../../domain/user.schema';
+import { User } from '../../domain/user.entity';
 import { CommentsService } from '../../../comments/application/comments.service';
 import { PostsService } from '../../../posts/application/posts.service';
 

@@ -1,10 +1,17 @@
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import { PasswordRecoveryFromDB } from '../infrastructure/dto/PasswordRecoveryFromDB';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity('PasswordRecovery')
 export class PasswordRecovery {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+  @Column()
   recoveryCode: string;
+  @Column()
   expirationDate: Date;
+  @Column()
   email: string;
 
   constructor(email: string) {

@@ -1,5 +1,5 @@
 export class SessionFromDB {
-  id: string;
+  id: number;
   userId: string;
   exp: number;
   ip: string;

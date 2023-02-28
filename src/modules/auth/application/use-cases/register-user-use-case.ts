@@ -1,6 +1,6 @@
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { EmailService } from '../email.service';
-import { User } from '../../../users/domain/user.schema';
+import { User } from '../../../users/domain/user.entity';
 import { CreateUserDto } from '../../../users/application/dto/CreateUserDto';
 import { AuthService } from '../auth.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';

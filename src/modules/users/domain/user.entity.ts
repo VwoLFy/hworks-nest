@@ -2,54 +2,20 @@ import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import { BanUserDto } from '../application/dto/BanUserDto';
 import { UserFromDB } from '../infrastructure/types/UserFromDB';
+import { Entity, OneToOne, PrimaryColumn } from 'typeorm';
+import { BanInfo } from './banInfo.entity';
+import { EmailConfirmation } from './EmailConfirmation.entity';
+import { AccountData } from './AccountData.entity';
 
-export class AccountData {
-  login: string;
-  passwordHash: string;
-  email: string;
-  createdAt: Date;
-
-  constructor(login: string, passwordHash: string, email: string) {
-    this.createdAt = new Date();
-    this.login = login;
-    this.passwordHash = passwordHash;
-    this.email = email;
-  }
-}
-
-export class EmailConfirmation {
-  isConfirmed: boolean;
-  confirmationCode: string;
-  codeExpirationDate: Date;
-
-  constructor(isConfirmed: boolean) {
-    this.isConfirmed = isConfirmed;
-    if (isConfirmed) {
-      this.confirmationCode = null;
-      this.codeExpirationDate = null;
-    } else {
-      this.confirmationCode = randomUUID();
-      this.codeExpirationDate = add(new Date(), { hours: 1 });
-    }
-  }
-}
-
-export class BanInfo {
-  isBanned: boolean;
-  banDate: Date;
-  banReason: string;
-
-  constructor() {
-    this.isBanned = false;
-    this.banDate = null;
-    this.banReason = null;
-  }
-}
-
+@Entity('Users')
 export class User {
+  @PrimaryColumn('uuid')
   id: string;
+  @OneToOne(() => AccountData, (a) => a.owner)
   accountData: AccountData;
+  @OneToOne(() => EmailConfirmation, (e) => e.owner)
   emailConfirmation: EmailConfirmation;
+  @OneToOne(() => BanInfo, (b) => b.owner)
   banInfo: BanInfo;
 
   constructor(login: string, passwordHash: string, email: string, isConfirmed: boolean) {

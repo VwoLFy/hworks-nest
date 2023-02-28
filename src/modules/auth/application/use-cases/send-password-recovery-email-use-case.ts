@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { EmailService } from '../email.service';
 import { PasswordRecoveryRepository } from '../../infrastructure/password-recovery.repository';
-import { PasswordRecovery } from '../../domain/password-recovery.schema';
+import { PasswordRecovery } from '../../domain/password-recovery.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class SendPasswordRecoveryCommand {

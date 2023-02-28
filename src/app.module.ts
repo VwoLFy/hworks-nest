@@ -73,6 +73,19 @@ import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-u
 import { BanUserForBlogByBloggerUseCase } from './modules/users/application/use-cases/ban-user-for-blog-by-blogger-use-case';
 import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './modules/users/domain/user.entity';
+import { BanInfo } from './modules/users/domain/banInfo.entity';
+import { AccountData } from './modules/users/domain/AccountData.entity';
+import { EmailConfirmation } from './modules/users/domain/EmailConfirmation.entity';
+import { AttemptsData } from './modules/auth/domain/attempts.entity';
+import { Session } from './modules/security/domain/session.entity';
+import { PasswordRecovery } from './modules/auth/domain/password-recovery.entity';
+import { Blog } from './modules/blogs/domain/blog.entity';
+import { BannedUserForBlog } from './modules/users/domain/banned-user-for-blog.entity';
+import { Post } from './modules/posts/domain/post.entity';
+import { PostLike } from './modules/posts/domain/postLike.entity';
+import { CommentLike } from './modules/comments/domain/commentLike.entity';
+import { Comment } from './modules/comments/domain/comment.entity';
 
 const useCases = [
   DeleteAllUseCase,
@@ -102,6 +115,22 @@ const useCases = [
   BindBlogWithUserUseCase,
   BanBlogUseCase,
   BanUserForBlogByBloggerUseCase,
+];
+
+const entities = [
+  User,
+  BanInfo,
+  AccountData,
+  EmailConfirmation,
+  AttemptsData,
+  Session,
+  PasswordRecovery,
+  Blog,
+  BannedUserForBlog,
+  Post,
+  PostLike,
+  CommentLike,
+  Comment,
 ];
 
 @Module({
@@ -144,11 +173,12 @@ const useCases = [
           username: apiConfigService.TYPEORM_USERNAME,
           password: apiConfigService.TYPEORM_PASSWORD,
           database: apiConfigService.TYPEORM_DATABASE,
-          entities: [],
-          synchronize: false,
+          autoLoadEntities: true,
+          synchronize: true,
         };
       },
     }),
+    TypeOrmModule.forFeature(entities),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
       inject: [ApiConfigService],

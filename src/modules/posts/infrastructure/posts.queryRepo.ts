@@ -1,4 +1,3 @@
-import { Post } from '../domain/post.schema';
 import { FindPostsQueryModel } from '../api/models/FindPostsQueryModel';
 import { PostViewModel } from '../api/models/PostViewModel';
 import { LikeStatus } from '../../../main/types/enums';
@@ -112,11 +111,10 @@ export class PostsQueryRepo {
   }
 
   private async getPostViewModel(postFromDB: PostFromDB): Promise<PostViewModel> {
-    const post = Post.createPostFromDB(postFromDB);
     const myStatus = postFromDB.myStatus;
-    const newestLikes = await this.newestLikes(post.id);
+    const newestLikes = await this.newestLikes(postFromDB.id);
 
-    return new PostViewModel(post, myStatus, newestLikes);
+    return new PostViewModel(postFromDB, myStatus, newestLikes);
   }
 
   private async newestLikes(postId: string): Promise<PostLikeDetailsViewModel[]> {

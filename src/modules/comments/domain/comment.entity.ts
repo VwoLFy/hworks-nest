@@ -1,46 +1,41 @@
 import { LikeStatus } from '../../../main/types/enums';
-import { CommentLike } from './commentLike.schema';
+import { CommentLike } from './commentLike.entity';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
 import { randomUUID } from 'crypto';
 import { CommentFromDB } from '../infrastructure/dto/CommentFromDB';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-export class CommentatorInfo {
-  userId: string;
-  userLogin: string;
-
-  constructor(userId: string, userLogin: string) {
-    this.userId = userId;
-    this.userLogin = userLogin;
-  }
-}
-
-export class LikesInfo {
-  likesCount: number;
-  dislikesCount: number;
-
-  constructor() {
-    this.likesCount = 0;
-    this.dislikesCount = 0;
-  }
-}
-
+@Entity('Comments')
 export class Comment {
+  @PrimaryColumn('uuid')
   id: string;
+  @Column()
   content: string;
-  commentatorInfo: CommentatorInfo;
+  @Column('uuid')
+  userId: string;
+  @Column()
+  userLogin: string;
+  @Column('uuid')
   postId: string;
+  @Column()
   createdAt: Date;
-  likesInfo: LikesInfo;
+  @Column()
+  likesCount: number;
+  @Column()
+  dislikesCount: number;
+  @Column()
   isBanned: boolean;
 
-  constructor(dto: CreateCommentDto, userLogin: string) {
+  constructor({ ...dto }: CreateCommentDto, userLogin: string) {
     this.id = randomUUID();
     this.content = dto.content;
-    this.commentatorInfo = new CommentatorInfo(dto.userId, userLogin);
     this.postId = dto.postId;
     this.createdAt = new Date();
-    this.likesInfo = new LikesInfo();
+    this.userId = dto.userId;
+    this.userLogin = userLogin;
     this.isBanned = false;
+    this.likesCount = 0;
+    this.dislikesCount = 0;
   }
 
   setLikeStatus(like: CommentLike | null, userId: string, likeStatus: LikeStatus): CommentLike {
@@ -60,14 +55,14 @@ export class Comment {
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
     if (likeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
-      this.likesInfo.likesCount += 1;
+      this.likesCount += 1;
     } else if (likeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
-      this.likesInfo.dislikesCount += 1;
+      this.dislikesCount += 1;
     }
     if (likeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
-      this.likesInfo.likesCount -= 1;
+      this.likesCount -= 1;
     } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
-      this.likesInfo.dislikesCount -= 1;
+      this.dislikesCount -= 1;
     }
   }
   updateComment(content: string) {
@@ -79,8 +74,8 @@ export class Comment {
     comment.id = commentFromDB.id;
     comment.createdAt = commentFromDB.createdAt;
     comment.isBanned = commentFromDB.isBanned;
-    comment.likesInfo.likesCount = commentFromDB.likesCount;
-    comment.likesInfo.dislikesCount = commentFromDB.dislikesCount;
+    comment.likesCount = commentFromDB.likesCount;
+    comment.dislikesCount = commentFromDB.dislikesCount;
     return comment;
   }
 }

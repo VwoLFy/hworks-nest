@@ -1,6 +1,6 @@
 import { DeviceViewModel } from '../api/models/DeviceViewModel';
 import { Injectable } from '@nestjs/common';
-import { Session } from '../domain/session.schema';
+import { Session } from '../domain/session.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 

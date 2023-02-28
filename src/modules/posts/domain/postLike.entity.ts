@@ -1,16 +1,26 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
 import { PostLikeFromDB } from '../infrastructure/types/PostLikeFromDB';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity('PostLikes')
 export class PostLike {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+  @Column()
   addedAt: Date;
+  @Column('uuid')
   postId: string;
+  @Column('uuid')
   userId: string;
+  @Column()
   login: string;
+  @Column()
   likeStatus: LikeStatus;
+  @Column()
   isBanned: boolean;
 
-  constructor(dto: CreatePostLikeDto) {
+  constructor({ ...dto }: CreatePostLikeDto) {
     this.postId = dto.postId;
     this.userId = dto.userId;
     this.login = dto.userLogin;

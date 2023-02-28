@@ -1,5 +1,5 @@
-import { Post } from '../domain/post.schema';
-import { PostLike } from '../domain/postLike.schema';
+import { Post } from '../domain/post.entity';
+import { PostLike } from '../domain/postLike.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -32,8 +32,8 @@ export class PostsRepository {
         post.blogName,
         post.createdAt,
         post.isBanned,
-        post.extendedLikesInfo.likesCount,
-        post.extendedLikesInfo.dislikesCount,
+        post.likesCount,
+        post.dislikesCount,
       ],
     );
   }
@@ -47,7 +47,7 @@ export class PostsRepository {
       `UPDATE public."Posts" 
             SET "likesCount" = $1, "dislikesCount" = $2
             WHERE "id" = $3`,
-      [post.extendedLikesInfo.likesCount, post.extendedLikesInfo.dislikesCount, post.id],
+      [post.likesCount, post.dislikesCount, post.id],
     );
   }
 

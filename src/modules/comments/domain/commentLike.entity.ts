@@ -1,11 +1,20 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { CommentLikeFromDB } from '../infrastructure/dto/CommentLikeFromDB';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity('CommentLikes')
 export class CommentLike {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+  @Column()
   public addedAt: Date;
+  @Column('uuid')
   public commentId: string;
+  @Column('uuid')
   public userId: string;
+  @Column()
   public likeStatus: LikeStatus;
+  @Column()
   public isBanned: boolean;
 
   constructor(commentId: string, userId: string) {

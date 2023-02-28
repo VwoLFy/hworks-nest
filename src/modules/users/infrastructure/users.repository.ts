@@ -1,6 +1,6 @@
-import { User } from '../domain/user.schema';
+import { User } from '../domain/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.schema';
+import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';

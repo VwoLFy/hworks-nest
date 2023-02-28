@@ -1,5 +1,5 @@
-import { Comment } from '../domain/comment.schema';
-import { CommentLike } from '../domain/commentLike.schema';
+import { Comment } from '../domain/comment.entity';
+import { CommentLike } from '../domain/commentLike.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -41,10 +41,10 @@ export class CommentsRepository {
         comment.postId,
         comment.createdAt,
         comment.isBanned,
-        comment.commentatorInfo.userId,
-        comment.commentatorInfo.userLogin,
-        comment.likesInfo.likesCount,
-        comment.likesInfo.dislikesCount,
+        comment.userId,
+        comment.userLogin,
+        comment.likesCount,
+        comment.dislikesCount,
       ],
     );
   }
@@ -54,7 +54,7 @@ export class CommentsRepository {
       `UPDATE public."Comments" 
             SET "likesCount" = $1, "dislikesCount" = $2
             WHERE "id" = $3`,
-      [comment.likesInfo.likesCount, comment.likesInfo.dislikesCount, comment.id],
+      [comment.likesCount, comment.dislikesCount, comment.id],
     );
   }
 

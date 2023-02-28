@@ -3,7 +3,7 @@ import { LikePostDto } from '../dto/LikePostDto';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
-import { Post } from '../../domain/post.schema';
+import { Post } from '../../domain/post.entity';
 
 export class LikePostCommand {
   constructor(public dto: LikePostDto) {}

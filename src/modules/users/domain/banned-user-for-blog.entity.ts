@@ -1,18 +1,25 @@
 import { BannedUserForBlogFromDB } from '../infrastructure/types/BannedUserForBlogFromDB';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
+@Entity('BannedUsersForBlog')
 export class BannedUserForBlog {
+  @PrimaryColumn('uuid')
   id: string;
+  @Column()
   login: string;
+  @Column()
   banReason: string;
+  @Column()
   banDate: Date;
+  @Column('uuid')
   blogId: string;
 
   constructor(blogId: string, userId: string, userLogin: string, banReason: string) {
-    this.blogId = blogId;
     this.id = userId;
     this.login = userLogin;
     this.banReason = banReason;
     this.banDate = new Date();
+    this.blogId = blogId;
   }
 
   static createBannedUserForBlog(user: BannedUserForBlogFromDB): BannedUserForBlog {

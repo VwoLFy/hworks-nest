@@ -1,7 +1,7 @@
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { LikeCommentDto } from '../dto/LikeCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Comment } from '../../domain/comment.schema';
+import { Comment } from '../../domain/comment.entity';
 
 export class LikeCommentCommand {
   constructor(public dto: LikeCommentDto) {}

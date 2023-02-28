@@ -1,6 +1,6 @@
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
-import { Post } from '../../domain/post.schema';
+import { Post } from '../../domain/post.entity';
 import { CreatePostDto } from '../dto/CreatePostDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
@@ -22,7 +22,7 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
 
     const foundBlog = await this.blogsRepository.findBlogById(dto.blogId);
     if (!foundBlog) throw new NotFoundException('blog not found');
-    if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+    if (foundBlog.userId !== userId) throw new ForbiddenException();
 
     const post = new Post(dto, foundBlog.name);
     await this.postsRepository.savePost(post);

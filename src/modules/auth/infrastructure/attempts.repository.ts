@@ -2,7 +2,7 @@ import { AttemptsDataDto } from '../application/dto/AttemptsDataDto';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { AttemptsData } from '../domain/attempts.schema';
+import { AttemptsData } from '../domain/attempts.entity';
 
 @Injectable()
 export class AttemptsRepository {

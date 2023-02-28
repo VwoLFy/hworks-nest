@@ -2,7 +2,7 @@ import { AttemptsRepository } from '../infrastructure/attempts.repository';
 import { add } from 'date-fns';
 import { AttemptsDataDto } from './dto/AttemptsDataDto';
 import { Injectable } from '@nestjs/common';
-import { AttemptsData } from '../domain/attempts.schema';
+import { AttemptsData } from '../domain/attempts.entity';
 
 @Injectable()
 export class AttemptsService {

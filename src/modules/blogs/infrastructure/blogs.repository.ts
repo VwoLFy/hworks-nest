@@ -1,4 +1,4 @@
-import { Blog } from '../domain/blog.schema';
+import { Blog } from '../domain/blog.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -28,10 +28,10 @@ export class BlogsRepository {
         blog.websiteUrl,
         blog.createdAt,
         blog.isMembership,
-        blog.blogOwnerInfo.userId,
-        blog.blogOwnerInfo.userLogin,
-        blog.banBlogInfo.isBanned,
-        blog.banBlogInfo.banDate,
+        blog.userId,
+        blog.userLogin,
+        blog.isBanned,
+        blog.banDate,
       ],
     );
   }
@@ -58,7 +58,7 @@ export class BlogsRepository {
       `UPDATE public."Blogs" 
             SET "isBanned"=$1, "banDate"=$2
             WHERE "id" = $3`,
-      [blog.banBlogInfo.isBanned, blog.banBlogInfo.banDate, blog.id],
+      [blog.isBanned, blog.banDate, blog.id],
     );
   }
 
@@ -67,7 +67,7 @@ export class BlogsRepository {
       `UPDATE public."Blogs" 
             SET "userId"=$1, "userLogin"=$2
             WHERE "id" = $3`,
-      [blog.blogOwnerInfo.userId, blog.blogOwnerInfo.userLogin, blog.id],
+      [blog.userId, blog.userLogin, blog.id],
     );
   }
 }

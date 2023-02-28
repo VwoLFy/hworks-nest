@@ -1,9 +1,9 @@
 import { CommentatorInfoModel } from './CommentatorInfoModel';
 import { PostInfoViewModel } from './PostInfoViewModel';
-import { Comment } from '../../domain/comment.schema';
-import { Post } from '../../../posts/domain/post.schema';
 import { CommentLikesInfoViewModel } from './CommentLikesInfoViewModel';
 import { LikeStatus } from '../../../../main/types/enums';
+import { CommentFromDB } from '../../infrastructure/dto/CommentFromDB';
+import { PostFromDB } from '../../../posts/infrastructure/types/PostFromDB';
 
 export class CommentViewModelBl {
   id: string;
@@ -13,12 +13,12 @@ export class CommentViewModelBl {
   postInfo: PostInfoViewModel;
   likesInfo: CommentLikesInfoViewModel;
 
-  constructor(comment: Comment, post: Post, myStatus: LikeStatus) {
-    this.id = comment.id;
-    this.content = comment.content;
-    this.commentatorInfo = comment.commentatorInfo;
-    this.createdAt = comment.createdAt.toISOString();
-    this.postInfo = new PostInfoViewModel(post);
-    this.likesInfo = new CommentLikesInfoViewModel(comment.likesInfo, myStatus);
+  constructor(commentFromDB: CommentFromDB, postFromDB: PostFromDB, myStatus: LikeStatus) {
+    this.id = commentFromDB.id;
+    this.content = commentFromDB.content;
+    this.commentatorInfo = new CommentatorInfoModel(commentFromDB.userId, commentFromDB.userLogin);
+    this.createdAt = commentFromDB.createdAt.toISOString();
+    this.postInfo = new PostInfoViewModel(postFromDB);
+    this.likesInfo = new CommentLikesInfoViewModel(commentFromDB.likesCount, commentFromDB.dislikesCount, myStatus);
   }
 }

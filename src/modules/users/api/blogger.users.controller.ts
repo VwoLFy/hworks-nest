@@ -40,7 +40,7 @@ export class UsersControllerBl {
   ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
     const foundBlog = await this.blogsRepository.findBlogById(blogId);
     if (!foundBlog) throw new NotFoundException('blog not found');
-    if (foundBlog.blogOwnerInfo.userId !== bloggerId) throw new ForbiddenException();
+    if (foundBlog.userId !== bloggerId) throw new ForbiddenException();
 
     return await this.usersQueryRepo.findBannedUsersForBlog(blogId, query);
   }

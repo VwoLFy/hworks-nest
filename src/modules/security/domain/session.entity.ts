@@ -1,18 +1,25 @@
 import { SessionExtendedDto } from '../application/dto/SessionExtendedDto';
-import { randomUUID } from 'crypto';
 import { SessionFromDB } from '../infrastructure/dto/SessionFromDB';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity('Sessions')
 export class Session {
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+  @Column('uuid')
   userId: string;
+  @Column()
   exp: number;
+  @Column()
   ip: string;
+  @Column()
   title: string;
+  @Column()
   iat: number;
+  @Column()
   deviceId: string;
 
-  constructor(dto: SessionExtendedDto) {
-    this.id = randomUUID();
+  constructor({ ...dto }: SessionExtendedDto) {
     this.userId = dto.userId;
     this.exp = dto.exp;
     this.ip = dto.ip;

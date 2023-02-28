@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/CreateUserDto';
-import { User } from '../../domain/user.schema';
+import { User } from '../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class CreateUserCommand {

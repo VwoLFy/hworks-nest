@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SessionExtendedDto } from './dto/SessionExtendedDto';
-import { Session } from '../domain/session.schema';
+import { Session } from '../domain/session.entity';
 import { SecurityRepository } from '../infrastructure/security.repository';
 import { SessionDto } from './dto/SessionDto';
 

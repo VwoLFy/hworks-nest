@@ -1,4 +1,4 @@
-import { Session } from '../domain/session.schema';
+import { Session } from '../domain/session.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -24,8 +24,8 @@ export class SecurityRepository {
 
   async saveSession(session: Session): Promise<void> {
     await this.dataSource.query(
-      `INSERT INTO public."Sessions"("id", "userId", "exp", "ip", "title", "iat", "deviceId")	VALUES ($1, $2, $3, $4, $5, $6, $7);`,
-      [session.id, session.userId, session.exp, session.ip, session.title, session.iat, session.deviceId],
+      `INSERT INTO public."Sessions"("userId", "exp", "ip", "title", "iat", "deviceId")	VALUES ($1, $2, $3, $4, $5, $6);`,
+      [session.userId, session.exp, session.ip, session.title, session.iat, session.deviceId],
     );
   }
 

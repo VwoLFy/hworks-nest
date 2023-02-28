@@ -15,7 +15,7 @@ export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
 
     const blog = await this.blogsRepository.findBlogById(blogId);
     if (!blog) throw new NotFoundException('blog not found');
-    if (blog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+    if (blog.userId !== userId) throw new ForbiddenException();
 
     await this.blogsRepository.deleteBlog(blogId);
   }

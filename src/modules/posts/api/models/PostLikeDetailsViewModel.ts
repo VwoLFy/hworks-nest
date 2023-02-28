@@ -1,4 +1,4 @@
-import { PostLike } from '../../domain/postLike.schema';
+import { PostLike } from '../../domain/postLike.entity';
 
 export class PostLikeDetailsViewModel {
   addedAt: string;

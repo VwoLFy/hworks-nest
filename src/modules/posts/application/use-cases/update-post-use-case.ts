@@ -20,7 +20,7 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
 
     const foundBlog = await this.blogsRepository.findBlogById(blogId);
     if (!foundBlog) throw new NotFoundException('blog not found');
-    if (foundBlog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
+    if (foundBlog.userId !== userId) throw new ForbiddenException();
 
     post.updatePost(dto);
     await this.postsRepository.updatePost(post);

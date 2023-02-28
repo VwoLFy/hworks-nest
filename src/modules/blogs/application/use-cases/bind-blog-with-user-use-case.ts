@@ -16,7 +16,7 @@ export class BindBlogWithUserUseCase implements ICommandHandler<BindBlogWithUser
 
     const foundBlog = await this.blogsRepository.findBlogById(blogId);
     if (!foundBlog) throw new NotFoundException([{ message: `blog not found`, field: 'blogId' }]);
-    if (foundBlog.blogOwnerInfo.userId)
+    if (foundBlog.userId)
       throw new BadRequestException([{ message: `blog already bound to any user`, field: 'blogId' }]);
 
     const foundUser = await this.usersRepository.findUserById(userId);

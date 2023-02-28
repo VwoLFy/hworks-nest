@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { Comment } from '../../domain/comment.schema';
+import { Comment } from '../../domain/comment.entity';
 import { CreateCommentDto } from '../dto/CreateCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';

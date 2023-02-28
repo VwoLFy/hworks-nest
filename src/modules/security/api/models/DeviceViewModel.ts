@@ -1,4 +1,4 @@
-import { Session } from '../../domain/session.schema';
+import { Session } from '../../domain/session.entity';
 
 export class DeviceViewModel {
   ip: string;
