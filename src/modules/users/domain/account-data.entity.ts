@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity('AccountData')
+@Entity('UsersAccountData')
 export class AccountData {
   @Column()
   login: string;
@@ -13,9 +13,9 @@ export class AccountData {
   createdAt: Date;
   @OneToOne(() => User, (u) => u.accountData)
   @JoinColumn()
-  owner: User;
+  user: User;
   @PrimaryColumn('uuid')
-  ownerId: string;
+  userId: string;
 
   constructor(login: string, passwordHash: string, email: string) {
     this.createdAt = new Date();

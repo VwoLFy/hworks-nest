@@ -1,6 +1,7 @@
 export class BannedUserForBlogFromDB {
-  id: string;
-  login: string;
+  id: number;
+  userId: string;
+  userLogin: string;
   banReason: string;
   banDate: Date;
   blogId: string;

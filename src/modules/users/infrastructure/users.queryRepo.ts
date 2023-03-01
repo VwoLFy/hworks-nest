@@ -9,7 +9,7 @@ import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewM
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
+import { BannedUserForBlogFromDB } from './types/BannedUserForBlogFromDB';
 
 @Injectable()
 export class UsersQueryRepo {
@@ -38,12 +38,12 @@ export class UsersQueryRepo {
       await this.dataSource.query(
         `SELECT COUNT(*)
 	          FROM public."Users" u
-	          LEFT JOIN public."AccountData" ac 
-	          ON ac."ownerId" = u.id
-		        LEFT JOIN public."EmailConfirmation" e
-	          ON e."ownerId" = u.id
-			      LEFT JOIN public."BanInfo" b
-	          ON b."ownerId" = u.id
+	          LEFT JOIN public."UsersAccountData" ac 
+	          ON ac."userId" = u.id
+		        LEFT JOIN public."UsersEmailConfirmation" e
+	          ON e."userId" = u.id
+			      LEFT JOIN public."UsersBanInfo" b
+	          ON b."userId" = u.id
 	          WHERE ${filterFind}`,
         filterFindPar,
       )
@@ -57,12 +57,12 @@ export class UsersQueryRepo {
       await this.dataSource.query(
         `SELECT id, ac.*, e.*, b.*
 	          FROM public."Users" u
-	          LEFT JOIN public."AccountData" ac 
-	          ON ac."ownerId" = u.id
-		        LEFT JOIN public."EmailConfirmation" e
-	          ON e."ownerId" = u.id
-			      LEFT JOIN public."BanInfo" b
-	          ON b."ownerId" = u.id
+	          LEFT JOIN public."UsersAccountData" ac 
+	          ON ac."userId" = u.id
+		        LEFT JOIN public."UsersEmailConfirmation" e
+	          ON e."userId" = u.id
+			      LEFT JOIN public."UsersBanInfo" b
+	          ON b."userId" = u.id
 	          WHERE ${filterFind}
 	          ORDER BY ac."${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
@@ -85,12 +85,12 @@ export class UsersQueryRepo {
   async findUserById(id: string): Promise<UserViewModel> {
     const query = `SELECT id, ac.*, e.*, b.*
             FROM public."Users" u
-            LEFT JOIN public."AccountData" ac 
-            ON ac."ownerId" = u.id
-            LEFT JOIN public."EmailConfirmation" e
-            ON e."ownerId" = u.id
-            LEFT JOIN public."BanInfo" b
-            ON b."ownerId" = u.id
+            LEFT JOIN public."UsersAccountData" ac 
+            ON ac."userId" = u.id
+            LEFT JOIN public."UsersEmailConfirmation" e
+            ON e."userId" = u.id
+            LEFT JOIN public."UsersBanInfo" b
+            ON b."userId" = u.id
             WHERE id = $1`;
     const userFromDB: UserFromDB = (await this.dataSource.query(query, [id]))[0];
     if (!userFromDB) throw new NotFoundException('User not found');
@@ -108,14 +108,14 @@ export class UsersQueryRepo {
     let filterFindPar = [];
 
     if (searchLoginTerm) {
-      filterFind = `(LOWER("login") like LOWER($2))`;
+      filterFind = `(LOWER("userLogin") like LOWER($2))`;
       filterFindPar = [`%${searchLoginTerm}%`];
     }
 
     const { count } = (
       await this.dataSource.query(
         `SELECT COUNT(*)
-	          FROM public."BannedUsersForBlog" 
+	          FROM public."BannedUsersForBlogs" 
 	          WHERE "blogId" = $1 AND ${filterFind}`,
         [blogId, ...filterFindPar],
       )
@@ -125,16 +125,13 @@ export class UsersQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundUsers: BannedUserForBlog[] = (
-      await this.dataSource.query(
-        `SELECT *
-	          FROM public."BannedUsersForBlog" 
+    const foundUsers: BannedUserForBlogFromDB[] = await this.dataSource.query(
+      `SELECT * FROM public."BannedUsersForBlogs" 
 	          WHERE "blogId" = $1 AND ${filterFind}
 	          ORDER BY "${sortBy}" ${sortDirection}
             LIMIT ${pageSize} OFFSET ${offset};`,
-        [blogId, ...filterFindPar],
-      )
-    ).map((u) => BannedUserForBlog.createBannedUserForBlog(u));
+      [blogId, ...filterFindPar],
+    );
 
     const items = foundUsers.map((u) => new BannedUserForBlogViewModel(u));
     return new PageViewModel(

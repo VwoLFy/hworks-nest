@@ -75,8 +75,8 @@ import { UsersControllerBl } from './modules/users/api/blogger.users.controller'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './modules/users/domain/user.entity';
 import { BanInfo } from './modules/users/domain/banInfo.entity';
-import { AccountData } from './modules/users/domain/AccountData.entity';
-import { EmailConfirmation } from './modules/users/domain/EmailConfirmation.entity';
+import { AccountData } from './modules/users/domain/account-data.entity';
+import { EmailConfirmation } from './modules/users/domain/email-confirmation.entity';
 import { AttemptsData } from './modules/auth/domain/attempts.entity';
 import { Session } from './modules/security/domain/session.entity';
 import { PasswordRecovery } from './modules/auth/domain/password-recovery.entity';

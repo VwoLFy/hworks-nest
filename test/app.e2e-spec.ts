@@ -3921,31 +3921,31 @@ describe('AppController (e2e)', () => {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
         {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
         {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
       ]);
     });
     it('DELETE should return error if Id param not found', async () => {
       await request(app.getHttpServer())
-        .delete('/security/devices/someId')
+        .delete('/security/devices/-5')
         .set('Cookie', `refreshToken=${validRefreshToken}`)
         .expect(HTTP_Status.NOT_FOUND_404);
       await request(app.getHttpServer())
         .delete('/security/devices/9f38bedb-370a-47d0-9ef1-42f6294a1478')
         .set('Cookie', `refreshToken=${validRefreshToken}`)
-        .expect(HTTP_Status.NOT_FOUND_404);
+        .expect(HTTP_Status.BAD_REQUEST_400);
     });
     it('DELETE should return error if auth credentials is incorrect', async () => {
       await request(app.getHttpServer())
@@ -4021,19 +4021,19 @@ describe('AppController (e2e)', () => {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
         {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
         {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
       ]);
       expect(devices.map((d) => d.deviceId)).toEqual(newDeviceList.map((d) => d.deviceId));
@@ -4056,13 +4056,13 @@ describe('AppController (e2e)', () => {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
         {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
       ]);
       expect(devices).not.toEqual(newDeviceList);
@@ -4086,7 +4086,7 @@ describe('AppController (e2e)', () => {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
       ]);
       expect(devices).not.toEqual(newDeviceList);
@@ -4124,7 +4124,7 @@ describe('AppController (e2e)', () => {
           ip: expect.any(String),
           title: expect.any(String),
           lastActiveDate: expect.any(String),
-          deviceId: expect.any(String),
+          deviceId: expect.any(Number),
         },
       ]);
       expect(devices).not.toEqual(newDeviceList);

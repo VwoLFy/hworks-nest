@@ -8,7 +8,7 @@ import { SessionFromDB } from './dto/SessionFromDB';
 export class SecurityRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  async findSessionByDeviceId(deviceId: string): Promise<Session | null> {
+  async findSessionByDeviceId(deviceId: number): Promise<Session | null> {
     const sessionFromDB: SessionFromDB = (
       await this.dataSource.query(
         `SELECT *
@@ -36,13 +36,13 @@ export class SecurityRepository {
     return sessionFromDB ? +sessionFromDB.deviceId : 0;
   }
 
-  async deleteSessionsExceptCurrent(userId: string, deviceId: string) {
+  async deleteSessionsExceptCurrent(userId: string, deviceId: number) {
     await this.dataSource.query(
       `DELETE FROM public."Sessions" WHERE "userId" = '${userId}' AND "deviceId" != '${deviceId}';`,
     );
   }
 
-  async deleteSessionByDeviceId(deviceId: string) {
+  async deleteSessionByDeviceId(deviceId: number) {
     await this.dataSource.query(`DELETE FROM public."Sessions" WHERE "deviceId" = '${deviceId}';`);
   }
 

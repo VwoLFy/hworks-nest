@@ -77,21 +77,20 @@ export class CommentsQueryRepo {
     const { userId, pageNumber, pageSize, sortBy, sortDirection } = dto;
 
     const postsFromDB: PostFromDB[] = await this.dataSource.query(
-      `SELECT po.*
-            FROM public."Blogs" b
-            LEFT JOIN public."Posts" po
-            ON b.id = po."blogId"
+      `SELECT po.* FROM public."Blogs" b
+            LEFT JOIN public."Posts" po ON b.id = po."blogId"
             WHERE b."userId" = $1`,
       [userId],
     );
-    const postIds = postsFromDB.map((p) => p.id);
 
     const { count } = (
       await this.dataSource.query(
-        `SELECT count(*) 
-              FROM public."Comments"
-              WHERE "postId" = ANY($1)`,
-        [postIds],
+        `SELECT count(*) FROM public."Comments"
+              WHERE "postId" IN 
+                (SELECT po.id FROM public."Blogs" b
+                LEFT JOIN public."Posts" po ON b.id = po."blogId"
+                WHERE b."userId" = $1)`,
+        [userId],
       )
     )[0];
 
@@ -102,14 +101,16 @@ export class CommentsQueryRepo {
 
     const commentsFromDB: CommentFromDB[] = await this.dataSource.query(
       `SELECT *,
-             COALESCE((SELECT "likeStatus"
-                      FROM public."CommentLikes"
-                      WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
+             COALESCE((SELECT "likeStatus" FROM public."CommentLikes"
+                        WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
              FROM public."Comments" as c
-             WHERE "postId" = ANY($3)
+             WHERE "postId" IN 
+                        (SELECT po.id FROM public."Blogs" b
+                        LEFT JOIN public."Posts" po ON b.id = po."blogId"
+                        WHERE b."userId" = $1)
 	           ORDER BY "${sortBy}" ${sortDirection}
 	           LIMIT ${pageSize} OFFSET ${offset};`,
-      [userId, LikeStatus.None, postIds],
+      [userId, LikeStatus.None],
     );
 
     const items = await Promise.all(commentsFromDB.map((c) => this.getCommentViewModelBl(c, postsFromDB)));

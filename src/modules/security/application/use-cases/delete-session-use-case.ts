@@ -3,7 +3,7 @@ import { SecurityRepository } from '../../infrastructure/security.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class DeleteSessionCommand {
-  constructor(public userId: string, public deviceId: string) {}
+  constructor(public userId: string, public deviceId: number) {}
 }
 
 @CommandHandler(DeleteSessionCommand)

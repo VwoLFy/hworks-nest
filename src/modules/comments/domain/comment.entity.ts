@@ -3,7 +3,9 @@ import { CommentLike } from './commentLike.entity';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
 import { randomUUID } from 'crypto';
 import { CommentFromDB } from '../infrastructure/dto/CommentFromDB';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { User } from '../../users/domain/user.entity';
+import { Post } from '../../posts/domain/post.entity';
 
 @Entity('Comments')
 export class Comment {
@@ -25,6 +27,10 @@ export class Comment {
   dislikesCount: number;
   @Column()
   isBanned: boolean;
+  @ManyToOne(() => User)
+  user: User;
+  @ManyToOne(() => Post)
+  post: Post;
 
   constructor({ ...dto }: CreateCommentDto, userLogin: string) {
     this.id = randomUUID();

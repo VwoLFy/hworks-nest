@@ -4,7 +4,8 @@ import { PostLike } from './postLike.entity';
 import { CreatePostDto } from '../application/dto/CreatePostDto';
 import { randomUUID } from 'crypto';
 import { PostFromDB } from '../infrastructure/types/PostFromDB';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Blog } from '../../blogs/domain/blog.entity';
 
 @Entity('Posts')
 export class Post {
@@ -28,6 +29,8 @@ export class Post {
   likesCount: number;
   @Column()
   dislikesCount: number;
+  @ManyToOne(() => Blog)
+  blog: Blog;
 
   constructor({ ...dto }: CreatePostDto, blogName: string) {
     this.id = randomUUID();

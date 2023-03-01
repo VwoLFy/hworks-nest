@@ -1,6 +1,8 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { CommentLikeFromDB } from '../infrastructure/dto/CommentLikeFromDB';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../../users/domain/user.entity';
+import { Comment } from './comment.entity';
 
 @Entity('CommentLikes')
 export class CommentLike {
@@ -16,6 +18,10 @@ export class CommentLike {
   public likeStatus: LikeStatus;
   @Column()
   public isBanned: boolean;
+  @ManyToOne(() => User)
+  user: User;
+  @ManyToOne(() => Comment)
+  comment: Comment;
 
   constructor(commentId: string, userId: string) {
     this.commentId = commentId;

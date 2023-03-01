@@ -21,13 +21,13 @@ export class DeleteAllUseCase implements ICommandHandler<DeleteAllCommand> {
     private passwordRecoveryRepository: PasswordRecoveryRepository,
   ) {}
   async execute() {
+    await this.attemptsRepository.deleteAll();
+    await this.passwordRecoveryRepository.deleteAll();
+    await this.securityRepository.deleteAll();
     await this.commentsRepository.deleteAll();
     await this.postsRepository.deleteAll();
     await this.usersRepository.deleteAllBannedUsersForBlogs();
     await this.blogsRepository.deleteAll();
     await this.usersRepository.deleteAllUsers();
-    await this.securityRepository.deleteAll();
-    await this.attemptsRepository.deleteAll();
-    await this.passwordRecoveryRepository.deleteAll();
   }
 }

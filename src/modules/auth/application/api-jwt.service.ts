@@ -13,7 +13,7 @@ export class ApiJwtService {
     private apiConfigService: ApiConfigService,
   ) {}
 
-  async createJWT(userId: string, deviceId: string | null): Promise<TokensType> {
+  async createJWT(userId: string, deviceId: number | null): Promise<TokensType> {
     const secretRT = this.apiConfigService.JWT_SECRET_FOR_REFRESHTOKEN;
     const expiresInRT = this.apiConfigService.EXPIRES_IN_TIME_OF_REFRESHTOKEN;
 

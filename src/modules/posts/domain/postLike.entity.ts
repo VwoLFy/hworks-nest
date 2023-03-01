@@ -1,7 +1,9 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
 import { PostLikeFromDB } from '../infrastructure/types/PostLikeFromDB';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../../users/domain/user.entity';
+import { Post } from './post.entity';
 
 @Entity('PostLikes')
 export class PostLike {
@@ -19,6 +21,10 @@ export class PostLike {
   likeStatus: LikeStatus;
   @Column()
   isBanned: boolean;
+  @ManyToOne(() => User)
+  user: User;
+  @ManyToOne(() => Post)
+  post: Post;
 
   constructor({ ...dto }: CreatePostLikeDto) {
     this.postId = dto.postId;

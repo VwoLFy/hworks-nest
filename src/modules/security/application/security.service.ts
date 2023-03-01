@@ -26,8 +26,8 @@ export class SecurityService {
     return !(!foundSession || dto.iat !== foundSession.iat || dto.userId !== foundSession.userId);
   }
 
-  async newDeviceId(): Promise<string> {
-    return String((await this.securityRepository.maxValueActiveDeviceId()) + 1);
+  async newDeviceId(): Promise<number> {
+    return (await this.securityRepository.maxValueActiveDeviceId()) + 1;
   }
 
   async deleteAllUserSessions(userId: string) {

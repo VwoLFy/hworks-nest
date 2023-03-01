@@ -1,4 +1,4 @@
-import { BannedUserForBlog } from '../../domain/banned-user-for-blog.entity';
+import { BannedUserForBlogFromDB } from '../../infrastructure/types/BannedUserForBlogFromDB';
 
 class BanInfoForBlog {
   isBanned: boolean;
@@ -15,9 +15,9 @@ export class BannedUserForBlogViewModel {
   id: string;
   login: string;
   banInfo: BanInfoForBlog;
-  constructor(bannedUser: BannedUserForBlog) {
-    this.id = bannedUser.id;
-    this.login = bannedUser.login;
-    this.banInfo = new BanInfoForBlog(bannedUser.banReason, bannedUser.banDate.toISOString());
+  constructor(bannedUserForBlogFromDB: BannedUserForBlogFromDB) {
+    this.id = bannedUserForBlogFromDB.userId;
+    this.login = bannedUserForBlogFromDB.userLogin;
+    this.banInfo = new BanInfoForBlog(bannedUserForBlogFromDB.banReason, bannedUserForBlogFromDB.banDate.toISOString());
   }
 }

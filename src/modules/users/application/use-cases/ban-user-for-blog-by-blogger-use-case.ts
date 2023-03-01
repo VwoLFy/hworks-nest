@@ -29,7 +29,7 @@ export class BanUserForBlogByBloggerUseCase implements ICommandHandler<BanUserFo
       const bannedUser = new BannedUserForBlog(dto.blogId, bannedUserId, foundUser.accountData.login, dto.banReason);
       await this.usersRepository.saveBannedUserForBlog(bannedUser);
     } else {
-      await this.usersRepository.deleteBannedUserForBlog(bannedUserId);
+      await this.usersRepository.deleteBannedUserForBlog(bannedUserId, dto.blogId);
     }
   }
 }

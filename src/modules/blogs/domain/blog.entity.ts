@@ -2,7 +2,8 @@ import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
 import { BlogFromDB } from '../infrastructure/types/BlogFromDB';
 import { randomUUID } from 'crypto';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { User } from '../../users/domain/user.entity';
 
 @Entity('Blogs')
 export class Blog {
@@ -18,14 +19,16 @@ export class Blog {
   createdAt: Date;
   @Column()
   isMembership: boolean;
-  @Column('uuid')
-  userId: string;
   @Column()
   userLogin: string;
   @Column()
   isBanned: boolean;
   @Column({ nullable: true })
   banDate: Date;
+  @Column('uuid')
+  userId: string;
+  @ManyToOne(() => User)
+  user: User;
 
   constructor({ ...dto }: CreateBlogDto, userId: string, userLogin: string) {
     this.id = randomUUID();
