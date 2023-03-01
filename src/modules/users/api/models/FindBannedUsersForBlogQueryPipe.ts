@@ -11,6 +11,8 @@ class FindBannedUsersForBlogQueryPipe
     const preparedQuery = this.transformBasic(query, fields);
 
     if (preparedQuery.sortBy === 'createdAt') preparedQuery.sortBy = 'banDate';
+    if (preparedQuery.sortBy === 'id') preparedQuery.sortBy = 'userId';
+    if (preparedQuery.sortBy === 'login') preparedQuery.sortBy = 'userLogin';
     const searchLoginTerm = query.searchLoginTerm || '';
 
     return { ...preparedQuery, searchLoginTerm };
