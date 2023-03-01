@@ -9,7 +9,7 @@ import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewM
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserFromDB } from './types/UserFromDB';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
+import { BannedUserForBlogFromDB } from './types/BannedUserForBlogFromDB';
 
 @Injectable()
 export class UsersQueryRepo {
@@ -108,14 +108,14 @@ export class UsersQueryRepo {
     let filterFindPar = [];
 
     if (searchLoginTerm) {
-      filterFind = `(LOWER("login") like LOWER($2))`;
+      filterFind = `(LOWER("userLogin") like LOWER($2))`;
       filterFindPar = [`%${searchLoginTerm}%`];
     }
 
     const { count } = (
       await this.dataSource.query(
         `SELECT COUNT(*)
-	          FROM public."BannedUsersForBlog" 
+	          FROM public."BannedUsersForBlogs" 
 	          WHERE "blogId" = $1 AND ${filterFind}`,
         [blogId, ...filterFindPar],
       )
@@ -125,16 +125,13 @@ export class UsersQueryRepo {
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const foundUsers: BannedUserForBlog[] = (
-      await this.dataSource.query(
-        `SELECT *
-	          FROM public."BannedUsersForBlog" 
+    const foundUsers: BannedUserForBlogFromDB[] = await this.dataSource.query(
+      `SELECT * FROM public."BannedUsersForBlogs" 
 	          WHERE "blogId" = $1 AND ${filterFind}
 	          ORDER BY "${sortBy}" ${sortDirection}
             LIMIT ${pageSize} OFFSET ${offset};`,
-        [blogId, ...filterFindPar],
-      )
-    ).map((u) => BannedUserForBlog.createBannedUserForBlog(u));
+      [blogId, ...filterFindPar],
+    );
 
     const items = foundUsers.map((u) => new BannedUserForBlogViewModel(u));
     return new PageViewModel(

@@ -4,18 +4,18 @@ import { BanUserDto } from '../application/dto/BanUserDto';
 import { UserFromDB } from '../infrastructure/types/UserFromDB';
 import { Entity, OneToOne, PrimaryColumn } from 'typeorm';
 import { BanInfo } from './banInfo.entity';
-import { EmailConfirmation } from './EmailConfirmation.entity';
-import { AccountData } from './AccountData.entity';
+import { EmailConfirmation } from './email-confirmation.entity';
+import { AccountData } from './account-data.entity';
 
 @Entity('Users')
 export class User {
   @PrimaryColumn('uuid')
   id: string;
-  @OneToOne(() => AccountData, (a) => a.owner)
+  @OneToOne(() => AccountData, (a) => a.user)
   accountData: AccountData;
-  @OneToOne(() => EmailConfirmation, (e) => e.owner)
+  @OneToOne(() => EmailConfirmation, (e) => e.user)
   emailConfirmation: EmailConfirmation;
-  @OneToOne(() => BanInfo, (b) => b.owner)
+  @OneToOne(() => BanInfo, (b) => b.user)
   banInfo: BanInfo;
 
   constructor(login: string, passwordHash: string, email: string, isConfirmed: boolean) {

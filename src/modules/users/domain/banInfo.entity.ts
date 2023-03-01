@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity('BanInfo')
+@Entity('UsersBanInfo')
 export class BanInfo {
   @Column()
   isBanned: boolean;
@@ -11,9 +11,9 @@ export class BanInfo {
   banReason: string;
   @OneToOne(() => User, (u) => u.banInfo)
   @JoinColumn()
-  owner: User;
+  user: User;
   @PrimaryColumn('uuid')
-  ownerId: string;
+  userId: string;
 
   constructor() {
     this.isBanned = false;

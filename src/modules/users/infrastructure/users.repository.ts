@@ -136,12 +136,12 @@ export class UsersRepository {
   }
 
   async deleteAllBannedUsersForBlogs() {
-    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog"`);
+    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlogs"`);
   }
 
   async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
     const bannedUserForBlogFromDB: BannedUserForBlogFromDB = (
-      await this.dataSource.query(`SELECT * FROM public."BannedUsersForBlog" WHERE "id" = $1 AND "blogId" = $2`, [
+      await this.dataSource.query(`SELECT * FROM public."BannedUsersForBlogs" WHERE "userId" = $1 AND "blogId" = $2`, [
         userId,
         blogId,
       ])
@@ -153,10 +153,10 @@ export class UsersRepository {
 
   async saveBannedUserForBlog(bannedUserForBlog: BannedUserForBlog) {
     await this.dataSource.query(
-      `INSERT INTO public."BannedUsersForBlog"("id", "login", "banReason", "banDate", "blogId")	VALUES ($1, $2, $3, $4, $5);`,
+      `INSERT INTO public."BannedUsersForBlogs"("userId", "userLogin", "banReason", "banDate", "blogId")	VALUES ($1, $2, $3, $4, $5);`,
       [
-        bannedUserForBlog.id,
-        bannedUserForBlog.login,
+        bannedUserForBlog.userId,
+        bannedUserForBlog.userLogin,
         bannedUserForBlog.banReason,
         bannedUserForBlog.banDate,
         bannedUserForBlog.blogId,
@@ -164,8 +164,11 @@ export class UsersRepository {
     );
   }
 
-  async deleteBannedUserForBlog(userId: string) {
-    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog" WHERE "id" = $1`, [userId]);
+  async deleteBannedUserForBlog(userId: string, blogId: string) {
+    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlogs" WHERE "userId" = $1 AND "blogId" = $2`, [
+      userId,
+      blogId,
+    ]);
   }
 
   async updateBanInfo(user: User) {

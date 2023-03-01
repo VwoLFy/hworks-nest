@@ -1,12 +1,14 @@
 import { BannedUserForBlogFromDB } from '../infrastructure/types/BannedUserForBlogFromDB';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('BannedUsersForBlog')
+@Entity('BannedUsersForBlogs')
 export class BannedUserForBlog {
-  @PrimaryColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+  @Column('uuid')
+  userId: string;
   @Column()
-  login: string;
+  userLogin: string;
   @Column()
   banReason: string;
   @Column()
@@ -15,16 +17,17 @@ export class BannedUserForBlog {
   blogId: string;
 
   constructor(blogId: string, userId: string, userLogin: string, banReason: string) {
-    this.id = userId;
-    this.login = userLogin;
+    this.userId = userId;
+    this.userLogin = userLogin;
     this.banReason = banReason;
     this.banDate = new Date();
     this.blogId = blogId;
   }
 
   static createBannedUserForBlog(user: BannedUserForBlogFromDB): BannedUserForBlog {
-    const bannedUserForBlog = new BannedUserForBlog(user.blogId, user.id, user.login, user.banReason);
+    const bannedUserForBlog = new BannedUserForBlog(user.blogId, user.userId, user.userLogin, user.banReason);
     bannedUserForBlog.banDate = user.banDate;
+    bannedUserForBlog.id = user.id;
     return user;
   }
 }

@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
 import { User } from './user.entity';
 
-@Entity('EmailConfirmation')
+@Entity('UsersEmailConfirmation')
 export class EmailConfirmation {
   @Column()
   isConfirmed: boolean;
@@ -13,9 +13,9 @@ export class EmailConfirmation {
   codeExpirationDate: Date;
   @OneToOne(() => User, (u) => u.emailConfirmation)
   @JoinColumn()
-  owner: User;
+  user: User;
   @PrimaryColumn('uuid')
-  ownerId: string;
+  userId: string;
 
   constructor(isConfirmed: boolean) {
     this.isConfirmed = isConfirmed;
