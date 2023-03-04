@@ -4,7 +4,7 @@ export class DeviceViewModel {
   ip: string;
   title: string;
   lastActiveDate: string;
-  deviceId: number;
+  deviceId: string;
 
   constructor(session: Session) {
     this.ip = session.ip;

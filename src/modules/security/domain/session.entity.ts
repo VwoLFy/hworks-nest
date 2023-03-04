@@ -1,11 +1,11 @@
 import { SessionExtendedDto } from '../application/dto/SessionExtendedDto';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 
 @Entity('Sessions')
 export class Session {
-  @PrimaryColumn()
-  deviceId: number;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
   @Column('uuid')
   userId: string;
   @Column()
@@ -16,7 +16,9 @@ export class Session {
   title: string;
   @Column()
   iat: number;
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @Column()
+  deviceId: string;
+  @ManyToOne(() => User)
   user: User;
 
   constructor({ ...dto }: SessionExtendedDto) {

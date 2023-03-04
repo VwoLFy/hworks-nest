@@ -1,6 +1,6 @@
 export type SessionDto = {
   userId: string;
-  deviceId: number;
+  deviceId: string;
   iat: number;
   exp: number;
 };

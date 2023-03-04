@@ -4,5 +4,5 @@ export type SessionExtendedDto = {
   ip: string;
   title: string;
   iat: number;
-  deviceId: number;
+  deviceId: string;
 };

@@ -7,7 +7,7 @@ import { Not, Repository } from 'typeorm';
 export class SecurityRepository {
   constructor(@InjectRepository(Session) private readonly sessionRepositoryT: Repository<Session>) {}
 
-  async findSessionByDeviceId(deviceId: number): Promise<Session | null> {
+  async findSessionByDeviceId(deviceId: string): Promise<Session | null> {
     const session = await this.sessionRepositoryT.findOne({ where: { deviceId: deviceId } });
     return session ?? null;
   }
@@ -25,11 +25,11 @@ export class SecurityRepository {
     return foundSession ? +foundSession.deviceId : 0;
   }
 
-  async deleteSessionsExceptCurrent(userId: string, deviceId: number) {
+  async deleteSessionsExceptCurrent(userId: string, deviceId: string) {
     await this.sessionRepositoryT.delete({ userId: userId, deviceId: Not(deviceId) });
   }
 
-  async deleteSessionByDeviceId(deviceId: number) {
+  async deleteSessionByDeviceId(deviceId: string) {
     await this.sessionRepositoryT.delete({ deviceId: deviceId });
   }
 

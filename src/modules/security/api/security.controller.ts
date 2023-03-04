@@ -1,16 +1,7 @@
 import { SecurityQueryRepo } from '../infrastructure/security.queryRepo';
 import { DeleteSessionsExceptCurrentCommand } from '../application/use-cases/delete-sessions-except-current-use-case';
 import { DeviceViewModel } from './models/DeviceViewModel';
-import {
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  ParseIntPipe,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Param, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { RefreshTokenGuard } from '../../../main/guards/refresh-token.guard';
 import { SessionData } from '../../../main/decorators/session-data.decorator';
 import { DeleteSessionCommand } from '../application/use-cases/delete-session-use-case';
@@ -41,7 +32,7 @@ export class SecurityController {
   @Delete(':deviceId')
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async deleteSession(@Param('deviceId', ParseIntPipe) deviceId: number, @SessionData() sessionData: SessionDto) {
+  async deleteSession(@Param('deviceId') deviceId: string, @SessionData() sessionData: SessionDto) {
     await this.commandBus.execute(new DeleteSessionCommand(sessionData.userId, deviceId));
   }
 }
