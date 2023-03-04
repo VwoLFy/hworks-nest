@@ -1,6 +1,7 @@
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { EmailService } from '../email.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BadRequestException } from '@nestjs/common';
 
 export class ResendRegistrationEmailCommand {
   constructor(public email: string) {}
@@ -10,22 +11,16 @@ export class ResendRegistrationEmailCommand {
 export class ResendRegistrationEmailUseCase implements ICommandHandler<ResendRegistrationEmailCommand> {
   constructor(protected usersRepository: UsersRepository, protected emailService: EmailService) {}
 
-  async execute(command: ResendRegistrationEmailCommand): Promise<boolean> {
+  async execute(command: ResendRegistrationEmailCommand) {
     const { email } = command;
 
     const foundUser = await this.usersRepository.findUserByLoginOrEmail(email);
-    if (!foundUser || foundUser.emailConfirmation.isConfirmed) return false;
+    if (!foundUser || foundUser.emailConfirmation.isConfirmed)
+      throw new BadRequestException([{ field: 'email', message: `Email isn't valid or already confirmed` }]);
 
     foundUser.updateEmailConfirmation();
+    await this.usersRepository.saveUser(foundUser);
 
-    try {
-      await this.emailService.sendEmailConfirmationMessage(email, foundUser.emailConfirmation.confirmationCode);
-      await this.usersRepository.saveUser(foundUser);
-    } catch (e) {
-      console.log(e);
-      await this.usersRepository.deleteUser(foundUser.id);
-      return false;
-    }
-    return true;
+    await this.emailService.sendEmailConfirmationMessage(email, foundUser.emailConfirmation.confirmationCode);
   }
 }

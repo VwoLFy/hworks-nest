@@ -110,9 +110,7 @@ export class AuthController {
   @UseGuards(AttemptsGuard)
   @HttpCode(204)
   async registrationEmailResending(@Body() body: RegistrationEmailResendingModel) {
-    const isResendEmail = await this.commandBus.execute(new ResendRegistrationEmailCommand(body.email));
-    if (!isResendEmail)
-      throw new BadRequestException([{ field: 'email', message: `Email isn't valid or already confirmed` }]);
+    await this.commandBus.execute(new ResendRegistrationEmailCommand(body.email));
   }
 
   @Post('logout')

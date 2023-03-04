@@ -4190,7 +4190,7 @@ describe('AppController (e2e)', () => {
       ]);
       expect(devices).not.toEqual(newDeviceList);
     });
-    it.skip('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
+    it('POST/registration should return status code 429 if more than 5 requests in 10 seconds, and 204 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration')
         .send({
@@ -4251,7 +4251,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
     }, 35000);
-    it.skip('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
+    it('POST/login should return status code 429 if more than 5 requests in 10 seconds, and 401 after waiting ', async function () {
       await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -4305,7 +4305,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     }, 15000);
-    it.skip('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+    it('POST/resending should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration-email-resending')
         .send({
@@ -4352,7 +4352,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
     }, 15000);
-    it.skip('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
+    it('POST/confirmation should return status code 429 if more than 5 requests in 10 seconds, and 400 after waiting', async () => {
       await request(app.getHttpServer())
         .post('/auth/registration-confirmation')
         .send({

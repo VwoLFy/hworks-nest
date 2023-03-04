@@ -4,7 +4,6 @@ import { User } from '../../../users/domain/user.entity';
 import { CreateUserDto } from '../../../users/application/dto/CreateUserDto';
 import { AuthService } from '../auth.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException } from '@nestjs/common';
 
 export class RegisterUserCommand {
   constructor(public dto: CreateUserDto) {}
@@ -23,14 +22,8 @@ export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand>
     const passwordHash = await this.authService.getPasswordHash(password);
 
     const user = new User(login, passwordHash, email, false);
-
-    try {
-      await this.emailService.sendEmailConfirmationMessage(email, user.emailConfirmation.confirmationCode);
-    } catch (e) {
-      console.log(e);
-      throw new BadRequestException();
-    }
-
     await this.usersRepository.saveUser(user);
+
+    await this.emailService.sendEmailConfirmationMessage(email, user.emailConfirmation.confirmationCode);
   }
 }

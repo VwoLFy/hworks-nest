@@ -14,12 +14,16 @@ export class EmailAdapter {
   constructor(protected mailerService: MailerService, private apiConfigService: ApiConfigService) {}
 
   async sendEmail({ email, subject, code, template }: EmailSendDto) {
-    await this.mailerService.sendMail({
-      from: `${this.apiConfigService.EMAIL_FROM} <${this.apiConfigService.EMAIL}>`,
-      to: email,
-      subject: subject,
-      template: `./${template}`,
-      context: { code },
-    });
+    try {
+      await this.mailerService.sendMail({
+        from: `${this.apiConfigService.EMAIL_FROM} <${this.apiConfigService.EMAIL}>`,
+        to: email,
+        subject: subject,
+        template: `./${template}`,
+        context: { code },
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
