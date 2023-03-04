@@ -11,7 +11,7 @@ export class EmailConfirmation {
   confirmationCode: string;
   @Column({ nullable: true })
   codeExpirationDate: Date;
-  @OneToOne(() => User, (u) => u.emailConfirmation)
+  @OneToOne(() => User, (u) => u.emailConfirmation, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
   @PrimaryColumn('uuid')

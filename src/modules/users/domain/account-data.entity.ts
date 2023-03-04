@@ -11,7 +11,7 @@ export class AccountData {
   email: string;
   @Column()
   createdAt: Date;
-  @OneToOne(() => User, (u) => u.accountData)
+  @OneToOne(() => User, (u) => u.accountData, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
   @PrimaryColumn('uuid')

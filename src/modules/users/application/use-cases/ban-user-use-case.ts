@@ -38,6 +38,6 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
 
   async banUser(user: User, dto: BanUserDto) {
     user.banUser(dto);
-    await this.usersRepository.updateBanInfo(user);
+    await this.usersRepository.saveUser(user);
   }
 }

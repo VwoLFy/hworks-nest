@@ -1,5 +1,4 @@
 import { SessionExtendedDto } from '../application/dto/SessionExtendedDto';
-import { SessionFromDB } from '../infrastructure/dto/SessionFromDB';
 import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 
@@ -17,7 +16,7 @@ export class Session {
   title: string;
   @Column()
   iat: number;
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   constructor({ ...dto }: SessionExtendedDto) {
@@ -34,9 +33,5 @@ export class Session {
     this.title = dto.title;
     this.exp = dto.exp;
     this.iat = dto.iat;
-  }
-
-  static createSessionFromDB(sessionFromDB: SessionFromDB): Session {
-    return new Session(sessionFromDB);
   }
 }

@@ -1,33 +1,25 @@
 import { AttemptsDataDto } from '../application/dto/AttemptsDataDto';
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { AttemptsData } from '../domain/attempts.entity';
 
 @Injectable()
 export class AttemptsRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(@InjectRepository(AttemptsData) private readonly attemptsDataRepositoryT: Repository<AttemptsData>) {}
   async findAttempts(dto: AttemptsDataDto, fromDate: Date): Promise<number> {
     const { ip, url } = dto;
 
-    const { count } = (
-      await this.dataSource.query(
-        `SELECT count(*) FROM public."AttemptsData" WHERE "ip" = $1 AND "url" = $2 AND "date" >= $3`,
-        [ip, url, fromDate],
-      )
-    )[0];
-    return count;
+    return await this.attemptsDataRepositoryT.count({
+      where: { ip: ip, url: url, date: MoreThanOrEqual(fromDate) },
+    });
   }
 
   async saveAttempt(attempt: AttemptsData) {
-    await this.dataSource.query(`INSERT INTO public."AttemptsData"("date", "ip", "url") VALUES ($1, $2, $3);`, [
-      attempt.date,
-      attempt.ip,
-      attempt.url,
-    ]);
+    await this.attemptsDataRepositoryT.save(attempt);
   }
 
   async deleteAll() {
-    await this.dataSource.query(`DELETE FROM public."AttemptsData";`);
+    await this.attemptsDataRepositoryT.clear();
   }
 }

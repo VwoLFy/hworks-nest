@@ -9,7 +9,7 @@ export class BanInfo {
   banDate: Date;
   @Column({ nullable: true })
   banReason: string;
-  @OneToOne(() => User, (u) => u.banInfo)
+  @OneToOne(() => User, (u) => u.banInfo, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
   @PrimaryColumn('uuid')

@@ -1,17 +1,17 @@
 import { DeviceViewModel } from '../api/models/DeviceViewModel';
 import { Injectable } from '@nestjs/common';
 import { Session } from '../domain/session.entity';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SecurityQueryRepo {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(@InjectRepository(Session) private readonly sessionRepositoryT: Repository<Session>) {}
 
   async findUserSessions(userId: string): Promise<DeviceViewModel[]> {
-    const foundSessions: Session[] = (
-      await this.dataSource.query(`SELECT * FROM public."Sessions" WHERE "userId" = $1`, [userId])
-    ).map((u) => Session.createSessionFromDB(u));
+    const foundSessions = await this.sessionRepositoryT.find({
+      where: { userId: userId },
+    });
     return foundSessions.map((s) => new DeviceViewModel(s));
   }
 }

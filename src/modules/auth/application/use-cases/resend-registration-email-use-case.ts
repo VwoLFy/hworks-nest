@@ -20,7 +20,7 @@ export class ResendRegistrationEmailUseCase implements ICommandHandler<ResendReg
 
     try {
       await this.emailService.sendEmailConfirmationMessage(email, foundUser.emailConfirmation.confirmationCode);
-      await this.usersRepository.updateEmailConfirmation(foundUser);
+      await this.usersRepository.saveUser(foundUser);
     } catch (e) {
       console.log(e);
       await this.usersRepository.deleteUser(foundUser.id);

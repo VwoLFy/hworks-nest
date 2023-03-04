@@ -21,7 +21,7 @@ export class ConfirmEmailUseCase implements ICommandHandler<ConfirmEmailCommand>
     if (emailConfirmation.confirmationCode !== confirmationCode) return false;
 
     foundUser.confirmUser();
-    await this.usersRepository.updateEmailConfirmation(foundUser);
+    await this.usersRepository.saveUser(foundUser);
     return true;
   }
 }

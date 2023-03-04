@@ -1894,7 +1894,7 @@ describe('AppController (e2e)', () => {
           items: [],
         });
     });
-    it('GET users array with pagination after post 5 users should return 200', async function () {
+    it('GET users array with query and pagination after post 5 users should return 200', async function () {
       let result = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -1917,7 +1917,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.CREATED_201);
       const user2 = result.body;
 
-      await request(app.getHttpServer())
+      result = await request(app.getHttpServer())
         .post('/sa/users')
         .auth('admin', 'qwerty', { type: 'basic' })
         .send({
@@ -1926,6 +1926,7 @@ describe('AppController (e2e)', () => {
           email: 'string3@sdf.eqe',
         })
         .expect(HTTP_Status.CREATED_201);
+      const user3 = result.body;
 
       result = await request(app.getHttpServer())
         .post('/sa/users')
@@ -1960,6 +1961,39 @@ describe('AppController (e2e)', () => {
           pageSize: 15,
           totalCount: 3,
           items: [user4, user2, user5],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/users?pageSize=15&pageNumber=1&searchLoginTerm=&searchEmailTerm=.ee&sortDirection=asc&sortBy=login')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 15,
+          totalCount: 2,
+          items: [user2, user5],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/users?pageSize=15&pageNumber=1&searchLoginTerm=seR&searchEmailTerm=&sortDirection=asc&sortBy=login')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 15,
+          totalCount: 2,
+          items: [user4, user2],
+        });
+
+      await request(app.getHttpServer())
+        .get('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200, {
+          pagesCount: 1,
+          page: 1,
+          pageSize: 10,
+          totalCount: 5,
+          items: [user5, user4, user3, user2, user1],
         });
     }, 10000);
   });
@@ -2218,7 +2252,7 @@ describe('AppController (e2e)', () => {
         });
     });
     it('GET all users with query', async function () {
-      const result = await request(app.getHttpServer())
+      let result = await request(app.getHttpServer())
         .get(`/sa/users?banStatus=all&sortBy=login&sortDirection=asc&searchLoginTerm=login`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.OK_200);
@@ -2229,6 +2263,33 @@ describe('AppController (e2e)', () => {
         pageSize: 10,
         totalCount: 4,
         items: [user1, user2, user3, user4],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/sa/users?sortDirection=asc`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 4,
+        items: [user1, user2, user3, user4],
+      });
+    });
+    it('GET banned users', async function () {
+      const result = await request(app.getHttpServer())
+        .get(`/sa/users?banStatus=banned`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 1,
+        items: [user3],
       });
     });
     it('Delete-all', async function () {

@@ -3,14 +3,14 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('AttemptsData')
 export class AttemptsData {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
   @Column()
   date: Date;
   @Column()
   ip: string;
   @Column()
   url: string;
-  @PrimaryGeneratedColumn('increment')
-  id: number;
 
   constructor({ ...dto }: AttemptsDataDto) {
     this.date = new Date();

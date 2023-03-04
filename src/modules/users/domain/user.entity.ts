@@ -1,7 +1,6 @@
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import { BanUserDto } from '../application/dto/BanUserDto';
-import { UserFromDB } from '../infrastructure/types/UserFromDB';
 import { Entity, OneToOne, PrimaryColumn } from 'typeorm';
 import { BanInfo } from './banInfo.entity';
 import { EmailConfirmation } from './email-confirmation.entity';
@@ -11,11 +10,11 @@ import { AccountData } from './account-data.entity';
 export class User {
   @PrimaryColumn('uuid')
   id: string;
-  @OneToOne(() => AccountData, (a) => a.user)
+  @OneToOne(() => AccountData, (a) => a.user, { cascade: true, eager: true })
   accountData: AccountData;
-  @OneToOne(() => EmailConfirmation, (e) => e.user)
+  @OneToOne(() => EmailConfirmation, (e) => e.user, { cascade: true, eager: true })
   emailConfirmation: EmailConfirmation;
-  @OneToOne(() => BanInfo, (b) => b.user)
+  @OneToOne(() => BanInfo, (b) => b.user, { cascade: true, eager: true })
   banInfo: BanInfo;
 
   constructor(login: string, passwordHash: string, email: string, isConfirmed: boolean) {
@@ -23,18 +22,6 @@ export class User {
     this.accountData = new AccountData(login, passwordHash, email);
     this.emailConfirmation = new EmailConfirmation(isConfirmed);
     this.banInfo = new BanInfo();
-  }
-
-  static createUserFromDB(userFromDB: UserFromDB): User {
-    const user = new User(userFromDB.login, userFromDB.passwordHash, userFromDB.email, userFromDB.isConfirmed);
-    user.id = userFromDB.id;
-    user.accountData.createdAt = userFromDB.createdAt;
-    user.emailConfirmation.confirmationCode = userFromDB.confirmationCode;
-    user.emailConfirmation.codeExpirationDate = userFromDB.codeExpirationDate;
-    user.banInfo.isBanned = userFromDB.isBanned;
-    user.banInfo.banDate = userFromDB.banDate;
-    user.banInfo.banReason = userFromDB.banReason;
-    return user;
   }
 
   confirmUser() {

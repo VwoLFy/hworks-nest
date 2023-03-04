@@ -1,74 +1,48 @@
 import { User } from '../domain/user.entity';
 import { UserViewModel } from '../api/models/UserViewModel';
 import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindBannedUsersForBlogQueryModel } from '../api/models/FindBannedUsersForBlogQueryModel';
 import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewModel';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { UserFromDB } from './types/UserFromDB';
-import { BannedUserForBlogFromDB } from './types/BannedUserForBlogFromDB';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ILike, Repository } from 'typeorm';
+import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
 
 @Injectable()
 export class UsersQueryRepo {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(User) private readonly usersRepositoryT: Repository<User>,
+    @InjectRepository(BannedUserForBlog) private readonly bannedUsersForBlogRepositoryT: Repository<BannedUserForBlog>,
+  ) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
-    let filterFind = 'true';
-    let filterFindPar = [];
 
-    if (searchLoginTerm && searchEmailTerm) {
-      filterFind = `(LOWER(ac."login") like LOWER($1) OR LOWER(ac."email") like LOWER($2))`;
-      filterFindPar = [`%${searchLoginTerm}%`, `%${searchEmailTerm}%`];
-    } else if (searchLoginTerm) {
-      filterFind = `(LOWER(ac."login") like LOWER($1))`;
-      filterFindPar = [`%${searchLoginTerm}%`];
-    } else if (searchEmailTerm) {
-      filterFind = `(LOWER(ac."email") like LOWER($1))`;
-      filterFindPar = [`%${searchEmailTerm}%`];
+    let isBanned: boolean = null;
+    if (banStatus === BanStatuses.banned) isBanned = true;
+    if (banStatus === BanStatuses.notBanned) isBanned = false;
+
+    let login = `%${searchLoginTerm}%`;
+    let email = `%${searchEmailTerm}%`;
+    if (searchLoginTerm && !searchEmailTerm) {
+      email = null;
+    } else if (!searchLoginTerm && searchEmailTerm) {
+      login = null;
     }
 
-    if (banStatus === BanStatuses.banned) filterFind = `b."isBanned" = true AND ${filterFind}`;
-    if (banStatus === BanStatuses.notBanned) filterFind = `b."isBanned" = false AND ${filterFind}`;
+    const [foundUsers, totalCount] = await this.usersRepositoryT.findAndCount({
+      where: {
+        banInfo: { isBanned: isBanned }, //если null, то игнорируется поиск
+        accountData: [{ login: ILike(login) }, { email: ILike(email) }],
+      },
+      order: { accountData: { [sortBy]: sortDirection } },
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+    });
 
-    const { count } = (
-      await this.dataSource.query(
-        `SELECT COUNT(*)
-	          FROM public."Users" u
-	          LEFT JOIN public."UsersAccountData" ac 
-	          ON ac."userId" = u.id
-		        LEFT JOIN public."UsersEmailConfirmation" e
-	          ON e."userId" = u.id
-			      LEFT JOIN public."UsersBanInfo" b
-	          ON b."userId" = u.id
-	          WHERE ${filterFind}`,
-        filterFindPar,
-      )
-    )[0];
-
-    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const offset = (pageNumber - 1) * pageSize;
-
-    const foundUsers: User[] = (
-      await this.dataSource.query(
-        `SELECT id, ac.*, e.*, b.*
-	          FROM public."Users" u
-	          LEFT JOIN public."UsersAccountData" ac 
-	          ON ac."userId" = u.id
-		        LEFT JOIN public."UsersEmailConfirmation" e
-	          ON e."userId" = u.id
-			      LEFT JOIN public."UsersBanInfo" b
-	          ON b."userId" = u.id
-	          WHERE ${filterFind}
-	          ORDER BY ac."${sortBy}" ${sortDirection}
-	          LIMIT ${pageSize} OFFSET ${offset};`,
-        filterFindPar,
-      )
-    ).map((u) => User.createUserFromDB(u));
 
     const items = foundUsers.map((u) => new UserViewModel(u));
     return new PageViewModel(
@@ -83,19 +57,7 @@ export class UsersQueryRepo {
   }
 
   async findUserById(id: string): Promise<UserViewModel> {
-    const query = `SELECT id, ac.*, e.*, b.*
-            FROM public."Users" u
-            LEFT JOIN public."UsersAccountData" ac 
-            ON ac."userId" = u.id
-            LEFT JOIN public."UsersEmailConfirmation" e
-            ON e."userId" = u.id
-            LEFT JOIN public."UsersBanInfo" b
-            ON b."userId" = u.id
-            WHERE id = $1`;
-    const userFromDB: UserFromDB = (await this.dataSource.query(query, [id]))[0];
-    if (!userFromDB) throw new NotFoundException('User not found');
-
-    const foundUser = User.createUserFromDB(userFromDB);
+    const foundUser = await this.usersRepositoryT.findOne({ where: { id: id } });
     return new UserViewModel(foundUser);
   }
 
@@ -104,34 +66,15 @@ export class UsersQueryRepo {
     dto: FindBannedUsersForBlogQueryModel,
   ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
     const { searchLoginTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
-    let filterFind = `true`;
-    let filterFindPar = [];
 
-    if (searchLoginTerm) {
-      filterFind = `(LOWER("userLogin") like LOWER($2))`;
-      filterFindPar = [`%${searchLoginTerm}%`];
-    }
+    const [foundUsers, totalCount] = await this.bannedUsersForBlogRepositoryT.findAndCount({
+      where: { blogId: blogId, userLogin: ILike(`%${searchLoginTerm}%`) },
+      order: { [sortBy]: sortDirection },
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+    });
 
-    const { count } = (
-      await this.dataSource.query(
-        `SELECT COUNT(*)
-	          FROM public."BannedUsersForBlogs" 
-	          WHERE "blogId" = $1 AND ${filterFind}`,
-        [blogId, ...filterFindPar],
-      )
-    )[0];
-
-    const totalCount = +count;
     const pagesCount = Math.ceil(totalCount / pageSize);
-    const offset = (pageNumber - 1) * pageSize;
-
-    const foundUsers: BannedUserForBlogFromDB[] = await this.dataSource.query(
-      `SELECT * FROM public."BannedUsersForBlogs" 
-	          WHERE "blogId" = $1 AND ${filterFind}
-	          ORDER BY "${sortBy}" ${sortDirection}
-            LIMIT ${pageSize} OFFSET ${offset};`,
-      [blogId, ...filterFindPar],
-    );
 
     const items = foundUsers.map((u) => new BannedUserForBlogViewModel(u));
     return new PageViewModel(

@@ -18,7 +18,7 @@ export class SecurityService {
     if (!foundSession) return;
 
     foundSession.updateSessionData(dto);
-    await this.securityRepository.updateSession(foundSession);
+    await this.securityRepository.saveSession(foundSession);
   }
 
   async isActiveSession(dto: SessionDto): Promise<boolean> {
