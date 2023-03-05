@@ -13,7 +13,6 @@ export class UsersRepository {
 
   async findUserByLoginOrEmail(loginOrEmail: string): Promise<User | null> {
     const foundUser = await this.usersRepositoryT.findOne({
-      relations: { accountData: true, banInfo: true, emailConfirmation: true },
       where: { accountData: [{ login: ILike(loginOrEmail) }, { email: ILike(loginOrEmail) }] },
     });
 
@@ -22,7 +21,6 @@ export class UsersRepository {
 
   async findUserLoginByIdOrThrowError(userId: string): Promise<string> {
     const foundUser = await this.usersRepositoryT.findOne({
-      relations: { accountData: true },
       where: { id: userId },
     });
 
@@ -32,7 +30,6 @@ export class UsersRepository {
 
   async findUserById(userId: string): Promise<User | null> {
     const foundUser = await this.usersRepositoryT.findOne({
-      relations: { accountData: true, banInfo: true, emailConfirmation: true },
       where: { id: userId },
     });
 
@@ -41,7 +38,6 @@ export class UsersRepository {
 
   async findUserByConfirmationCode(confirmationCode: string): Promise<User | null> {
     const foundUser = await this.usersRepositoryT.findOne({
-      relations: { accountData: true, banInfo: true, emailConfirmation: true },
       where: { emailConfirmation: { confirmationCode: confirmationCode } },
     });
 

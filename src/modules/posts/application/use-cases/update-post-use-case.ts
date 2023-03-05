@@ -23,6 +23,6 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
     if (foundBlog.userId !== userId) throw new ForbiddenException();
 
     post.updatePost(dto);
-    await this.postsRepository.updatePost(post);
+    await this.postsRepository.savePost(post);
   }
 }

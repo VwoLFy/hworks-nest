@@ -19,7 +19,7 @@ export class UpdateBlogUseCase implements ICommandHandler<UpdateBlogCommand> {
     if (blog.userId !== userId) throw new ForbiddenException();
 
     blog.updateBlog(dto);
-    await this.blogsRepository.updateBlog(blog);
+    await this.blogsRepository.saveBlog(blog);
     return true;
   }
 }

@@ -1,4 +1,4 @@
-import { BanInfo } from '../../domain/banInfo.entity';
+import { BanInfo } from '../../domain/user.ban-info.entity';
 
 export class BanUserInfoViewModel {
   isBanned: boolean;

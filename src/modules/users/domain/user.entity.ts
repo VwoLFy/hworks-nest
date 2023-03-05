@@ -2,9 +2,9 @@ import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import { BanUserDto } from '../application/dto/BanUserDto';
 import { Entity, OneToOne, PrimaryColumn } from 'typeorm';
-import { BanInfo } from './banInfo.entity';
-import { EmailConfirmation } from './email-confirmation.entity';
-import { AccountData } from './account-data.entity';
+import { BanInfo } from './user.ban-info.entity';
+import { EmailConfirmation } from './user.email-confirmation.entity';
+import { AccountData } from './user.account-data.entity';
 
 @Entity('Users')
 export class User {

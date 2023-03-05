@@ -29,7 +29,7 @@ export class Post {
   likesCount: number;
   @Column()
   dislikesCount: number;
-  @ManyToOne(() => Blog)
+  @ManyToOne(() => Blog, { onDelete: 'CASCADE' })
   blog: Blog;
   @OneToMany(() => PostLike, (pl) => pl.post)
   postLikes: PostLike[];

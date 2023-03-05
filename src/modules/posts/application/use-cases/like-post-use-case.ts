@@ -28,7 +28,7 @@ export class LikePostUseCase implements ICommandHandler<LikePostCommand> {
 
     const newLike = foundPost.setLikeStatus(oldLike, userId, userLogin, likeStatus);
 
-    await this.postsRepository.updatePostLikesCount(foundPost);
+    await this.postsRepository.savePost(foundPost);
     if (oldLike) {
       await this.postsRepository.updatePostLike(newLike);
     } else {

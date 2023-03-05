@@ -19,7 +19,7 @@ export class PostsService {
         foundPost.updateLikesCount(foundPostLike.likeStatus, LikeStatus.None);
       }
 
-      await this.postsRepository.updatePostLikesCount(foundPost);
+      await this.postsRepository.savePost(foundPost);
     }
   }
 }

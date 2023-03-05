@@ -24,18 +24,18 @@ export class UsersQueryRepo {
     if (banStatus === BanStatuses.banned) isBanned = true;
     if (banStatus === BanStatuses.notBanned) isBanned = false;
 
-    let login = `%${searchLoginTerm}%`;
-    let email = `%${searchEmailTerm}%`;
+    let searchLogin = `%${searchLoginTerm}%`;
+    let searchEmail = `%${searchEmailTerm}%`;
     if (searchLoginTerm && !searchEmailTerm) {
-      email = null;
+      searchEmail = null;
     } else if (!searchLoginTerm && searchEmailTerm) {
-      login = null;
+      searchLogin = null;
     }
 
     const [foundUsers, totalCount] = await this.usersRepositoryT.findAndCount({
       where: {
         banInfo: { isBanned: isBanned }, //если null, то игнорируется поиск
-        accountData: [{ login: ILike(login) }, { email: ILike(email) }],
+        accountData: [{ login: ILike(searchLogin) }, { email: ILike(searchEmail) }],
       },
       order: { accountData: { [sortBy]: sortDirection } },
       skip: (pageNumber - 1) * pageSize,

@@ -23,7 +23,7 @@ export class PostLike {
   isBanned: boolean;
   @ManyToOne(() => User)
   user: User;
-  @ManyToOne(() => Post)
+  @ManyToOne(() => Post, { onDelete: 'CASCADE' })
   post: Post;
 
   constructor({ ...dto }: CreatePostLikeDto) {

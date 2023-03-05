@@ -1,4 +1,3 @@
-import { BannedUserForBlogFromDB } from '../infrastructure/types/BannedUserForBlogFromDB';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
@@ -28,12 +27,5 @@ export class BannedUserForBlog {
     this.banReason = banReason;
     this.banDate = new Date();
     this.blogId = blogId;
-  }
-
-  static createBannedUserForBlog(user: BannedUserForBlogFromDB): BannedUserForBlog {
-    const bannedUserForBlog = new BannedUserForBlog(user.blogId, user.userId, user.userLogin, user.banReason);
-    bannedUserForBlog.banDate = user.banDate;
-    bannedUserForBlog.id = user.id;
-    return bannedUserForBlog;
   }
 }

@@ -4,13 +4,17 @@ import { LikeStatus } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { PostLikeDetailsViewModel } from '../api/models/PostLikeDetailsViewModel';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PostFromDB } from './types/PostFromDB';
+import { Post } from '../domain/post.entity';
 
 @Injectable()
 export class PostsQueryRepo {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private dataSource: DataSource,
+    @InjectRepository(Post) private readonly postRepositoryT: Repository<Post>,
+  ) {}
 
   async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
@@ -47,6 +51,9 @@ export class PostsQueryRepo {
   }
 
   async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
+    const foundPost = await this.postRepositoryT.findOne({
+      where: { id: postId, isBanned: false },
+    });
     const postFromDB: PostFromDB = (
       await this.dataSource.query(
         `SELECT *,

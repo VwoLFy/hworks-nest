@@ -1,6 +1,5 @@
 import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
 import { CreateBlogDto } from '../application/dto/CreateBlogDto';
-import { BlogFromDB } from '../infrastructure/types/BlogFromDB';
 import { randomUUID } from 'crypto';
 import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
@@ -19,15 +18,15 @@ export class Blog {
   createdAt: Date;
   @Column()
   isMembership: boolean;
+  @Column('uuid', { nullable: true })
+  userId: string;
   @Column()
   userLogin: string;
   @Column()
   isBanned: boolean;
   @Column({ nullable: true })
   banDate: Date;
-  @Column('uuid')
-  userId: string;
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
   user: User;
 
   constructor({ ...dto }: CreateBlogDto, userId: string, userLogin: string) {
@@ -62,18 +61,5 @@ export class Blog {
   bindBlogWithUser(userId: string, userLogin: string) {
     this.userId = userId;
     this.userLogin = userLogin;
-  }
-
-  static createBlogFromDB(blogFromDB: BlogFromDB): Blog {
-    const blog = new Blog(blogFromDB, blogFromDB.userId, blogFromDB.userLogin);
-    blog.id = blogFromDB.id;
-    blog.createdAt = blogFromDB.createdAt;
-    blog.isMembership = blogFromDB.isMembership;
-    blog.userId = blogFromDB.userId;
-    blog.userLogin = blogFromDB.userLogin;
-    blog.isBanned = blogFromDB.isBanned;
-    blog.banDate = blogFromDB.banDate;
-
-    return blog;
   }
 }

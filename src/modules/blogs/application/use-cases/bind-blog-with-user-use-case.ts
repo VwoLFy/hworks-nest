@@ -24,6 +24,6 @@ export class BindBlogWithUserUseCase implements ICommandHandler<BindBlogWithUser
 
     foundBlog.bindBlogWithUser(userId, foundUser.accountData.login);
 
-    await this.blogsRepository.updateBlogOwner(foundBlog);
+    await this.blogsRepository.saveBlog(foundBlog);
   }
 }
