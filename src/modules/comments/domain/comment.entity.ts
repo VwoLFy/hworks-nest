@@ -2,8 +2,7 @@ import { LikeStatus } from '../../../main/types/enums';
 import { CommentLike } from './commentLike.entity';
 import { CreateCommentDto } from '../application/dto/CreateCommentDto';
 import { randomUUID } from 'crypto';
-import { CommentFromDB } from '../infrastructure/dto/CommentFromDB';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 import { Post } from '../../posts/domain/post.entity';
 
@@ -31,6 +30,8 @@ export class Comment {
   user: User;
   @ManyToOne(() => Post)
   post: Post;
+  @OneToMany(() => CommentLike, (cl) => cl.commentId)
+  commentLikes: CommentLike[];
 
   constructor({ ...dto }: CreateCommentDto, userLogin: string) {
     this.id = randomUUID();
@@ -73,15 +74,5 @@ export class Comment {
   }
   updateComment(content: string) {
     this.content = content;
-  }
-
-  static createCommentFromDB(commentFromDB: CommentFromDB): Comment {
-    const comment = new Comment(commentFromDB, commentFromDB.userLogin);
-    comment.id = commentFromDB.id;
-    comment.createdAt = commentFromDB.createdAt;
-    comment.isBanned = commentFromDB.isBanned;
-    comment.likesCount = commentFromDB.likesCount;
-    comment.dislikesCount = commentFromDB.dislikesCount;
-    return comment;
   }
 }

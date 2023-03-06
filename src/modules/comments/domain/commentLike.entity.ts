@@ -1,5 +1,4 @@
 import { LikeStatus } from '../../../main/types/enums';
-import { CommentLikeFromDB } from '../infrastructure/dto/CommentLikeFromDB';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 import { Comment } from './comment.entity';
@@ -20,7 +19,7 @@ export class CommentLike {
   public isBanned: boolean;
   @ManyToOne(() => User)
   user: User;
-  @ManyToOne(() => Comment)
+  @ManyToOne(() => Comment, (c) => c.commentLikes, { onDelete: 'CASCADE' })
   comment: Comment;
 
   constructor(commentId: string, userId: string) {
@@ -33,14 +32,5 @@ export class CommentLike {
 
   updateLikeStatus(likeStatus: LikeStatus): void {
     this.likeStatus = likeStatus;
-  }
-
-  static createCommentLike(commentLikeFromDB: CommentLikeFromDB): CommentLike {
-    const like = new CommentLike(commentLikeFromDB.commentId, commentLikeFromDB.userId);
-    like.addedAt = commentLikeFromDB.addedAt;
-    like.likeStatus = commentLikeFromDB.likeStatus;
-    like.isBanned = commentLikeFromDB.isBanned;
-
-    return like;
   }
 }

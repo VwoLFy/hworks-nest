@@ -3,7 +3,6 @@ import { LikeStatus } from '../../../main/types/enums';
 import { PostLike } from './postLike.entity';
 import { CreatePostDto } from '../application/dto/CreatePostDto';
 import { randomUUID } from 'crypto';
-import { PostFromDB } from '../infrastructure/types/PostFromDB';
 import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 
@@ -83,15 +82,5 @@ export class Post {
     } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
       this.dislikesCount -= 1;
     }
-  }
-
-  static createPostFromDB(postFromDB: PostFromDB) {
-    const post = new Post(postFromDB, postFromDB.blogName);
-    post.id = postFromDB.id;
-    post.createdAt = postFromDB.createdAt;
-    post.isBanned = postFromDB.isBanned;
-    post.likesCount = postFromDB.likesCount;
-    post.dislikesCount = postFromDB.dislikesCount;
-    return post;
   }
 }

@@ -1,6 +1,5 @@
 import { LikeStatus } from '../../../main/types/enums';
 import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
-import { PostLikeFromDB } from '../infrastructure/types/PostLikeFromDB';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 import { Post } from './post.entity';
@@ -37,13 +36,5 @@ export class PostLike {
 
   updateLikeStatus(likeStatus: LikeStatus) {
     this.likeStatus = likeStatus;
-  }
-
-  static createPostLike(postLikeFromDB: PostLikeFromDB): PostLike {
-    const postLike = new PostLike({ ...postLikeFromDB, userLogin: postLikeFromDB.login });
-    postLike.addedAt = postLikeFromDB.addedAt;
-    postLike.likeStatus = postLikeFromDB.likeStatus;
-    postLike.isBanned = postLikeFromDB.isBanned;
-    return postLike;
   }
 }

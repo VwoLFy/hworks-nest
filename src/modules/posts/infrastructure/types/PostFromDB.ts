@@ -11,5 +11,5 @@ export class PostFromDB {
   isBanned: boolean;
   likesCount: number;
   dislikesCount: number;
-  myStatus: LikeStatus;
+  myStatus?: LikeStatus;
 }

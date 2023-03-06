@@ -24,11 +24,7 @@ export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
 
     const newLike = foundComment.setLikeStatus(oldLike, userId, likeStatus);
 
-    await this.commentsRepository.updateCommentLikesCount(foundComment);
-    if (oldLike) {
-      await this.commentsRepository.updateCommentLike(newLike);
-    } else {
-      await this.commentsRepository.saveCommentLike(newLike);
-    }
+    await this.commentsRepository.saveComment(foundComment);
+    await this.commentsRepository.saveCommentLike(newLike);
   }
 }

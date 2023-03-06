@@ -5,18 +5,23 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
 import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CommentFromDB } from './dto/CommentFromDB';
 import { PostFromDB } from '../../posts/infrastructure/types/PostFromDB';
+import { Comment } from '../domain/comment.entity';
+import { Post } from '../../posts/domain/post.entity';
 
 @Injectable()
 export class CommentsQueryRepo {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Comment) private readonly commentRepositoryT: Repository<Comment>,
+    @InjectRepository(Post) private readonly postRepositoryT: Repository<Post>,
+  ) {}
 
   async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
     const commentFromDB: CommentFromDB = (
-      await this.dataSource.query(
+      await this.commentRepositoryT.query(
         `SELECT *,
                COALESCE((SELECT "likeStatus"
                         FROM public."CommentLikes"
@@ -34,21 +39,11 @@ export class CommentsQueryRepo {
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
-    const { count } = (
-      await this.dataSource.query(
-        `SELECT count(*)
-               FROM public."Comments"
-               WHERE "postId" = $1 AND "isBanned" = false`,
-        [postId],
-      )
-    )[0];
-
-    const totalCount = +count;
-
+    const totalCount = await this.commentRepositoryT.count({ where: { postId: postId, isBanned: false } });
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
-    const commentsFromDB: CommentFromDB[] = await this.dataSource.query(
+    const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
       `SELECT *,
              COALESCE((SELECT "likeStatus"
                       FROM public."CommentLikes"
@@ -76,7 +71,7 @@ export class CommentsQueryRepo {
   async findCommentsForOwnBlogs(dto: FindCommentsForOwnBlogsDto): Promise<PageViewModel<CommentViewModelBl>> {
     const { userId, pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const postsFromDB: PostFromDB[] = await this.dataSource.query(
+    const postsFromDB: PostFromDB[] = await this.postRepositoryT.query(
       `SELECT po.* FROM public."Blogs" b
             LEFT JOIN public."Posts" po ON b.id = po."blogId"
             WHERE b."userId" = $1`,
@@ -84,7 +79,7 @@ export class CommentsQueryRepo {
     );
 
     const { count } = (
-      await this.dataSource.query(
+      await this.commentRepositoryT.query(
         `SELECT count(*) FROM public."Comments"
               WHERE "postId" IN 
                 (SELECT po.id FROM public."Blogs" b
@@ -99,7 +94,7 @@ export class CommentsQueryRepo {
 
     const offset = (pageNumber - 1) * pageSize;
 
-    const commentsFromDB: CommentFromDB[] = await this.dataSource.query(
+    const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
       `SELECT *,
              COALESCE((SELECT "likeStatus" FROM public."CommentLikes"
                         WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
