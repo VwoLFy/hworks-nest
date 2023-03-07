@@ -19,11 +19,14 @@ export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand>
 
   async execute(command: RegisterUserCommand) {
     const { login, password, email } = command.dto;
+    console.log('start create user ------  ' + new Date());
     const passwordHash = await this.authService.getPasswordHash(password);
 
     const user = new User(login, passwordHash, email, false);
     await this.usersRepository.saveUser(user);
+    console.log('end create user ------  ' + new Date());
 
     await this.emailService.sendEmailConfirmationMessage(email, user.emailConfirmation.confirmationCode);
+    console.log('end sending email ------  ' + new Date());
   }
 }
