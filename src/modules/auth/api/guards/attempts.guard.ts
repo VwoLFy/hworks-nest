@@ -18,8 +18,11 @@ export class AttemptsGuard implements CanActivate {
       ip: req.ip,
       url: req.url,
     };
+    console.log('start attempt time ------  ' + new Date());
 
     const countAttempts = await this.attemptsService.countAttempts(dto, 10);
+
+    console.log('end attempt time ------  ' + new Date());
     if (countAttempts > 5) throw new HttpException('too many attempts', HTTP_Status.TOO_MANY_REQUESTS_429);
     return true;
   }
