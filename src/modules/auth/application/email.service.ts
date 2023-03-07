@@ -6,10 +6,10 @@ import { ApiConfigService } from '../../../main/configuration/api.config.service
 export class EmailService {
   constructor(protected emailAdapter: EmailAdapter, private apiConfigService: ApiConfigService) {}
 
-  sendEmailConfirmationMessage(email: string, code: string) {
+  async sendEmailConfirmationMessage(email: string, code: string) {
     const subject = `Confirmation Message from ${this.apiConfigService.EMAIL_FROM}`;
     const template = 'confirmation';
-    this.emailAdapter.sendEmail({ email, subject, code, template });
+    await this.emailAdapter.sendEmail({ email, subject, code, template });
   }
   sendEmailPasswordRecoveryMessage(email: string, code: string) {
     const subject = `Password Recovery Message from ${this.apiConfigService.EMAIL_FROM}`;

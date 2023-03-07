@@ -18,7 +18,7 @@ export class Session {
   iat: number;
   @Column()
   deviceId: string;
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   constructor({ ...dto }: SessionExtendedDto) {
