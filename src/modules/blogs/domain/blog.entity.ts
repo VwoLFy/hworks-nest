@@ -1,5 +1,5 @@
-import { UpdateBlogDto } from '../application/dto/UpdateBlogDto';
-import { CreateBlogDto } from '../application/dto/CreateBlogDto';
+import { UpdateBlogDto } from '../../blogger.blogs/application/dto/UpdateBlogDto';
+import { CreateBlogDto } from '../../blogger.blogs/application/dto/CreateBlogDto';
 import { randomUUID } from 'crypto';
 import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';

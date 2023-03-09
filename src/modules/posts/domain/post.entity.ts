@@ -1,7 +1,7 @@
 import { UpdatePostDto } from '../application/dto/UpdatePostDto';
 import { LikeStatus } from '../../../main/types/enums';
 import { PostLike } from './postLike.entity';
-import { CreatePostDto } from '../application/dto/CreatePostDto';
+import { CreatePostDto } from '../../blogger.blogs/application/dto/CreatePostDto';
 import { randomUUID } from 'crypto';
 import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
@@ -64,11 +64,7 @@ export class Post {
   }
 
   createLikeStatus(userId: string, userLogin: string): PostLike {
-    return new PostLike({
-      postId: this.id,
-      userId,
-      userLogin,
-    });
+    return new PostLike(this.id, userId, userLogin);
   }
 
   updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {

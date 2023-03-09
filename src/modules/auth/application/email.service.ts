@@ -11,9 +11,9 @@ export class EmailService {
     const template = 'confirmation';
     await this.emailAdapter.sendEmail({ email, subject, code, template });
   }
-  sendEmailPasswordRecoveryMessage(email: string, code: string) {
+  async sendEmailPasswordRecoveryMessage(email: string, code: string) {
     const subject = `Password Recovery Message from ${this.apiConfigService.EMAIL_FROM}`;
     const template = 'passwordRecovery';
-    this.emailAdapter.sendEmail({ email, subject, code, template });
+    await this.emailAdapter.sendEmail({ email, subject, code, template });
   }
 }

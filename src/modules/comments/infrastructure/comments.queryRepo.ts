@@ -4,7 +4,7 @@ import { LikeStatus } from '../../../main/types/enums';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { FindCommentsForOwnBlogsDto } from './dto/FindCommentsForOwnBlogsDto';
-import { CommentViewModelBl } from '../api/models/CommentViewModel.Bl';
+import { CommentViewModelBl } from '../../blogger.blogs/api/models/CommentViewModel.Bl';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CommentFromDB } from './dto/CommentFromDB';

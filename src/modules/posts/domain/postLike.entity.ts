@@ -1,5 +1,4 @@
 import { LikeStatus } from '../../../main/types/enums';
-import { CreatePostLikeDto } from '../application/dto/CreatePostLikeDto';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 import { Post } from './post.entity';
@@ -25,10 +24,10 @@ export class PostLike {
   @ManyToOne(() => Post, { onDelete: 'CASCADE' })
   post: Post;
 
-  constructor({ ...dto }: CreatePostLikeDto) {
-    this.postId = dto.postId;
-    this.userId = dto.userId;
-    this.login = dto.userLogin;
+  constructor(postId: string, userId: string, userLogin: string) {
+    this.postId = postId;
+    this.userId = userId;
+    this.login = userLogin;
     this.likeStatus = LikeStatus.None;
     this.addedAt = new Date();
     this.isBanned = false;

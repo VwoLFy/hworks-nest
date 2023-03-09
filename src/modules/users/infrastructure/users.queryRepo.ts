@@ -1,21 +1,15 @@
 import { User } from '../domain/user.entity';
-import { UserViewModel } from '../api/models/UserViewModel';
-import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
+import { UserViewModel } from '../../sa.users/api/models/UserViewModel';
+import { FindUsersQueryModel } from '../../sa.users/api/models/FindUsersQueryModel';
 import { Injectable } from '@nestjs/common';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';
-import { FindBannedUsersForBlogQueryModel } from '../api/models/FindBannedUsersForBlogQueryModel';
-import { BannedUserForBlogViewModel } from '../api/models/BannedUserForBlogViewModel';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
 
 @Injectable()
 export class UsersQueryRepo {
-  constructor(
-    @InjectRepository(User) private readonly usersRepositoryT: Repository<User>,
-    @InjectRepository(BannedUserForBlog) private readonly bannedUsersForBlogRepositoryT: Repository<BannedUserForBlog>,
-  ) {}
+  constructor(@InjectRepository(User) private readonly usersRepositoryT: Repository<User>) {}
 
   async findUsers(dto: FindUsersQueryModel): Promise<PageViewModel<UserViewModel>> {
     const { banStatus, searchLoginTerm, searchEmailTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
@@ -59,32 +53,5 @@ export class UsersQueryRepo {
   async findUserById(id: string): Promise<UserViewModel> {
     const foundUser = await this.usersRepositoryT.findOne({ where: { id: id } });
     return new UserViewModel(foundUser);
-  }
-
-  async findBannedUsersForBlog(
-    blogId: string,
-    dto: FindBannedUsersForBlogQueryModel,
-  ): Promise<PageViewModel<BannedUserForBlogViewModel>> {
-    const { searchLoginTerm, pageNumber, pageSize, sortBy, sortDirection } = dto;
-
-    const [foundUsers, totalCount] = await this.bannedUsersForBlogRepositoryT.findAndCount({
-      where: { blogId: blogId, userLogin: ILike(`%${searchLoginTerm}%`) },
-      order: { [sortBy]: sortDirection },
-      skip: (pageNumber - 1) * pageSize,
-      take: pageSize,
-    });
-
-    const pagesCount = Math.ceil(totalCount / pageSize);
-
-    const items = foundUsers.map((u) => new BannedUserForBlogViewModel(u));
-    return new PageViewModel(
-      {
-        pagesCount,
-        pageNumber,
-        pageSize,
-        totalCount,
-      },
-      items,
-    );
   }
 }

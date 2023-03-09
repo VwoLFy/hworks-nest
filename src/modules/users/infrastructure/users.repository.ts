@@ -1,15 +1,11 @@
 import { User } from '../domain/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BannedUserForBlog } from '../domain/banned-user-for-blog.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @InjectRepository(User) private readonly usersRepositoryT: Repository<User>,
-    @InjectRepository(BannedUserForBlog) private readonly bannedUsersForBlogRepositoryT: Repository<BannedUserForBlog>,
-  ) {}
+  constructor(@InjectRepository(User) private readonly usersRepositoryT: Repository<User>) {}
 
   async findUserByLoginOrEmail(loginOrEmail: string): Promise<User | null> {
     const foundUser = await this.usersRepositoryT.findOne({
@@ -54,25 +50,5 @@ export class UsersRepository {
 
   async deleteAllUsers() {
     await this.usersRepositoryT.delete({});
-  }
-
-  async findBannedUserForBlog(blogId: string, userId: string): Promise<BannedUserForBlog | null> {
-    const foundBannedUser = await this.bannedUsersForBlogRepositoryT.findOne({
-      where: { userId: userId, blogId: blogId },
-    });
-
-    return foundBannedUser ?? null;
-  }
-
-  async saveBannedUserForBlog(bannedUserForBlog: BannedUserForBlog) {
-    await this.bannedUsersForBlogRepositoryT.save(bannedUserForBlog);
-  }
-
-  async deleteBannedUserForBlog(userId: string, blogId: string) {
-    await this.bannedUsersForBlogRepositoryT.delete({ blogId: blogId, userId: userId });
-  }
-
-  async deleteAllBannedUsersForBlogs() {
-    await this.bannedUsersForBlogRepositoryT.clear();
   }
 }

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersRepository } from '../src/modules/users/infrastructure/users.repository';
-import { CreateUserUseCase } from '../src/modules/users/application/use-cases/create-user-use-case';
+import { CreateUserUseCase } from '../src/modules/sa.users/application/use-cases/create-user-use-case';
 
 describe('Create user', () => {
   let createUserUseCase: CreateUserUseCase;

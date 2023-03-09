@@ -1,137 +1,24 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './_Test/app.controller';
-import { BlogsQueryRepo } from './modules/blogs/infrastructure/blogs.queryRepo';
-import { BlogsRepository } from './modules/blogs/infrastructure/blogs.repository';
-import { DeleteBlogUseCase } from './modules/blogs/application/use-cases/delete-blog-use-case';
-import { BlogsController } from './modules/blogs/api/blogs.controller';
-import { PostsQueryRepo } from './modules/posts/infrastructure/posts.queryRepo';
-import { PostsRepository } from './modules/posts/infrastructure/posts.repository';
-import { LikePostUseCase } from './modules/posts/application/use-cases/like-post-use-case';
-import { PostsController } from './modules/posts/api/posts.controller';
-import { CommentsQueryRepo } from './modules/comments/infrastructure/comments.queryRepo';
-import { CommentsRepository } from './modules/comments/infrastructure/comments.repository';
-import { CommentsController } from './modules/comments/api/comments.controller';
-import { UsersQueryRepo } from './modules/users/infrastructure/users.queryRepo';
-import { UsersRepository } from './modules/users/infrastructure/users.repository';
-import { CreateUserUseCase } from './modules/users/application/use-cases/create-user-use-case';
-import { UsersControllerSA } from './modules/users/api/sa.users.controller';
-import { DeleteAllController } from './modules/delete_all/delete-all.controller';
-import { AttemptsService } from './modules/auth/application/attempts.service';
-import { AttemptsRepository } from './modules/auth/infrastructure/attempts.repository';
-import { AuthService } from './modules/auth/application/auth.service';
-import { EmailService } from './modules/auth/application/email.service';
-import { ApiJwtService } from './modules/auth/application/api-jwt.service';
-import { PasswordRecoveryRepository } from './modules/auth/infrastructure/password-recovery.repository';
-import { AuthController } from './modules/auth/api/auth.controller';
-import { DeleteSessionsExceptCurrentUseCase } from './modules/security/application/use-cases/delete-sessions-except-current-use-case';
-import { SecurityRepository } from './modules/security/infrastructure/security.repository';
-import { SecurityQueryRepo } from './modules/security/infrastructure/security.queryRepo';
-import { SecurityController } from './modules/security/api/security.controller';
-import { JwtModule } from '@nestjs/jwt';
-import { IsBlogExistConstraint } from './main/decorators/is-blog-exist.decorator';
-import { IsFreeLoginOrEmailConstraint } from './main/decorators/is-free-login-or-email.decorator';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { EmailAdapter } from './modules/auth/infrastructure/email.adapter';
 import { ApiConfigService } from './main/configuration/api.config.service';
 import { ApiConfigModule } from './main/configuration/api.config.module';
 import { ConfigModule } from '@nestjs/config';
 import { configuration } from './main/configuration/configuration';
 import Joi from 'joi';
-import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './modules/auth/api/strategies/local.strategy';
-import { JwtStrategy } from './modules/auth/api/strategies/jwt.strategy';
-import { BasicStrategy } from './modules/auth/api/strategies/basic.strategy';
-import { CreateBlogUseCase } from './modules/blogs/application/use-cases/create-blog-use-case';
-import { UpdateBlogUseCase } from './modules/blogs/application/use-cases/update-blog-use-case';
-import { DeleteAllUseCase } from './modules/delete_all/delete-all-use-case';
-import { CreatePostUseCase } from './modules/posts/application/use-cases/create-post-use-case';
-import { UpdatePostUseCase } from './modules/posts/application/use-cases/update-post-use-case';
-import { DeletePostUseCase } from './modules/posts/application/use-cases/delete-post-use-case';
-import { CreateCommentUseCase } from './modules/comments/application/use-cases/create-comment-use-case';
-import { UpdateCommentUseCase } from './modules/comments/application/use-cases/update-comment-use-case';
-import { LikeCommentUseCase } from './modules/comments/application/use-cases/like-comment-use-case';
-import { DeleteCommentUseCase } from './modules/comments/application/use-cases/delete-comment-use-case';
-import { DeleteUserUseCase } from './modules/users/application/use-cases/delete-user-use-case';
-import { ChangePasswordUseCase } from './modules/auth/application/use-cases/change-password-use-case';
-import { ConfirmEmailUseCase } from './modules/auth/application/use-cases/confirm-email-use-case';
-import { LoginUserUseCase } from './modules/auth/application/use-cases/login-user-use-case';
-import { DeleteSessionUseCase } from './modules/security/application/use-cases/delete-session-use-case';
-import { RegisterUserUseCase } from './modules/auth/application/use-cases/register-user-use-case';
-import { ResendRegistrationEmailUseCase } from './modules/auth/application/use-cases/resend-registration-email-use-case';
-import { SendPasswordRecoveryEmailUseCase } from './modules/auth/application/use-cases/send-password-recovery-email-use-case';
-import { GenerateNewTokensUseCase } from './modules/auth/application/use-cases/generate-new-tokens-use-case';
-import { SecurityService } from './modules/security/application/security.service';
-import { CqrsModule } from '@nestjs/cqrs';
-import { BanUserUseCase } from './modules/users/application/use-cases/ban-user-use-case';
-import { BlogsControllerBl } from './modules/blogs/api/blogger.blogs.controller';
-import { BlogsControllerSA } from './modules/blogs/api/sa.blogs.controller';
-import { BindBlogWithUserUseCase } from './modules/blogs/application/use-cases/bind-blog-with-user-use-case';
-import { CommentsService } from './modules/comments/application/comments.service';
-import { PostsService } from './modules/posts/application/posts.service';
-import { BanBlogUseCase } from './modules/blogs/application/use-cases/ban-blog-use-case';
-import { BanUserForBlogByBloggerUseCase } from './modules/users/application/use-cases/ban-user-for-blog-by-blogger-use-case';
-import { UsersControllerBl } from './modules/users/api/blogger.users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './modules/users/domain/user.entity';
-import { BanInfo } from './modules/users/domain/user.ban-info.entity';
-import { AccountData } from './modules/users/domain/user.account-data.entity';
-import { EmailConfirmation } from './modules/users/domain/user.email-confirmation.entity';
-import { AttemptsData } from './modules/auth/domain/attempts.entity';
-import { Session } from './modules/security/domain/session.entity';
-import { PasswordRecovery } from './modules/auth/domain/password-recovery.entity';
-import { Blog } from './modules/blogs/domain/blog.entity';
-import { BannedUserForBlog } from './modules/users/domain/banned-user-for-blog.entity';
-import { Post } from './modules/posts/domain/post.entity';
-import { PostLike } from './modules/posts/domain/postLike.entity';
-import { CommentLike } from './modules/comments/domain/commentLike.entity';
-import { Comment } from './modules/comments/domain/comment.entity';
-
-const useCases = [
-  DeleteAllUseCase,
-  CreateBlogUseCase,
-  UpdateBlogUseCase,
-  DeleteBlogUseCase,
-  CreatePostUseCase,
-  UpdatePostUseCase,
-  DeletePostUseCase,
-  LikePostUseCase,
-  CreateCommentUseCase,
-  UpdateCommentUseCase,
-  LikeCommentUseCase,
-  DeleteCommentUseCase,
-  CreateUserUseCase,
-  DeleteUserUseCase,
-  ChangePasswordUseCase,
-  ConfirmEmailUseCase,
-  RegisterUserUseCase,
-  ResendRegistrationEmailUseCase,
-  SendPasswordRecoveryEmailUseCase,
-  LoginUserUseCase,
-  DeleteSessionUseCase,
-  DeleteSessionsExceptCurrentUseCase,
-  GenerateNewTokensUseCase,
-  BanUserUseCase,
-  BindBlogWithUserUseCase,
-  BanBlogUseCase,
-  BanUserForBlogByBloggerUseCase,
-];
-
-const entities = [
-  User,
-  BanInfo,
-  AccountData,
-  EmailConfirmation,
-  AttemptsData,
-  Session,
-  PasswordRecovery,
-  Blog,
-  BannedUserForBlog,
-  Post,
-  PostLike,
-  CommentLike,
-  Comment,
-];
+import { UsersModule } from './modules/users/users.module';
+import { BlogsModule } from './modules/blogs/blogs.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { BloggerUsersModule } from './modules/blogger.users/blogger.users.module';
+import { DeleteAllModule } from './modules/delete-all/delete-all.module';
+import { SaUsersModule } from './modules/sa.users/sa.users.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { PostsModule } from './modules/posts/posts.module';
+import { SaBlogsModule } from './modules/sa.blogs/sa.blogs.module';
+import { PublicBlogsModule } from './modules/public.blogs/public.blogs.module';
+import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module';
 
 @Module({
   imports: [
@@ -178,7 +65,6 @@ const entities = [
         };
       },
     }),
-    TypeOrmModule.forFeature(entities),
     MailerModule.forRootAsync({
       imports: [ApiConfigModule],
       inject: [ApiConfigService],
@@ -206,60 +92,20 @@ const entities = [
         };
       },
     }),
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ApiConfigModule],
-      inject: [ApiConfigService],
-      useFactory: (apiConfigService: ApiConfigService) => {
-        return {
-          secret: apiConfigService.JWT_SECRET_FOR_ACCESSTOKEN,
-          signOptions: { expiresIn: apiConfigService.EXPIRES_IN_TIME_OF_ACCESSTOKEN },
-        };
-      },
-    }),
-    CqrsModule,
+    BlogsModule,
+    UsersModule,
+    AuthModule,
+    BloggerUsersModule,
+    DeleteAllModule,
+    SaUsersModule,
+    CommentsModule,
+    PostsModule,
+    SaBlogsModule,
+    PublicBlogsModule,
+    BloggerBlogsModule,
   ],
-  controllers: [
-    AppController,
-    BlogsController,
-    BlogsControllerBl,
-    BlogsControllerSA,
-    PostsController,
-    CommentsController,
-    UsersControllerSA,
-    UsersControllerBl,
-    DeleteAllController,
-    AuthController,
-    SecurityController,
-  ],
-  providers: [
-    BasicStrategy,
-    LocalStrategy,
-    JwtStrategy,
-    IsBlogExistConstraint,
-    IsFreeLoginOrEmailConstraint,
-    BlogsQueryRepo,
-    BlogsRepository,
-    PostsService,
-    PostsQueryRepo,
-    PostsRepository,
-    CommentsService,
-    CommentsQueryRepo,
-    CommentsRepository,
-    UsersQueryRepo,
-    UsersRepository,
-    AttemptsRepository,
-    AuthService,
-    ApiJwtService,
-    EmailService,
-    EmailAdapter,
-    PasswordRecoveryRepository,
-    SecurityRepository,
-    SecurityQueryRepo,
-    SecurityService,
-    ApiConfigService,
-    AttemptsService,
-    ...useCases,
-  ],
+  controllers: [AppController],
+  providers: [],
+  exports: [],
 })
 export class AppModule {}

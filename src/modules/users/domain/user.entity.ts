@@ -1,6 +1,6 @@
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
-import { BanUserDto } from '../application/dto/BanUserDto';
+import { BanUserDto } from '../../sa.users/application/dto/BanUserDto';
 import { Entity, OneToOne, PrimaryColumn } from 'typeorm';
 import { BanInfo } from './user.ban-info.entity';
 import { EmailConfirmation } from './user.email-confirmation.entity';

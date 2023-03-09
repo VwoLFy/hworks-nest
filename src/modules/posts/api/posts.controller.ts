@@ -22,11 +22,11 @@ import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
 import { findPostsQueryPipe } from './models/FindPostsQueryPipe';
-import { findCommentsQueryPipe } from '../../comments/api/models/FindCommentsQueryPipe';
+import { findCommentsQueryPipe } from './models/FindCommentsQueryPipe';
 import { UserId } from '../../../main/decorators/user.decorator';
 import { GetUserIdGuard } from '../../../main/guards/get-user-id.guard';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
-import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment-use-case';
+import { CreateCommentCommand } from '../application/use-cases/create-comment-use-case';
 import { CommandBus } from '@nestjs/cqrs';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 

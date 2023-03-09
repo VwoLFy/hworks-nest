@@ -3,17 +3,17 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
-import { BlogViewModel } from '../src/modules/blogs/api/models/BlogViewModel';
+import { BlogViewModel } from '../src/modules/public.blogs/api/models/BlogViewModel';
 import { PostViewModel } from '../src/modules/posts/api/models/PostViewModel';
-import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
+import { UserViewModel } from '../src/modules/sa.users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';
-import { BlogViewModelSA } from '../src/modules/blogs/api/models/BlogViewModelSA';
+import { BlogViewModelSA } from '../src/modules/sa.blogs/api/models/BlogViewModelSA';
 import { EmailAdapter } from '../src/modules/auth/infrastructure/email.adapter';
 import { EmailService } from '../src/modules/auth/application/email.service';
 import { appConfig } from '../src/app.config';
-import { CommentViewModelBl } from '../src/modules/comments/api/models/CommentViewModel.Bl';
+import { CommentViewModelBl } from '../src/modules/blogger.blogs/api/models/CommentViewModel.Bl';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({

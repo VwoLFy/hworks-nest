@@ -1,8 +1,8 @@
-import { FindBlogsQueryModel } from '../api/models/FindBlogsQueryModel';
-import { BlogViewModel } from '../api/models/BlogViewModel';
+import { FindBlogsQueryModel } from '../../public.blogs/api/models/FindBlogsQueryModel';
+import { BlogViewModel } from '../../public.blogs/api/models/BlogViewModel';
 import { Injectable } from '@nestjs/common';
 import { PageViewModel } from '../../../main/types/PageViewModel';
-import { BlogViewModelSA } from '../api/models/BlogViewModelSA';
+import { BlogViewModelSA } from '../../sa.blogs/api/models/BlogViewModelSA';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
