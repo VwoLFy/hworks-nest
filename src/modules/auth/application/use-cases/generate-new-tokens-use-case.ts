@@ -1,4 +1,4 @@
-import { ApiJwtService } from '../api-jwt.service';
+import { ApiJwtService } from '../../../api-jwt/api-jwt.service';
 import { TokensType } from '../types/types';
 import { SessionDto } from '../../../security/application/dto/SessionDto';
 import { SecurityService } from '../../../security/application/security.service';

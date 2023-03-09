@@ -1,25 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiConfigService } from '../../../main/configuration/api.config.service';
-import { AccessTokenDataType, TokensType } from './types/types';
-import { SessionDto } from '../../security/application/dto/SessionDto';
-import { SecurityService } from '../../security/application/security.service';
+import { ApiConfigService } from '../../main/configuration/api.config.service';
+import { AccessTokenDataType, TokensType } from '../auth/application/types/types';
+import { SessionDto } from '../security/application/dto/SessionDto';
 
 @Injectable()
 export class ApiJwtService {
-  constructor(
-    protected securityService: SecurityService,
-    private jwtService: JwtService,
-    private apiConfigService: ApiConfigService,
-  ) {}
+  constructor(private jwtService: JwtService, private apiConfigService: ApiConfigService) {}
 
-  async createJWT(userId: string, deviceId: string | null): Promise<TokensType> {
+  async createJWT(userId: string, deviceId: string): Promise<TokensType> {
     const secretRT = this.apiConfigService.JWT_SECRET_FOR_REFRESHTOKEN;
     const expiresInRT = this.apiConfigService.EXPIRES_IN_TIME_OF_REFRESHTOKEN;
 
     const accessToken = this.jwtService.sign({ userId });
-
-    deviceId = deviceId ? deviceId : await this.securityService.newDeviceId();
     const refreshToken = this.jwtService.sign({ userId, deviceId }, { secret: secretRT, expiresIn: expiresInRT });
 
     return { accessToken, refreshToken };
@@ -41,13 +34,5 @@ export class ApiJwtService {
     } catch (e) {
       return null;
     }
-  }
-
-  async getDataIfSessionIsActive(refreshToken: string): Promise<SessionDto | null> {
-    const sessionData = await this.getRefreshTokenData(refreshToken);
-    if (!sessionData) return null;
-
-    const isActiveSession = await this.securityService.isActiveSession(sessionData);
-    return isActiveSession ? sessionData : null;
   }
 }

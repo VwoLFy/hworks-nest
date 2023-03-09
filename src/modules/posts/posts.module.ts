@@ -12,7 +12,7 @@ import { UsersModule } from '../users/users.module';
 import { CreateCommentUseCase } from './application/use-cases/create-comment-use-case';
 import { BloggerUsersModule } from '../blogger.users/blogger.users.module';
 import { CommentsModule } from '../comments/comments.module';
-import { AuthModule } from '../auth/auth.module';
+import { ApiJwtModule } from '../api-jwt/api-jwt.module';
 
 const useCases = [LikePostUseCase, CreateCommentUseCase];
 
@@ -25,7 +25,7 @@ const entities = [Post, PostLike];
     BloggerUsersModule,
     UsersModule,
     CommentsModule,
-    AuthModule,
+    ApiJwtModule,
   ],
   controllers: [PostsController],
   providers: [PostsService, PostsQueryRepo, PostsRepository, ...useCases],

@@ -1,4 +1,4 @@
-import { ApiJwtService } from '../api-jwt.service';
+import { ApiJwtService } from '../../../api-jwt/api-jwt.service';
 import { TokensType } from '../types/types';
 import { SecurityService } from '../../../security/application/security.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
@@ -14,7 +14,9 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
   async execute(command: LoginUserCommand): Promise<TokensType> {
     const { userId, title, ip } = command;
 
-    const tokens = await this.apiJwtService.createJWT(userId, null);
+    const deviceId = await this.securityService.newDeviceId();
+
+    const tokens = await this.apiJwtService.createJWT(userId, deviceId);
     const refreshTokenData = await this.apiJwtService.getRefreshTokenData(tokens.refreshToken);
 
     await this.securityService.createSession({ ...refreshTokenData, ip, title });

@@ -12,14 +12,14 @@ import { DeleteCommentUseCase } from './application/use-cases/delete-comment-use
 import { Module } from '@nestjs/common';
 import { Comment } from './domain/comment.entity';
 import { Post } from '../posts/domain/post.entity';
-import { AuthModule } from '../auth/auth.module';
+import { ApiJwtModule } from '../api-jwt/api-jwt.module';
 
 const useCases = [UpdateCommentUseCase, LikeCommentUseCase, DeleteCommentUseCase];
 
 const entities = [Comment, CommentLike, Post];
 
 @Module({
-  imports: [TypeOrmModule.forFeature(entities), CqrsModule, UsersModule, AuthModule],
+  imports: [TypeOrmModule.forFeature(entities), CqrsModule, UsersModule, ApiJwtModule],
   controllers: [CommentsController],
   providers: [CommentsService, CommentsQueryRepo, CommentsRepository, ...useCases],
   exports: [CommentsService, CommentsRepository, CommentsQueryRepo],

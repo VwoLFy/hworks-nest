@@ -8,9 +8,19 @@ import { BloggerUsersModule } from '../blogger.users/blogger.users.module';
 import { AuthModule } from '../auth/auth.module';
 import { CommentsModule } from '../comments/comments.module';
 import { PostsModule } from '../posts/posts.module';
+import { SecurityModule } from '../security/security.module';
 
 @Module({
-  imports: [CqrsModule, BlogsModule, UsersModule, BloggerUsersModule, AuthModule, CommentsModule, PostsModule],
+  imports: [
+    CqrsModule,
+    BlogsModule,
+    UsersModule,
+    BloggerUsersModule,
+    AuthModule,
+    CommentsModule,
+    PostsModule,
+    SecurityModule,
+  ],
   controllers: [DeleteAllController],
   providers: [DeleteAllUseCase],
 })

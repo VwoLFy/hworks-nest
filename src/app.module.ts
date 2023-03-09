@@ -19,6 +19,8 @@ import { PostsModule } from './modules/posts/posts.module';
 import { SaBlogsModule } from './modules/sa.blogs/sa.blogs.module';
 import { PublicBlogsModule } from './modules/public.blogs/public.blogs.module';
 import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module';
+import { ApiJwtModule } from './modules/api-jwt/api-jwt.module';
+import { SecurityModule } from './modules/security/security.module';
 
 @Module({
   imports: [
@@ -103,6 +105,8 @@ import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module
     SaBlogsModule,
     PublicBlogsModule,
     BloggerBlogsModule,
+    ApiJwtModule,
+    SecurityModule,
   ],
   controllers: [AppController],
   providers: [],
