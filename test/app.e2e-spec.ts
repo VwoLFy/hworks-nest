@@ -14,6 +14,8 @@ import { EmailAdapter } from '../src/modules/auth/infrastructure/email.adapter';
 import { EmailService } from '../src/modules/auth/application/email.service';
 import { appConfig } from '../src/app.config';
 import { CommentViewModelBl } from '../src/modules/blogger.blogs/api/models/CommentViewModel.Bl';
+import { Comment } from '../src/modules/comments/domain/comment.entity';
+import { PageViewModel } from '../src/main/types/PageViewModel';
 
 const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
   expect(apiErrorResult).toEqual({
@@ -32,10 +34,23 @@ const delay = async (delay = 1000) => {
     }, delay);
   });
 };
+let app: INestApplication;
+async function createComments(postId: string, token: LoginSuccessViewModel, commentsCount: number): Promise<Comment[]> {
+  const comment: Comment[] = [];
+  for (let i = 1; i <= commentsCount; i++) {
+    const resultComment = await request(app.getHttpServer())
+      .post(`/posts/${postId}/comments`)
+      .auth(token.accessToken, { type: 'bearer' })
+      .send({
+        content: `valid comment for post:${postId} N${i}`,
+      })
+      .expect(HTTP_Status.CREATED_201);
+    comment.push(resultComment.body);
+  }
+  return comment;
+}
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication;
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -5843,5 +5858,205 @@ describe('AppController (e2e)', () => {
         ],
       });
     });
+  });
+
+  describe.skip('test ban comment likes', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    let user: UserViewModel;
+    let token: LoginSuccessViewModel;
+    let post: PostViewModel;
+    let blog: BlogViewModel;
+    const commentsCount = 1000;
+
+    it('create blog, post, user, "commentsCount" comments, "commentsCount" likes', async () => {
+      const resultUser = await request(app.getHttpServer())
+        .post('/sa/users')
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          login: 'login',
+          password: 'password',
+          email: 'string@sdf.ee',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      user = resultUser.body;
+
+      const resultToken = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: 'login',
+          password: 'password',
+        })
+        .expect(HTTP_Status.OK_200);
+      token = resultToken.body;
+
+      const resultBlog = await request(app.getHttpServer())
+        .post('/blogger/blogs')
+        .auth(token.accessToken, { type: 'bearer' })
+        .send({
+          name: 'blogName',
+          description: 'description',
+          websiteUrl: ' https://localhost1.uuu/blogs  ',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      blog = resultBlog.body;
+
+      const resultPost = await request(app.getHttpServer())
+        .post(`/blogger/blogs/${blog.id}/posts`)
+        .auth(token.accessToken, { type: 'bearer' })
+        .send({
+          title: 'valid',
+          content: 'valid',
+          shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      post = resultPost.body;
+      console.time('comments');
+      const comments = await createComments(post.id, token, commentsCount);
+      console.timeEnd('comments');
+      console.time('commentLikes');
+
+      for (const comment of comments) {
+        await request(app.getHttpServer())
+          .put(`/comments/${comment.id}/like-status`)
+          .auth(token.accessToken, { type: 'bearer' })
+          .send({ likeStatus: 'Like' })
+          .expect(HTTP_Status.NO_CONTENT_204);
+      }
+      console.timeEnd('commentLikes');
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(commentsCount);
+      expect(commentsResult.items[0].likesInfo.likesCount).toBe(1);
+    }, 100000);
+    it('ban user', async () => {
+      console.time('ban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('ban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(0);
+    }, 100000);
+    it('ban user -2', async () => {
+      console.time('ban2');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('ban2');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(0);
+    }, 100000);
+    it('unban user', async () => {
+      console.time('unban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('unban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(commentsCount);
+    }, 100000);
+    it('2ban user', async () => {
+      console.time('ban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('ban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(0);
+    }, 100000);
+    it('2unban user', async () => {
+      console.time('unban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('unban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(commentsCount);
+    }, 100000);
+    it('3ban user', async () => {
+      console.time('ban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: true,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('ban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(0);
+    }, 100000);
+    it('3unban user', async () => {
+      console.time('unban');
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+      console.timeEnd('unban');
+
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+
+      expect(commentsResult.totalCount).toBe(commentsCount);
+    }, 100000);
   });
 });

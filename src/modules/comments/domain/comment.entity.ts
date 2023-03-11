@@ -30,7 +30,7 @@ export class Comment {
   user: User;
   @ManyToOne(() => Post)
   post: Post;
-  @OneToMany(() => CommentLike, (cl) => cl.commentId)
+  @OneToMany(() => CommentLike, (cl) => cl.comment)
   commentLikes: CommentLike[];
 
   constructor({ ...dto }: CreateCommentEntityDto) {
@@ -60,20 +60,28 @@ export class Comment {
     return new CommentLike(this.id, userId);
   }
 
-  updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
-    if (likeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
+  updateLikesCount(newLikeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
+    if (newLikeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
       this.likesCount += 1;
-    } else if (likeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
+    } else if (newLikeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
       this.dislikesCount += 1;
     }
-    if (likeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
+    if (newLikeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
       this.likesCount -= 1;
-    } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
+    } else if (newLikeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
       this.dislikesCount -= 1;
     }
   }
 
   updateComment(content: string) {
     this.content = content;
+  }
+
+  updateLikesCountAfterBan(isBanned: boolean, likeStatus: LikeStatus) {
+    if (isBanned) {
+      this.updateLikesCount(LikeStatus.None, likeStatus);
+    } else {
+      this.updateLikesCount(likeStatus, LikeStatus.None);
+    }
   }
 }

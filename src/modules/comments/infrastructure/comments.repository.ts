@@ -30,8 +30,8 @@ export class CommentsRepository {
     await this.commentRepositoryT.delete({ id: commentId });
   }
 
-  async findUserCommentLikes(userId: string): Promise<CommentLike[]> {
-    return await this.commentLikeRepositoryT.find({ where: { userId: userId } });
+  async findUserCommentLikesWithComment(userId: string): Promise<CommentLike[]> {
+    return await this.commentLikeRepositoryT.find({ relations: { comment: true }, where: { userId: userId } });
   }
 
   async updateBanOnUserCommentsLikes(userId: string, isBanned: boolean) {

@@ -52,7 +52,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @UserId() userId: string,
   ): Promise<LoginSuccessViewModel> {
-    const { accessToken, refreshToken } = await this.commandBus.execute(new LoginUserCommand(userId, ip, title));
+    const { accessToken, refreshToken } = await this.commandBus.execute(new LoginUserCommand({ userId, ip, title }));
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     return { accessToken };
@@ -84,7 +84,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginSuccessViewModel> {
     const { accessToken, refreshToken } = await this.commandBus.execute(
-      new GenerateNewTokensCommand(sessionData, ip, title),
+      new GenerateNewTokensCommand({ oldSessionData: sessionData, ip, title }),
     );
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });

@@ -4,7 +4,6 @@ import { LikePostUseCase } from './application/use-cases/like-post-use-case';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PostsController } from './api/posts.controller';
 import { PostsQueryRepo } from './infrastructure/posts.queryRepo';
-import { PostsService } from './application/posts.service';
 import { PostsRepository } from './infrastructure/posts.repository';
 import { Post } from './domain/post.entity';
 import { Module } from '@nestjs/common';
@@ -28,7 +27,7 @@ const entities = [Post, PostLike];
     ApiJwtModule,
   ],
   controllers: [PostsController],
-  providers: [PostsService, PostsQueryRepo, PostsRepository, ...useCases],
-  exports: [PostsService, PostsQueryRepo, PostsRepository],
+  providers: [PostsQueryRepo, PostsRepository, ...useCases],
+  exports: [PostsQueryRepo, PostsRepository],
 })
 export class PostsModule {}

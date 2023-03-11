@@ -79,4 +79,12 @@ export class Post {
       this.dislikesCount -= 1;
     }
   }
+
+  updateLikesCountAfterBan(isBanned: boolean, likeStatus: LikeStatus) {
+    if (isBanned) {
+      this.updateLikesCount(LikeStatus.None, likeStatus);
+    } else {
+      this.updateLikesCount(likeStatus, LikeStatus.None);
+    }
+  }
 }

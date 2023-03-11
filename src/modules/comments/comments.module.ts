@@ -6,7 +6,6 @@ import { CommentsController } from './api/comments.controller';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdateCommentUseCase } from './application/use-cases/update-comment-use-case';
 import { CommentLike } from './domain/commentLike.entity';
-import { CommentsService } from './application/comments.service';
 import { CommentsQueryRepo } from './infrastructure/comments.queryRepo';
 import { DeleteCommentUseCase } from './application/use-cases/delete-comment-use-case';
 import { Module } from '@nestjs/common';
@@ -21,7 +20,7 @@ const entities = [Comment, CommentLike, Post];
 @Module({
   imports: [TypeOrmModule.forFeature(entities), CqrsModule, UsersModule, ApiJwtModule],
   controllers: [CommentsController],
-  providers: [CommentsService, CommentsQueryRepo, CommentsRepository, ...useCases],
-  exports: [CommentsService, CommentsRepository, CommentsQueryRepo],
+  providers: [CommentsQueryRepo, CommentsRepository, ...useCases],
+  exports: [CommentsRepository, CommentsQueryRepo],
 })
 export class CommentsModule {}

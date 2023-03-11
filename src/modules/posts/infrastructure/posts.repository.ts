@@ -33,8 +33,8 @@ export class PostsRepository {
     });
   }
 
-  async findUserPostLikes(userId: string): Promise<PostLike[]> {
-    return await this.postLikeRepositoryT.find({ where: { userId: userId } });
+  async findUserPostLikesWithPost(userId: string): Promise<PostLike[]> {
+    return await this.postLikeRepositoryT.find({ relations: { post: true }, where: { userId: userId } });
   }
 
   async updateBanOnUserPostsLikes(userId: string, isBanned: boolean) {
