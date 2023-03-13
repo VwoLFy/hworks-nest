@@ -21,6 +21,7 @@ import { PublicBlogsModule } from './modules/public.blogs/public.blogs.module';
 import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module';
 import { ApiJwtModule } from './modules/api-jwt/api-jwt.module';
 import { SecurityModule } from './modules/security/security.module';
+import { SaQuizModule } from './modules/sa.quiz/sa.quiz.module';
 
 @Module({
   imports: [
@@ -107,6 +108,7 @@ import { SecurityModule } from './modules/security/security.module';
     BloggerBlogsModule,
     ApiJwtModule,
     SecurityModule,
+    SaQuizModule,
   ],
   controllers: [AppController],
   providers: [],

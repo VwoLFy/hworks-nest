@@ -4,10 +4,10 @@ import { BanStatuses } from '../../../../main/types/enums';
 
 export class FindUsersQueryModel extends BasicQueryModel {
   @IsOptional()
-  searchLoginTerm;
+  searchLoginTerm: string;
 
   @IsOptional()
-  searchEmailTerm;
+  searchEmailTerm: string;
 
   @IsOptional()
   banStatus: BanStatuses;

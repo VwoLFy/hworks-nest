@@ -16,8 +16,13 @@ import { appConfig } from '../src/app.config';
 import { CommentViewModelBl } from '../src/modules/blogger.blogs/api/models/CommentViewModel.Bl';
 import { Comment } from '../src/modules/comments/domain/comment.entity';
 import { PageViewModel } from '../src/main/types/PageViewModel';
+import { CreateQuestionDto } from '../src/modules/sa.quiz/application/dto/CreateQuestionDto';
+import { QuestionViewModel } from '../src/modules/sa.quiz/api/models/QuestionViewModel';
 
-const checkError = (apiErrorResult: { message: string; field: string }, field: string) => {
+type BadRequestError = {
+  errorsMessages: { message: string; field: string }[];
+};
+const checkBadRequestError = (apiErrorResult: BadRequestError, field: string) => {
   expect(apiErrorResult).toEqual({
     errorsMessages: [
       {
@@ -48,6 +53,28 @@ async function createComments(postId: string, token: LoginSuccessViewModel, comm
     comment.push(resultComment.body);
   }
   return comment;
+}
+
+async function createQuestion(body: CreateQuestionDto): Promise<QuestionViewModel> {
+  const result = await request(app.getHttpServer())
+    .post(`/sa/quiz/questions`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(body)
+    .expect(HTTP_Status.CREATED_201);
+
+  return result.body;
+}
+
+async function createQuestion400(body: CreateQuestionDto, field: string): Promise<BadRequestError> {
+  const result = await request(app.getHttpServer())
+    .post(`/sa/quiz/questions`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(body)
+    .expect(HTTP_Status.BAD_REQUEST_400);
+
+  const error: BadRequestError = result.body;
+  checkBadRequestError(error, field);
+  return error;
 }
 
 describe('AppController (e2e)', () => {
@@ -3058,7 +3085,7 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'bad content' })
         .expect(HTTP_Status.BAD_REQUEST_400);
-      checkError(result.body, 'content');
+      checkBadRequestError(result.body, 'content');
 
       result = await request(app.getHttpServer())
         .post(`/posts/${post1ForBlog1.id}/comments`)
@@ -3068,7 +3095,7 @@ describe('AppController (e2e)', () => {
             'bad content11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
-      checkError(result.body, 'content');
+      checkBadRequestError(result.body, 'content');
 
       await request(app.getHttpServer())
         .post(`/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478/comments`)
@@ -6072,5 +6099,151 @@ describe('AppController (e2e)', () => {
 
       expect(commentsResult.totalCount).toBe(commentsCount);
     }, 100000);
+  });
+
+  describe('quiz questions', () => {
+    beforeAll(async () => {
+      await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('get questions error 401 if admin Unauthorized ', async () => {
+      await request(app.getHttpServer())
+        .get(`/sa/quiz/questions?bodySearchTerm=vvv`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('get questions', async () => {
+      let result = await request(app.getHttpServer())
+        .get(`/sa/quiz/questions?bodySearchTerm=vvv`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        page: 1,
+        pagesCount: 0,
+        pageSize: 10,
+        totalCount: 0,
+        items: [
+          {
+            id: 'string',
+            body: 'string',
+            correctAnswers: ['string'],
+            published: true,
+            createdAt: 'string',
+            updatedAt: 'string',
+          },
+        ],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/sa/quiz/questions?pageNumber=3&pageSize=5&publishedStatus=published`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+
+      expect(result.body).toEqual({
+        page: 3,
+        pagesCount: 0,
+        pageSize: 5,
+        totalCount: 0,
+        items: [
+          {
+            id: 'string',
+            body: 'string',
+            correctAnswers: ['string'],
+            published: true,
+            createdAt: 'string',
+            updatedAt: 'string',
+          },
+        ],
+      });
+
+      result = await request(app.getHttpServer())
+        .get(`/sa/quiz/questions?pageNumber=asd&pageSize=fsa&publishedStatus=notPublished`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.OK_200);
+      expect(result.body).toEqual({
+        page: 1,
+        pagesCount: 0,
+        pageSize: 10,
+        totalCount: 0,
+        items: [
+          {
+            id: 'string',
+            body: 'string',
+            correctAnswers: ['string'],
+            published: true,
+            createdAt: 'string',
+            updatedAt: 'string',
+          },
+        ],
+      });
+    });
+    it('shouldn`t create question if admin Unauthorized', async () => {
+      await request(app.getHttpServer())
+        .post(`/sa/quiz/questions`)
+        .send({
+          body: 'string12345',
+          correctAnswers: ['1'],
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('shouldn`t create question with bad data', async () => {
+      let body;
+      body = {
+        body: 'bad str',
+        correctAnswers: ['1'],
+      };
+      await createQuestion400(body, 'body');
+
+      body.body = '               bad str';
+      await createQuestion400(body, 'body');
+
+      delete body.body;
+      await createQuestion400(body, 'body');
+
+      body.body = 1;
+      await createQuestion400(body, 'body');
+
+      body.body = 'a'.repeat(501);
+      await createQuestion400(body, 'body');
+
+      body = {
+        body: 'valid body',
+        correctAnswers: 1,
+      };
+      await createQuestion400(body, 'correctAnswers');
+
+      delete body.correctAnswers;
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = '1';
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = ['       '];
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [true];
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = null;
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [null];
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [];
+      await createQuestion400(body, 'correctAnswers');
+    });
+    it('create question', async () => {
+      const body = {
+        body: 'string12345',
+        correctAnswers: [1, 'one', '    two    '],
+      };
+      const bodyAfterTrim = {
+        body: 'string12345',
+        correctAnswers: [1, 'one', 'two'],
+      };
+
+      const question = await createQuestion(body);
+      expect(question).toEqual(bodyAfterTrim);
+    });
   });
 });
