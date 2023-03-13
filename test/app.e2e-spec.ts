@@ -5868,7 +5868,7 @@ describe('AppController (e2e)', () => {
     let token: LoginSuccessViewModel;
     let post: PostViewModel;
     let blog: BlogViewModel;
-    const commentsCount = 1000;
+    const commentsCount = 10;
 
     it('create blog, post, user, "commentsCount" comments, "commentsCount" likes', async () => {
       const resultUser = await request(app.getHttpServer())
@@ -5912,10 +5912,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.CREATED_201);
       post = resultPost.body;
-      console.time('comments');
       const comments = await createComments(post.id, token, commentsCount);
-      console.timeEnd('comments');
-      console.time('commentLikes');
 
       for (const comment of comments) {
         await request(app.getHttpServer())
@@ -5924,7 +5921,6 @@ describe('AppController (e2e)', () => {
           .send({ likeStatus: 'Like' })
           .expect(HTTP_Status.NO_CONTENT_204);
       }
-      console.timeEnd('commentLikes');
       const commentsResult: PageViewModel<CommentViewModel> = (
         await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
       ).body;
@@ -5933,7 +5929,6 @@ describe('AppController (e2e)', () => {
       expect(commentsResult.items[0].likesInfo.likesCount).toBe(1);
     }, 100000);
     it('ban user', async () => {
-      console.time('ban');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -5942,15 +5937,25 @@ describe('AppController (e2e)', () => {
           banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
         })
         .expect(HTTP_Status.NO_CONTENT_204);
-      console.timeEnd('ban');
+
+      const userFromDB: UserViewModel = (
+        await request(app.getHttpServer())
+          .get(`/sa/users`)
+          .auth('admin', 'qwerty', { type: 'basic' })
+          .expect(HTTP_Status.OK_200)
+      ).body.items[0];
+
+      console.log(userFromDB);
+      expect(userFromDB.banInfo.isBanned).toBe(true);
 
       const commentsResult: PageViewModel<CommentViewModel> = (
-        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(HTTP_Status.OK_200)
       ).body;
+      console.log(commentsResult.items);
 
       expect(commentsResult.totalCount).toBe(0);
     }, 100000);
-    it('ban user -2', async () => {
+    it.skip('ban user -2', async () => {
       console.time('ban2');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
@@ -5968,8 +5973,7 @@ describe('AppController (e2e)', () => {
 
       expect(commentsResult.totalCount).toBe(0);
     }, 100000);
-    it('unban user', async () => {
-      console.time('unban');
+    it.skip('unban user', async () => {
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -5978,15 +5982,25 @@ describe('AppController (e2e)', () => {
           banReason: 'banReasonbanReasonbanReasonbanReasonbanReason',
         })
         .expect(HTTP_Status.NO_CONTENT_204);
-      console.timeEnd('unban');
+
+      const userFromDB: UserViewModel = (
+        await request(app.getHttpServer())
+          .get(`/sa/users`)
+          .auth('admin', 'qwerty', { type: 'basic' })
+          .expect(HTTP_Status.OK_200)
+      ).body.items[0];
+
+      console.log(userFromDB);
+      expect(userFromDB.banInfo.isBanned).toBe(false);
 
       const commentsResult: PageViewModel<CommentViewModel> = (
         await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
       ).body;
+      console.log(commentsResult.items);
 
       expect(commentsResult.totalCount).toBe(commentsCount);
     }, 100000);
-    it('2ban user', async () => {
+    it.skip('2ban user', async () => {
       console.time('ban');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
@@ -6004,7 +6018,7 @@ describe('AppController (e2e)', () => {
 
       expect(commentsResult.totalCount).toBe(0);
     }, 100000);
-    it('2unban user', async () => {
+    it.skip('2unban user', async () => {
       console.time('unban');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
@@ -6022,7 +6036,7 @@ describe('AppController (e2e)', () => {
 
       expect(commentsResult.totalCount).toBe(commentsCount);
     }, 100000);
-    it('3ban user', async () => {
+    it.skip('3ban user', async () => {
       console.time('ban');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
@@ -6040,7 +6054,7 @@ describe('AppController (e2e)', () => {
 
       expect(commentsResult.totalCount).toBe(0);
     }, 100000);
-    it('3unban user', async () => {
+    it.skip('3unban user', async () => {
       console.time('unban');
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)

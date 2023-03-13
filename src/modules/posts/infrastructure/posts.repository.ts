@@ -2,7 +2,7 @@ import { Post } from '../domain/post.entity';
 import { PostLike } from '../domain/postLike.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 @Injectable()
 export class PostsRepository {
@@ -19,6 +19,10 @@ export class PostsRepository {
     await this.postRepositoryT.save(post);
   }
 
+  async savePostTransaction(post: Post, manager: EntityManager) {
+    await manager.save(post);
+  }
+
   async updateBanOnPostsOfBlog(blogId: string, isBanned: boolean) {
     await this.postRepositoryT.update({ blogId: blogId }, { isBanned: isBanned });
   }
@@ -33,12 +37,12 @@ export class PostsRepository {
     });
   }
 
-  async findUserPostLikesWithPost(userId: string): Promise<PostLike[]> {
-    return await this.postLikeRepositoryT.find({ relations: { post: true }, where: { userId: userId } });
+  async findUserPostLikesWithPostTransaction(userId: string, manager: EntityManager): Promise<PostLike[]> {
+    return await manager.find(PostLike, { relations: { post: true }, where: { userId: userId } });
   }
 
-  async updateBanOnUserPostsLikes(userId: string, isBanned: boolean) {
-    await this.postLikeRepositoryT.update({ userId: userId }, { isBanned: isBanned });
+  async updateBanOnUserPostsLikesTransaction(userId: string, isBanned: boolean, manager: EntityManager) {
+    await manager.update(PostLike, { userId: userId }, { isBanned: isBanned });
   }
 
   async savePostLike(like: PostLike) {
