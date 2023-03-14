@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { QuizQuestionsQueryRepo } from '../infrastructure/quiz-questions.queryRepo';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { findQuestionsQueryPipe } from './models/FindQuestionsQueryPipe';
@@ -10,6 +22,10 @@ import { CreateQuestionCommand } from '../application/use-cases/create-question-
 import { CreateQuestionDto } from '../application/dto/CreateQuestionDto';
 import { HTTP_Status } from '../../../main/types/enums';
 import { DeleteQuestionCommand } from '../application/use-cases/delete-question-use-case';
+import { PublishQuestionDto } from '../application/dto/PublishQuestionDto';
+import { PublishQuestionCommand } from '../application/use-cases/publish-question-use-case';
+import { UpdateQuestionDto } from '../application/dto/UpdateQuestionDto';
+import { UpdateQuestionCommand } from '../application/use-cases/update-question-use-case';
 
 @Controller('sa/quiz/questions')
 @UseGuards(BasicAuthGuard)
@@ -27,6 +43,18 @@ export class QuizQuestionsController {
   async createQuestion(@Body() dto: CreateQuestionDto): Promise<QuestionViewModel> {
     const createdQuestionId = await this.commandBus.execute(new CreateQuestionCommand(dto));
     return await this.quizQuestionsQueryRepo.findQuestion(createdQuestionId);
+  }
+
+  @Put(':questionId')
+  @HttpCode(HTTP_Status.NO_CONTENT_204)
+  async updateQuestion(@Param('questionId', ParseUUIDPipe) questionId: string, @Body() dto: UpdateQuestionDto) {
+    await this.commandBus.execute(new UpdateQuestionCommand(questionId, dto));
+  }
+
+  @Put(':questionId/publish')
+  @HttpCode(HTTP_Status.NO_CONTENT_204)
+  async publishQuestion(@Param('questionId', ParseUUIDPipe) questionId: string, @Body() dto: PublishQuestionDto) {
+    await this.commandBus.execute(new PublishQuestionCommand(questionId, dto));
   }
 
   @Delete(':questionId')

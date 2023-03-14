@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { CreateQuestionDto } from '../application/dto/CreateQuestionDto';
 import { randomUUID } from 'crypto';
+import { UpdateQuestionDto } from '../application/dto/UpdateQuestionDto';
 
 @Entity('QuizQuestions')
 export class QuizQuestion {
@@ -24,5 +25,16 @@ export class QuizQuestion {
     this.published = false;
     this.createdAt = new Date();
     this.updatedAt = null;
+  }
+
+  publish(published: boolean) {
+    this.published = published;
+  }
+
+  update(dto: UpdateQuestionDto) {
+    this.body = dto.body;
+    this.correctAnswers = dto.correctAnswers;
+    this.published = false;
+    this.updatedAt = new Date();
   }
 }

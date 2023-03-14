@@ -7,8 +7,10 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { QuizQuestion } from './domain/quiz-question.entity';
 import { DeleteQuestionUseCase } from './application/use-cases/delete-question-use-case';
+import { PublishQuestionUseCase } from './application/use-cases/publish-question-use-case';
+import { UpdateQuestionUseCase } from './application/use-cases/update-question-use-case';
 
-const useCases = [CreateQuestionUseCase, DeleteQuestionUseCase];
+const useCases = [CreateQuestionUseCase, DeleteQuestionUseCase, PublishQuestionUseCase, UpdateQuestionUseCase];
 
 @Module({
   imports: [TypeOrmModule.forFeature([QuizQuestion]), CqrsModule],

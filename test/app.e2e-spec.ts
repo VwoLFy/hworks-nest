@@ -18,6 +18,8 @@ import { Comment } from '../src/modules/comments/domain/comment.entity';
 import { PageViewModel } from '../src/main/types/PageViewModel';
 import { CreateQuestionDto } from '../src/modules/sa.quiz/application/dto/CreateQuestionDto';
 import { QuestionViewModel } from '../src/modules/sa.quiz/api/models/QuestionViewModel';
+import { PublishQuestionDto } from '../src/modules/sa.quiz/application/dto/PublishQuestionDto';
+import { UpdateQuestionDto } from '../src/modules/sa.quiz/application/dto/UpdateQuestionDto';
 
 type BadRequestError = {
   errorsMessages: { message: string; field: string }[];
@@ -73,6 +75,34 @@ async function createQuestion(body: CreateQuestionDto): Promise<QuestionViewMode
   return result.body;
 }
 
+async function publishQuestion(questionId: string, dto: PublishQuestionDto) {
+  await request(app.getHttpServer())
+    .put(`/sa/quiz/questions/${questionId}/publish`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(dto)
+    .expect(HTTP_Status.NO_CONTENT_204);
+}
+
+async function updateQuestion(questionId: string, dto: UpdateQuestionDto) {
+  await request(app.getHttpServer())
+    .put(`/sa/quiz/questions/${questionId}`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(dto)
+    .expect(HTTP_Status.NO_CONTENT_204);
+}
+
+async function publishQuestion400(questionId: string, dto: PublishQuestionDto) {
+  const result = await request(app.getHttpServer())
+    .put(`/sa/quiz/questions/${questionId}/publish`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(dto)
+    .expect(HTTP_Status.BAD_REQUEST_400);
+
+  const error: BadRequestError = result.body;
+  checkBadRequestError(error, 'published');
+  return error;
+}
+
 async function deleteQuestion(questionId: string) {
   await request(app.getHttpServer())
     .delete(`/sa/quiz/questions/${questionId}`)
@@ -80,11 +110,23 @@ async function deleteQuestion(questionId: string) {
     .expect(HTTP_Status.NO_CONTENT_204);
 }
 
-async function createQuestion400(body: CreateQuestionDto, field: string): Promise<BadRequestError> {
+async function createQuestion400(dto: CreateQuestionDto, field: string): Promise<BadRequestError> {
   const result = await request(app.getHttpServer())
     .post(`/sa/quiz/questions`)
     .auth('admin', 'qwerty', { type: 'basic' })
-    .send(body)
+    .send(dto)
+    .expect(HTTP_Status.BAD_REQUEST_400);
+
+  const error: BadRequestError = result.body;
+  checkBadRequestError(error, field);
+  return error;
+}
+
+async function updateQuestion400(questionId: string, dto: UpdateQuestionDto, field: string): Promise<BadRequestError> {
+  const result = await request(app.getHttpServer())
+    .put(`/sa/quiz/questions/${questionId}`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .send(dto)
     .expect(HTTP_Status.BAD_REQUEST_400);
 
   const error: BadRequestError = result.body;
@@ -6212,7 +6254,7 @@ describe('AppController (e2e)', () => {
         body: 'How many minutes in hour?',
         correctAnswers: ['   60', 'sixty', '   6ty    '],
       };
-      question = {
+      const expectedQuestion = {
         id: expect.any(String),
         body: body.body,
         correctAnswers: ['60', 'sixty', '6ty'],
@@ -6221,8 +6263,8 @@ describe('AppController (e2e)', () => {
         updatedAt: null,
       };
 
-      const result = await createQuestion(body);
-      expect(result).toEqual(question);
+      question = await createQuestion(body);
+      expect(question).toEqual(expectedQuestion);
     });
     it('create 3 questions and then get they with query', async () => {
       question2 = await createQuestion({
@@ -6304,6 +6346,134 @@ describe('AppController (e2e)', () => {
         .delete(`/sa/quiz/questions/${question4.id}`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('shouldn`t publish question with bad data 400', async () => {
+      let dto;
+      dto = { published: null };
+      await publishQuestion400(question.id, dto);
+
+      dto = { published: 'null' };
+      await publishQuestion400(question.id, dto);
+
+      dto = { published: 0 };
+      await publishQuestion400(question.id, dto);
+
+      dto = null;
+      await publishQuestion400(question.id, dto);
+    });
+    it('shouldn`t publish question with bad questionId', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/${question4.id}/publish`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ published: true })
+        .expect(HTTP_Status.NOT_FOUND_404);
+
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/1/publish`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ published: true })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('shouldn`t publish question if admin Unauthorized', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/${question.id}/publish`)
+        .send({ published: true })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('should publish question', async () => {
+      await publishQuestion(question.id, { published: true });
+
+      const updatedQuestion = (await findQuestions(`bodySearchTerm=${question.body}`)).items[0];
+      expect(updatedQuestion).toEqual({ ...question, published: true });
+      question = updatedQuestion;
+    });
+    it('shouldn`t update question if admin Unauthorized', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/${question.id}`)
+        .send({
+          body: 'string12345',
+          correctAnswers: ['1'],
+        })
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('shouldn`t update question with bad data', async () => {
+      let body;
+      body = {
+        body: 'bad str',
+        correctAnswers: ['1'],
+      };
+      await updateQuestion400(question.id, body, 'body');
+
+      body.body = '               bad str';
+      await updateQuestion400(question.id, body, 'body');
+
+      delete body.body;
+      await updateQuestion400(question.id, body, 'body');
+
+      body.body = 1;
+      await updateQuestion400(question.id, body, 'body');
+
+      body.body = 'a'.repeat(501);
+      await updateQuestion400(question.id, body, 'body');
+
+      body = {
+        body: 'valid body',
+        correctAnswers: 1,
+      };
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      delete body.correctAnswers;
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = '1';
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [1];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = ['       '];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [true];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = null;
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [null];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [{ id: '123' }];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [['123']];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+
+      body.correctAnswers = [1, true, '123', {}, ['123']];
+      await updateQuestion400(question.id, body, 'correctAnswers');
+    });
+    it('delete shouldn`t update question with bad id', async () => {
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/1`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+
+      await request(app.getHttpServer())
+        .put(`/sa/quiz/questions/${question4.id}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({ body: 'Most popular drink?', correctAnswers: ['tea'] })
+        .expect(HTTP_Status.NOT_FOUND_404);
+    });
+    it('should update question', async () => {
+      const dto: UpdateQuestionDto = { body: 'Most popular drink?', correctAnswers: ['tea'] };
+      await updateQuestion(question.id, dto);
+
+      const updatedQuestion = (await findQuestions(`bodySearchTerm=${dto.body}`)).items[0];
+      expect(updatedQuestion).toEqual({ ...question, ...dto, published: false, updatedAt: expect.any(String) });
+      question = updatedQuestion;
     });
   });
 });
