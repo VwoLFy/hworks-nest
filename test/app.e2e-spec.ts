@@ -55,6 +55,14 @@ async function createComments(postId: string, token: LoginSuccessViewModel, comm
   return comment;
 }
 
+async function findQuestions(query: string = ''): Promise<PageViewModel<QuestionViewModel>> {
+  const result = await request(app.getHttpServer())
+    .get(`/sa/quiz/questions?${query}`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .expect(HTTP_Status.OK_200);
+  return result.body;
+}
+
 async function createQuestion(body: CreateQuestionDto): Promise<QuestionViewModel> {
   const result = await request(app.getHttpServer())
     .post(`/sa/quiz/questions`)
@@ -63,6 +71,13 @@ async function createQuestion(body: CreateQuestionDto): Promise<QuestionViewMode
     .expect(HTTP_Status.CREATED_201);
 
   return result.body;
+}
+
+async function deleteQuestion(questionId: string) {
+  await request(app.getHttpServer())
+    .delete(`/sa/quiz/questions/${questionId}`)
+    .auth('admin', 'qwerty', { type: 'basic' })
+    .expect(HTTP_Status.NO_CONTENT_204);
 }
 
 async function createQuestion400(body: CreateQuestionDto, field: string): Promise<BadRequestError> {
@@ -6105,75 +6120,23 @@ describe('AppController (e2e)', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
+    let question: QuestionViewModel;
+    let question2: QuestionViewModel;
+    let question3: QuestionViewModel;
+    let question4: QuestionViewModel;
     it('get questions error 401 if admin Unauthorized ', async () => {
       await request(app.getHttpServer())
         .get(`/sa/quiz/questions?bodySearchTerm=vvv`)
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('get questions', async () => {
-      let result = await request(app.getHttpServer())
-        .get(`/sa/quiz/questions?bodySearchTerm=vvv`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.OK_200);
-
-      expect(result.body).toEqual({
+    it('get questions should return empty page', async () => {
+      const pageQuestions = await findQuestions();
+      expect(pageQuestions).toEqual({
         page: 1,
         pagesCount: 0,
         pageSize: 10,
         totalCount: 0,
-        items: [
-          {
-            id: 'string',
-            body: 'string',
-            correctAnswers: ['string'],
-            published: true,
-            createdAt: 'string',
-            updatedAt: 'string',
-          },
-        ],
-      });
-
-      result = await request(app.getHttpServer())
-        .get(`/sa/quiz/questions?pageNumber=3&pageSize=5&publishedStatus=published`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.OK_200);
-
-      expect(result.body).toEqual({
-        page: 3,
-        pagesCount: 0,
-        pageSize: 5,
-        totalCount: 0,
-        items: [
-          {
-            id: 'string',
-            body: 'string',
-            correctAnswers: ['string'],
-            published: true,
-            createdAt: 'string',
-            updatedAt: 'string',
-          },
-        ],
-      });
-
-      result = await request(app.getHttpServer())
-        .get(`/sa/quiz/questions?pageNumber=asd&pageSize=fsa&publishedStatus=notPublished`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .expect(HTTP_Status.OK_200);
-      expect(result.body).toEqual({
-        page: 1,
-        pagesCount: 0,
-        pageSize: 10,
-        totalCount: 0,
-        items: [
-          {
-            id: 'string',
-            body: 'string',
-            correctAnswers: ['string'],
-            published: true,
-            createdAt: 'string',
-            updatedAt: 'string',
-          },
-        ],
+        items: [],
       });
     });
     it('shouldn`t create question if admin Unauthorized', async () => {
@@ -6217,6 +6180,9 @@ describe('AppController (e2e)', () => {
       body.correctAnswers = '1';
       await createQuestion400(body, 'correctAnswers');
 
+      body.correctAnswers = [1];
+      await createQuestion400(body, 'correctAnswers');
+
       body.correctAnswers = ['       '];
       await createQuestion400(body, 'correctAnswers');
 
@@ -6231,19 +6197,113 @@ describe('AppController (e2e)', () => {
 
       body.correctAnswers = [];
       await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [{ id: '123' }];
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [['123']];
+      await createQuestion400(body, 'correctAnswers');
+
+      body.correctAnswers = [1, true, '123', {}, ['123']];
+      await createQuestion400(body, 'correctAnswers');
     });
     it('create question', async () => {
       const body = {
-        body: 'string12345',
-        correctAnswers: [1, 'one', '    two    '],
+        body: 'How many minutes in hour?',
+        correctAnswers: ['   60', 'sixty', '   6ty    '],
       };
-      const bodyAfterTrim = {
-        body: 'string12345',
-        correctAnswers: [1, 'one', 'two'],
+      question = {
+        id: expect.any(String),
+        body: body.body,
+        correctAnswers: ['60', 'sixty', '6ty'],
+        createdAt: expect.any(String),
+        published: false,
+        updatedAt: null,
       };
 
-      const question = await createQuestion(body);
-      expect(question).toEqual(bodyAfterTrim);
+      const result = await createQuestion(body);
+      expect(result).toEqual(question);
+    });
+    it('create 3 questions and then get they with query', async () => {
+      question2 = await createQuestion({
+        body: 'Which drink is commonly associated with Czech?',
+        correctAnswers: ['beer'],
+      });
+      question3 = await createQuestion({
+        body: 'What sport did David Beckham play?',
+        correctAnswers: ['football'],
+      });
+      question4 = await createQuestion({
+        body: 'What’s longer, a nautical mile or a mile?',
+        correctAnswers: ['nautical mile', 'nautical'],
+      });
+
+      let pageQuestions = await findQuestions();
+      expect(pageQuestions).toEqual({
+        page: 1,
+        pagesCount: 1,
+        pageSize: 10,
+        totalCount: 4,
+        items: [question4, question3, question2, question],
+      });
+
+      pageQuestions = await findQuestions(`pageNumber=2&pageSize=3&publishedStatus=notPublished`);
+      expect(pageQuestions).toEqual({
+        page: 2,
+        pagesCount: 2,
+        pageSize: 3,
+        totalCount: 4,
+        items: [question],
+      });
+
+      pageQuestions = await findQuestions(
+        `pageNumber=asd&pageSize=fsa&publishedStatus=67notPublished&sortBy=body&sortDirection=asc`,
+      );
+      expect(pageQuestions).toEqual({
+        page: 1,
+        pagesCount: 1,
+        pageSize: 10,
+        totalCount: 4,
+        items: [question, question3, question4, question2],
+      });
+
+      pageQuestions = await findQuestions(`bodySearchTerm=whAT&&sortDirection=asc`);
+      expect(pageQuestions).toEqual({
+        page: 1,
+        pagesCount: 1,
+        pageSize: 10,
+        totalCount: 2,
+        items: [question3, question4],
+      });
+    });
+    it('delete shouldn`t delete question if admin Unauthorized', async () => {
+      await request(app.getHttpServer())
+        .delete(`/sa/quiz/questions/${question4.id}`)
+        .expect(HTTP_Status.UNAUTHORIZED_401);
+    });
+    it('delete shouldn`t delete question with bad id', async () => {
+      await request(app.getHttpServer())
+        .delete(`/sa/quiz/questions/1`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.BAD_REQUEST_400);
+    });
+    it('delete question4', async () => {
+      await deleteQuestion(question4.id);
+
+      const pageQuestions = await findQuestions();
+      expect(pageQuestions).toEqual({
+        page: 1,
+        pagesCount: 1,
+        pageSize: 10,
+        totalCount: 3,
+        items: [question3, question2, question],
+      });
+    });
+    it('delete shouldn`t delete not exist question', async () => {
+      await request(app.getHttpServer())
+        .delete(`/sa/quiz/questions/${question4.id}`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .expect(HTTP_Status.NOT_FOUND_404);
     });
   });
 });

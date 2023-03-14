@@ -5,7 +5,7 @@ import { PublishedStatuses } from './QueryPublishedStatuses';
 
 class FindQuestionsQueryPipe extends BasicQueryPipe implements PipeTransform<any, FindQuestionsQueryModel> {
   transform(query: any): FindQuestionsQueryModel {
-    const fields = ['id', 'published', 'updatedAt', 'createdAt'];
+    const fields = ['id', 'body', 'published', 'updatedAt', 'createdAt'];
     const preparedQuery = this.transformBasic(query, fields);
 
     const bodySearchTerm = query.bodySearchTerm || '';

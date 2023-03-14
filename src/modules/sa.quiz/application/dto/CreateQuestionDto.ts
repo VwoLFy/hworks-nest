@@ -1,6 +1,5 @@
 import { ArrayNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsArrayStrOrNum } from '../../../../main/decorators/is-array-str-or-num.decorator';
 
 export class CreateQuestionDto {
   @Transform((params) => (typeof params.value == 'string' ? params.value.trim() : params.value))
@@ -12,7 +11,8 @@ export class CreateQuestionDto {
   @Transform((params) =>
     Array.isArray(params.value) ? params.value.map((v) => (typeof v === 'string' ? v.trim() : v)) : params.value,
   )
-  @IsArrayStrOrNum()
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
   @ArrayNotEmpty()
-  correctAnswers: any; //string[] | number[];
+  correctAnswers: string[];
 }
