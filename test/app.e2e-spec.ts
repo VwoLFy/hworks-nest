@@ -6347,7 +6347,7 @@ describe('AppController (e2e)', () => {
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
-    it('shouldn`t publish question with bad data 400', async () => {
+    it('publish shouldn`t publish question with bad data 400', async () => {
       let dto;
       dto = { published: null };
       await publishQuestion400(question.id, dto);
@@ -6361,7 +6361,7 @@ describe('AppController (e2e)', () => {
       dto = null;
       await publishQuestion400(question.id, dto);
     });
-    it('shouldn`t publish question with bad questionId', async () => {
+    it('publish shouldn`t publish question with bad questionId', async () => {
       await request(app.getHttpServer())
         .put(`/sa/quiz/questions/${question4.id}/publish`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -6374,20 +6374,29 @@ describe('AppController (e2e)', () => {
         .send({ published: true })
         .expect(HTTP_Status.BAD_REQUEST_400);
     });
-    it('shouldn`t publish question if admin Unauthorized', async () => {
+    it('publish shouldn`t publish question if admin Unauthorized', async () => {
       await request(app.getHttpServer())
         .put(`/sa/quiz/questions/${question.id}/publish`)
         .send({ published: true })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('should publish question', async () => {
+    it('publish should publish question', async () => {
       await publishQuestion(question.id, { published: true });
 
       const updatedQuestion = (await findQuestions(`bodySearchTerm=${question.body}`)).items[0];
-      expect(updatedQuestion).toEqual({ ...question, published: true });
+      expect(updatedQuestion).toEqual({ ...question, published: true, updatedAt: expect.any(String) });
+      expect(question.updatedAt).not.toEqual(updatedQuestion.updatedAt);
       question = updatedQuestion;
     });
-    it('shouldn`t update question if admin Unauthorized', async () => {
+    it('should unpublish question', async () => {
+      await publishQuestion(question.id, { published: false });
+
+      const updatedQuestion = (await findQuestions(`bodySearchTerm=${question.body}`)).items[0];
+      expect(updatedQuestion).toEqual({ ...question, published: false, updatedAt: null });
+      expect(question.updatedAt).not.toEqual(updatedQuestion.updatedAt);
+      question = updatedQuestion;
+    });
+    it('update shouldn`t update question if admin Unauthorized', async () => {
       await request(app.getHttpServer())
         .put(`/sa/quiz/questions/${question.id}`)
         .send({
@@ -6396,7 +6405,7 @@ describe('AppController (e2e)', () => {
         })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('shouldn`t update question with bad data', async () => {
+    it('update shouldn`t update question with bad data', async () => {
       let body;
       body = {
         body: 'bad str',
@@ -6455,7 +6464,7 @@ describe('AppController (e2e)', () => {
       body.correctAnswers = [1, true, '123', {}, ['123']];
       await updateQuestion400(question.id, body, 'correctAnswers');
     });
-    it('delete shouldn`t update question with bad id', async () => {
+    it('update shouldn`t update question with bad id', async () => {
       await request(app.getHttpServer())
         .put(`/sa/quiz/questions/1`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -6467,12 +6476,12 @@ describe('AppController (e2e)', () => {
         .send({ body: 'Most popular drink?', correctAnswers: ['tea'] })
         .expect(HTTP_Status.NOT_FOUND_404);
     });
-    it('should update question', async () => {
+    it('update should update question', async () => {
       const dto: UpdateQuestionDto = { body: 'Most popular drink?', correctAnswers: ['tea'] };
       await updateQuestion(question.id, dto);
 
       const updatedQuestion = (await findQuestions(`bodySearchTerm=${dto.body}`)).items[0];
-      expect(updatedQuestion).toEqual({ ...question, ...dto, published: false, updatedAt: expect.any(String) });
+      expect(updatedQuestion).toEqual({ ...question, ...dto, published: false });
       question = updatedQuestion;
     });
   });

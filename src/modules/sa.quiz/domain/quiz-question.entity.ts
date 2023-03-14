@@ -29,12 +29,12 @@ export class QuizQuestion {
 
   publish(published: boolean) {
     this.published = published;
+    this.updatedAt = published ? new Date() : null;
   }
 
   update(dto: UpdateQuestionDto) {
     this.body = dto.body;
     this.correctAnswers = dto.correctAnswers;
     this.published = false;
-    this.updatedAt = new Date();
   }
 }
