@@ -6392,7 +6392,7 @@ describe('AppController (e2e)', () => {
       await publishQuestion(question.id, { published: false });
 
       const updatedQuestion = (await findQuestions(`bodySearchTerm=${question.body}`)).items[0];
-      expect(updatedQuestion).toEqual({ ...question, published: false, updatedAt: null });
+      expect(updatedQuestion).toEqual({ ...question, published: false, updatedAt: expect.any(String) });
       expect(question.updatedAt).not.toEqual(updatedQuestion.updatedAt);
       question = updatedQuestion;
     });
@@ -6481,7 +6481,8 @@ describe('AppController (e2e)', () => {
       await updateQuestion(question.id, dto);
 
       const updatedQuestion = (await findQuestions(`bodySearchTerm=${dto.body}`)).items[0];
-      expect(updatedQuestion).toEqual({ ...question, ...dto, published: false });
+      expect(updatedQuestion).toEqual({ ...question, ...dto, published: false, updatedAt: expect.any(String) });
+      expect(question.updatedAt).not.toEqual(updatedQuestion.updatedAt);
       question = updatedQuestion;
     });
   });
