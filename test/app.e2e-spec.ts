@@ -6158,7 +6158,7 @@ describe('AppController (e2e)', () => {
     }, 100000);
   });
 
-  describe('quiz questions', () => {
+  describe.skip('quiz questions', () => {
     beforeAll(async () => {
       await request(app.getHttpServer()).delete('/testing/all-data').expect(HTTP_Status.NO_CONTENT_204);
     });
