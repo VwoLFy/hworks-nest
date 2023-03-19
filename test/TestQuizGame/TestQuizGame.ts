@@ -18,7 +18,7 @@ export class TestQuizGame {
 
   async answerQuestion(accessToken: string, answer: string): Promise<AnswerViewModel> {
     const result = await request(this.app.getHttpServer())
-      .post(`/pair-game-quiz/pairs/my-current/answer`)
+      .post(`/pair-game-quiz/pairs/my-current/answers`)
       .auth(accessToken, { type: 'bearer' })
       .send({ answer: answer })
       .expect(HTTP_Status.OK_200);

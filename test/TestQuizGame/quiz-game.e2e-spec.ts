@@ -292,7 +292,7 @@ describe('quiz game (e2e)', () => {
     });
     it('answer should return 401 if user is not authorized', async () => {
       await request(app.getHttpServer())
-        .post(`/pair-game-quiz/pairs/my-current/answer`)
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
@@ -340,14 +340,14 @@ describe('quiz game (e2e)', () => {
     });
     it('answer should return 403 if user has already answered to all questions', async () => {
       await request(app.getHttpServer())
-        .post(`/pair-game-quiz/pairs/my-current/answer`)
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
         .auth(accessTokens[0], { type: 'bearer' })
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('answer should return 403 if user is not in game', async () => {
       await request(app.getHttpServer())
-        .post(`/pair-game-quiz/pairs/my-current/answer`)
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
         .auth(accessTokens[4], { type: 'bearer' })
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.FORBIDDEN_403);

@@ -53,7 +53,7 @@ export class QuizGameController {
     return await this.quizGameQueryRepo.findGameById(gameId);
   }
 
-  @Post('my-current/answer')
+  @Post('my-current/answers')
   @HttpCode(HTTP_Status.OK_200)
   async sendAnswer(@UserId() userId: string, @Body() dto: AnswerInputDto): Promise<AnswerViewModel> {
     const answerId = await this.commandBus.execute(new SendAnswerCommand(userId, dto));
