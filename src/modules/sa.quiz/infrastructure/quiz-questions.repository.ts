@@ -18,4 +18,8 @@ export class QuizQuestionsRepository {
   async deleteQuestion(questionId: string) {
     await this.questionsRepositoryT.delete({ id: questionId });
   }
+
+  async find5Questions(): Promise<QuizQuestion[]> {
+    return this.questionsRepositoryT.createQueryBuilder().orderBy('RANDOM()').limit(5).getMany();
+  }
 }

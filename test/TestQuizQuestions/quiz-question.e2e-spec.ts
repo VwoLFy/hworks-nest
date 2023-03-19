@@ -9,10 +9,10 @@ import { QuestionViewModel } from '../../src/modules/sa.quiz/api/models/Question
 import { UpdateQuestionDto } from '../../src/modules/sa.quiz/application/dto/UpdateQuestionDto';
 import { TestQuizQuestions } from './TestQuizQuestions';
 
-let app: INestApplication;
-const testQuizQuestions = new TestQuizQuestions();
-
 describe('quiz questions (e2e)', () => {
+  let app: INestApplication;
+  let testQuizQuestions: TestQuizQuestions;
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -24,7 +24,7 @@ describe('quiz questions (e2e)', () => {
     app = moduleFixture.createNestApplication();
     appConfig(app);
     await app.init();
-    testQuizQuestions.setApp(app);
+    testQuizQuestions = new TestQuizQuestions(app);
   });
   afterAll(async () => {
     await app.close();

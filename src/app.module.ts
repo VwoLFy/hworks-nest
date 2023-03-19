@@ -22,6 +22,7 @@ import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module
 import { ApiJwtModule } from './modules/api-jwt/api-jwt.module';
 import { SecurityModule } from './modules/security/security.module';
 import { SaQuizModule } from './modules/sa.quiz/sa.quiz.module';
+import { QuizGameModule } from './modules/pair-quiz-game/quiz-game.module';
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { SaQuizModule } from './modules/sa.quiz/sa.quiz.module';
     ApiJwtModule,
     SecurityModule,
     SaQuizModule,
+    QuizGameModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -6,30 +6,13 @@ import { CreateQuestionDto } from '../../src/modules/sa.quiz/application/dto/Cre
 import { PublishQuestionDto } from '../../src/modules/sa.quiz/application/dto/PublishQuestionDto';
 import { UpdateQuestionDto } from '../../src/modules/sa.quiz/application/dto/UpdateQuestionDto';
 import { INestApplication } from '@nestjs/common';
-
-let app: INestApplication;
-
-type BadRequestError = {
-  errorsMessages: { message: string; field: string }[];
-};
-const checkBadRequestError = (apiErrorResult: BadRequestError, field: string) => {
-  expect(apiErrorResult).toEqual({
-    errorsMessages: [
-      {
-        message: expect.any(String),
-        field: field,
-      },
-    ],
-  });
-};
+import { BadRequestError, testCheckBadRequestError } from '../Utils/TestCheckBadRequestError';
 
 export class TestQuizQuestions {
-  setApp(appRes: INestApplication) {
-    app = appRes;
-  }
+  constructor(private app: INestApplication) {}
 
   async findQuestions(query: string = ''): Promise<PageViewModel<QuestionViewModel>> {
-    const result = await request(app.getHttpServer())
+    const result = await request(this.app.getHttpServer())
       .get(`/sa/quiz/questions?${query}`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .expect(HTTP_Status.OK_200);
@@ -37,7 +20,7 @@ export class TestQuizQuestions {
   }
 
   async createQuestion(body: CreateQuestionDto): Promise<QuestionViewModel> {
-    const result = await request(app.getHttpServer())
+    const result = await request(this.app.getHttpServer())
       .post(`/sa/quiz/questions`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(body)
@@ -47,7 +30,7 @@ export class TestQuizQuestions {
   }
 
   async publishQuestion(questionId: string, dto: PublishQuestionDto) {
-    await request(app.getHttpServer())
+    await request(this.app.getHttpServer())
       .put(`/sa/quiz/questions/${questionId}/publish`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(dto)
@@ -55,7 +38,7 @@ export class TestQuizQuestions {
   }
 
   async updateQuestion(questionId: string, dto: UpdateQuestionDto) {
-    await request(app.getHttpServer())
+    await request(this.app.getHttpServer())
       .put(`/sa/quiz/questions/${questionId}`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(dto)
@@ -63,45 +46,45 @@ export class TestQuizQuestions {
   }
 
   async publishQuestion400(questionId: string, dto: PublishQuestionDto) {
-    const result = await request(app.getHttpServer())
+    const result = await request(this.app.getHttpServer())
       .put(`/sa/quiz/questions/${questionId}/publish`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(dto)
       .expect(HTTP_Status.BAD_REQUEST_400);
 
     const error: BadRequestError = result.body;
-    checkBadRequestError(error, 'published');
+    testCheckBadRequestError(error, 'published');
     return error;
   }
 
   async deleteQuestion(questionId: string) {
-    await request(app.getHttpServer())
+    await request(this.app.getHttpServer())
       .delete(`/sa/quiz/questions/${questionId}`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .expect(HTTP_Status.NO_CONTENT_204);
   }
 
   async createQuestion400(dto: CreateQuestionDto, field: string): Promise<BadRequestError> {
-    const result = await request(app.getHttpServer())
+    const result = await request(this.app.getHttpServer())
       .post(`/sa/quiz/questions`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(dto)
       .expect(HTTP_Status.BAD_REQUEST_400);
 
     const error: BadRequestError = result.body;
-    checkBadRequestError(error, field);
+    testCheckBadRequestError(error, field);
     return error;
   }
 
   async updateQuestion400(questionId: string, dto: UpdateQuestionDto, field: string): Promise<BadRequestError> {
-    const result = await request(app.getHttpServer())
+    const result = await request(this.app.getHttpServer())
       .put(`/sa/quiz/questions/${questionId}`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .send(dto)
       .expect(HTTP_Status.BAD_REQUEST_400);
 
     const error: BadRequestError = result.body;
-    checkBadRequestError(error, field);
+    testCheckBadRequestError(error, field);
     return error;
   }
 }

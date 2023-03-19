@@ -16,5 +16,6 @@ const useCases = [CreateQuestionUseCase, DeleteQuestionUseCase, PublishQuestionU
   imports: [TypeOrmModule.forFeature([QuizQuestion]), CqrsModule],
   controllers: [QuizQuestionsController],
   providers: [QuizQuestionsRepository, QuizQuestionsQueryRepo, ...useCases],
+  exports: [QuizQuestionsRepository],
 })
 export class SaQuizModule {}
