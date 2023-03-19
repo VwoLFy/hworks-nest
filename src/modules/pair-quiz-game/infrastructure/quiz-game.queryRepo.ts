@@ -3,7 +3,6 @@ import { QuizGame } from '../domain/quiz-game.entity';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { GamePairViewModel } from '../api/models/GamePairViewModel';
-import { Player } from '../domain/quiz-game.player.entity';
 import { AnswerViewModel } from '../api/models/AnswerViewModel';
 import { Answer } from '../domain/quiz-game.answer.entity';
 import { GameStatuses } from '../application/enums';
@@ -22,10 +21,12 @@ export class QuizGameQueryRepo {
   }
 
   async findUsersCurrentGame(userId: string): Promise<GamePairViewModel> {
-    const gameIdSubQuery = this.manager
-      .createQueryBuilder(Player, 'pl')
-      .select('pl.quizGameId')
+    const gameIdSubQuery = this.quizGameRepositoryT
+      .createQueryBuilder('g')
+      .select('g.id')
+      .leftJoin('g.players', 'pl')
       .where('pl.userId = :userId')
+      .andWhere(`g.status != '${GameStatuses.Finished}'`)
       .getQuery();
 
     const foundGame = await this.quizGameRepositoryT

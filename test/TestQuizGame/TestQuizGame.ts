@@ -35,7 +35,7 @@ export class TestQuizGame {
     return result.body;
   }
 
-  async findUserCurrentGame(accessToken: string): Promise<GamePairViewModel> {
+  async findUsersCurrentGame(accessToken: string): Promise<GamePairViewModel> {
     const result = await request(this.app.getHttpServer())
       .get(`/pair-game-quiz/pairs/my-current`)
       .auth(accessToken, { type: 'bearer' })

@@ -183,7 +183,7 @@ describe('quiz game (e2e)', () => {
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('find users current game by id should return game', async () => {
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[0]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
       expect(result).toEqual(game);
     });
     it('find users current game by id shouldn`t return game if user is not authorized', async () => {
@@ -224,7 +224,7 @@ describe('quiz game (e2e)', () => {
         .expect(HTTP_Status.FORBIDDEN_403);
     });
     it('find users current game by id should return active game', async () => {
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[0]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
       expect(result).toEqual(game);
     });
     it('find game by id should return active game', async () => {
@@ -287,7 +287,7 @@ describe('quiz game (e2e)', () => {
       expect(result).toEqual(game);
     });
     it('find users current game by id should return game/2', async () => {
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[1]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[1]);
       expect(result).toEqual(game);
     });
     it('answer should return 401 if user is not authorized', async () => {
@@ -303,7 +303,7 @@ describe('quiz game (e2e)', () => {
         answerStatus: AnswerStatuses.Correct,
         addedAt: expect.any(String),
       });
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[1]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[1]);
       expect(result).toEqual({
         ...game,
         firstPlayerProgress: { ...game.firstPlayerProgress, answers: [answer], score: 1 },
@@ -316,7 +316,7 @@ describe('quiz game (e2e)', () => {
         answerStatus: AnswerStatuses.Incorrect,
         addedAt: expect.any(String),
       });
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[1]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[1]);
       expect(result).toEqual({
         ...game,
         firstPlayerProgress: { ...game.firstPlayerProgress, answers: [answer, answer2], score: 1 },
@@ -327,7 +327,7 @@ describe('quiz game (e2e)', () => {
       const answer3 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
       const answer4 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Incorrect);
       const answer5 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
-      const result = await testQuizGame.findUserCurrentGame(accessTokens[0]);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
       expect(result).toEqual({
         ...game,
         firstPlayerProgress: {
@@ -389,12 +389,78 @@ describe('quiz game (e2e)', () => {
     });
     it('answer +2 questions by first player of second game and check status of the game', async () => {
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
-      const game = await testQuizGame.findUserCurrentGame(accessTokens[2]);
+      const game = await testQuizGame.findUsersCurrentGame(accessTokens[2]);
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Incorrect);
       const game2 = await testQuizGame.findGameById(accessTokens[2], game.id);
       expect(game.secondPlayerProgress.score).toBe(game2.secondPlayerProgress.score);
       expect(game2.secondPlayerProgress.score).toBe(0);
       expect(game2.firstPlayerProgress.score).toBe(4);
+    });
+    it('create new game by user 4', async () => {
+      game = await testQuizGame.createGame(accessTokens[3]);
+
+      const expectedResult: GamePairViewModel = {
+        id: expect.any(String),
+        firstPlayerProgress: {
+          player: {
+            id: users[3].id,
+            login: users[3].login,
+          },
+          answers: [],
+          score: 0,
+        },
+        secondPlayerProgress: null,
+        questions: null,
+        status: GameStatuses.PendingSecondPlayer,
+        pairCreatedDate: expect.any(String),
+        startGameDate: null,
+        finishGameDate: null,
+      };
+      expect(game).toEqual(expectedResult);
+    });
+    it('add user 1 to existing game', async () => {
+      const expectedResult: GamePairViewModel = {
+        id: expect.any(String),
+        firstPlayerProgress: {
+          player: {
+            id: users[3].id,
+            login: users[3].login,
+          },
+          answers: [],
+          score: 0,
+        },
+        secondPlayerProgress: {
+          player: {
+            id: users[0].id,
+            login: users[0].login,
+          },
+          answers: [],
+          score: 0,
+        },
+        questions: expect.arrayContaining([{ id: expect.any(String), body: expect.any(String) }]),
+        status: GameStatuses.Active,
+        pairCreatedDate: expect.any(String),
+        startGameDate: expect.any(String),
+        finishGameDate: null,
+      };
+
+      const result = await testQuizGame.createGame(accessTokens[0]);
+      expect(result).toEqual(expectedResult);
+    });
+    it('correct answer question by user 4', async () => {
+      answer = await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Correct);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[3]);
+      expect(result.firstPlayerProgress.score).toBe(1);
+    });
+    it('incorrect answer question by user 1', async () => {
+      answer = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Incorrect);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
+      expect(result.secondPlayerProgress.score).toBe(0);
+    });
+    it('correct answer question by user 1', async () => {
+      answer = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
+      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
+      expect(result.secondPlayerProgress.score).toBe(1);
     });
   });
 });

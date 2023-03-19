@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { QuizGame } from '../domain/quiz-game.entity';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Not, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Not, Repository } from 'typeorm';
 import { GameStatuses } from '../application/enums';
-import { Player } from '../domain/quiz-game.player.entity';
 
 @Injectable()
 export class QuizGameRepository {
-  constructor(
-    @InjectRepository(QuizGame) private readonly quizGameRepositoryT: Repository<QuizGame>,
-    @InjectEntityManager() private readonly manager: EntityManager,
-  ) {}
+  constructor(@InjectRepository(QuizGame) private readonly quizGameRepositoryT: Repository<QuizGame>) {}
 
   async saveGame(game: QuizGame) {
     await this.quizGameRepositoryT.save(game);
@@ -21,10 +17,12 @@ export class QuizGameRepository {
   }
 
   async findActiveGame(userId: string): Promise<QuizGame> {
-    const quizGameIdSubQ = this.manager
-      .createQueryBuilder(Player, 'pl')
-      .select('pl.quizGameId')
+    const quizGameIdSubQ = this.quizGameRepositoryT
+      .createQueryBuilder('g')
+      .select('g.id')
+      .leftJoin('g.players', 'pl')
       .where('pl.userId = :userId')
+      .andWhere(`g.status = '${GameStatuses.Active}'`)
       .getQuery();
 
     return await this.quizGameRepositoryT
