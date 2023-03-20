@@ -31,7 +31,6 @@ export class QuizGameRepository {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id = (${quizGameIdSubQ})`, { userId: userId })
-      .andWhere(`g.status = '${GameStatuses.Active}'`)
       .getOne();
   }
 

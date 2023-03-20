@@ -17,17 +17,10 @@ export class SendAnswerUseCase implements ICommandHandler<SendAnswerCommand> {
     const activeGameOfUser = await this.quizGameRepository.findActiveGame(userId);
     if (!activeGameOfUser) throw new ForbiddenException('user is not in the active game');
 
-    const indexOfPlayer = activeGameOfUser.players.findIndex((pl) => pl.userId === userId);
-    if (activeGameOfUser.areAllQuestionsAnswered(indexOfPlayer))
-      throw new ForbiddenException('user is not in the active game');
-
-    const answer = activeGameOfUser.processAnswer(indexOfPlayer, dto.answer);
-
-    const isGameFinished = activeGameOfUser.players.map((pl) => pl.isCompletedAnswering).every((st) => st === true);
-    if (isGameFinished) activeGameOfUser.finishGame();
+    const answer = activeGameOfUser.processAnswer(userId, dto.answer);
+    if (!answer) throw new ForbiddenException('user has already answered to all questions');
 
     await this.quizGameRepository.saveGame(activeGameOfUser);
-
     return answer.id;
   }
 }

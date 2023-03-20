@@ -35,7 +35,6 @@ export class QuizGameQueryRepo {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id = (${gameIdSubQuery})`, { userId: userId })
-      .andWhere(`g.status != '${GameStatuses.Finished}'`)
       .getOne();
 
     if (!foundGame) throw new NotFoundException('game not found');

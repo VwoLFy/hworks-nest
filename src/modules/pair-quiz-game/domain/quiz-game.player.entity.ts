@@ -23,14 +23,17 @@ export class Player {
   quizGameId: string;
   @ManyToOne(() => QuizGame, (q) => q.players, { orphanedRowAction: 'disable' })
   quizGame: QuizGame;
+  @Column()
+  numberOfQuestions: number;
 
-  constructor(quizGameId: string, userId: string, userLogin: string) {
+  constructor(quizGameId: string, userId: string, userLogin: string, numberOfQuestions: number) {
     this.userId = userId;
     this.login = userLogin;
     this.answers = null;
     this.score = 0;
     this.quizGameId = quizGameId;
     this.isCompletedAnswering = false;
+    this.numberOfQuestions = numberOfQuestions;
   }
 
   public countOfAnswers(): number {
@@ -40,8 +43,9 @@ export class Player {
   public processAnswer(questionId: string, isAnswerCorrect: boolean): Answer {
     const answer = new Answer(questionId, isAnswerCorrect);
     this.answers.push(answer);
+
     if (isAnswerCorrect) ++this.score;
-    if (this.answers.length === 5) this.isCompletedAnswering = true;
+    if (this.answers.length === this.numberOfQuestions) this.isCompletedAnswering = true;
     return answer;
   }
 

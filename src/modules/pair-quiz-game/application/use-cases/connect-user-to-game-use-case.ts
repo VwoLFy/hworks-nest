@@ -4,6 +4,7 @@ import { QuizGame } from '../../domain/quiz-game.entity';
 import { QuizGameRepository } from '../../infrastructure/quiz-game.repository';
 import { QuizQuestionsRepository } from '../../../sa.quiz/infrastructure/quiz-questions.repository';
 import { ForbiddenException } from '@nestjs/common';
+import { GameStatuses } from '../enums';
 
 export class ConnectUserToGameCommand {
   constructor(public userId: string) {}
@@ -24,11 +25,9 @@ export class ConnectUserToGameUseCase implements ICommandHandler<ConnectUserToGa
     const userLogin = await this.usersRepository.findUserLoginByIdOrThrowError(command.userId);
     let game = await this.quizGameRepository.findPendingGame();
 
-    if (!game) {
-      game = new QuizGame();
-      game.createPlayer(command.userId, userLogin);
-    } else {
-      game.addPlayer(command.userId, userLogin);
+    game = QuizGame.addPlayerToPendingOrNewGame(game, command.userId, userLogin);
+
+    if (game.status === GameStatuses.Active) {
       const questions = await this.quizQuestionsRepository.find5Questions();
       game.addQuestions(questions);
     }
