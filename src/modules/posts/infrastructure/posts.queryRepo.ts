@@ -20,34 +20,33 @@ export class PostsQueryRepo {
   async findPosts(dto: FindPostsQueryModel, userId: string | null): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const totalCount = await this.postRepositoryT.count({ where: { isBanned: false } });
+    const totalCount = await this.postRepositoryT.count({
+      relations: { blog: true },
+      where: { blog: { isBanned: false } },
+    });
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
     const postsFromDB: PostFromDB[] = await this.postRepositoryT.query(
-      `SELECT *,
+      `SELECT p.*,
              COALESCE((SELECT "likeStatus"
                        FROM public."PostLikes"
-                       WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
+                       WHERE "postId" = p."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+             (SELECT count(*)::int
+                       FROM public."PostLikes" as pl
+                       left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                       WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+             (SELECT count(*)::int
+                       FROM public."PostLikes" as pl
+                       left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                       WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
              FROM public."Posts" p
-             WHERE "isBanned" = false
-	           ORDER BY "${sortBy}" ${sortDirection}
+             left join public."Blogs" as b on b."id" = p."blogId"               
+             WHERE b."isBanned" = false
+	           ORDER BY p."${sortBy}" ${sortDirection}
 	           LIMIT ${pageSize} OFFSET ${offset};`,
       [userId],
     );
-
-    // const postsFromDB: PostFromDB[] = await this.postRepositoryT
-    //   .createQueryBuilder('p')
-    //   .addSelect(
-    //     `COALESCE((SELECT "likeStatus" FROM public."PostLikes" WHERE "postId" = p.id AND "userId" = :userId), 'None')`,
-    //     'myStatus',
-    //   )
-    //   .andWhere('p."isBanned" = false')
-    //   .setParameter('userId', userId)
-    //   .orderBy(`"${sortBy}"`, sortDirection === SortDirection.asc ? 'ASC' : 'DESC')
-    //   .limit(pageSize)
-    //   .offset(offset)
-    //   .getRawMany();
 
     const items = await Promise.all(postsFromDB.map((p) => this.getPostViewModel(p)));
 
@@ -65,17 +64,26 @@ export class PostsQueryRepo {
   async findPostById(postId: string, userId: string | null): Promise<PostViewModel | null> {
     const postFromDB: PostFromDB = (
       await this.postRepositoryT.query(
-        `SELECT *,
+        `SELECT p.*,
                COALESCE((SELECT "likeStatus"
                          FROM public."PostLikes"
-                         WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
+                         WHERE "postId" = p."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+               (SELECT count(*)::int
+                         FROM public."PostLikes" as pl
+                         left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                         WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+               (SELECT count(*)::int
+                         FROM public."PostLikes" as pl
+                         left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                         WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
                FROM public."Posts" as p
-               WHERE "id" = $2 AND "isBanned" = false`,
+               left join public."Blogs" as b on b."id" = p."blogId"               
+               WHERE p."id" = $2 AND b."isBanned" = false`,
         [userId, postId],
       )
     )[0];
 
-    if (!postFromDB) return null;
+    if (!postFromDB) throw new NotFoundException('post not found');
     return this.getPostViewModel(postFromDB);
   }
 
@@ -86,20 +94,32 @@ export class PostsQueryRepo {
   ): Promise<PageViewModel<PostViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    const totalCount = await this.postRepositoryT.count({ where: { isBanned: false, blogId: blogId } });
+    const totalCount = await this.postRepositoryT.count({
+      relations: { blog: true },
+      where: { blog: { isBanned: false }, blogId: blogId },
+    });
     if (!totalCount) throw new NotFoundException('blog not found');
 
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
     const postsFromDB: PostFromDB[] = await this.postRepositoryT.query(
-      `SELECT *,
+      `SELECT p.*,
             COALESCE((SELECT "likeStatus"
                       FROM public."PostLikes"
-                      WHERE "postId" = p."id" AND "userId" = $1), 'None') as "myStatus"
+                      WHERE "postId" = p."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+            (SELECT count(*)::int
+                      FROM public."PostLikes" as pl
+                      left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                      WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+            (SELECT count(*)::int
+                      FROM public."PostLikes" as pl
+                      left join public."UsersBanInfo" as b on b."userId" = pl."userId"
+                      WHERE pl."postId" = p."id" AND pl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
             FROM public."Posts" p
-            WHERE "blogId" = $2 AND "isBanned" = false
-	          ORDER BY "${sortBy}" ${sortDirection}
+            left join public."Blogs" as b on b."id" = p."blogId"               
+            WHERE p."blogId" = $2 AND b."isBanned" = false
+	          ORDER BY p."${sortBy}" ${sortDirection}
 	          LIMIT ${pageSize} OFFSET ${offset};`,
       [userId, blogId],
     );
@@ -118,15 +138,14 @@ export class PostsQueryRepo {
   }
 
   private async getPostViewModel(postFromDB: PostFromDB): Promise<PostViewModel> {
-    const myStatus = postFromDB.myStatus;
     const newestLikes = await this.newestLikes(postFromDB.id);
-
-    return new PostViewModel(postFromDB, myStatus, newestLikes);
+    return new PostViewModel(postFromDB, newestLikes);
   }
 
   private async newestLikes(postId: string): Promise<PostLikeDetailsViewModel[]> {
     const newestLikes = await this.postLikeRepositoryT.find({
-      where: { postId: postId, likeStatus: LikeStatus.Like, isBanned: false },
+      relations: { user: true },
+      where: { postId: postId, likeStatus: LikeStatus.Like, user: { banInfo: { isBanned: false } } },
       order: { addedAt: 'desc' },
       take: 3,
     });

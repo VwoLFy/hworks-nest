@@ -3,21 +3,8 @@ import { LikePostCommand } from '../application/use-cases/like-post-use-case';
 import { CommentsQueryRepo } from '../../comments/infrastructure/comments.queryRepo';
 import { FindPostsQueryModel } from './models/FindPostsQueryModel';
 import { PostViewModel } from './models/PostViewModel';
-import { HTTP_Status } from '../../../main/types/enums';
 import { FindCommentsQueryModel } from './models/FindCommentsQueryModel';
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpException,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CommentViewModel } from '../../comments/api/models/CommentViewModel';
 import { CommentInputModel } from '../../comments/api/models/CommentInputModel';
 import { PostLikeInputModel } from './models/PostLikeInputModel';
@@ -53,10 +40,7 @@ export class PostsController {
     @Param('postId', ParseUUIDPipe) postId: string,
     @UserId() userId: string | null,
   ): Promise<PostViewModel> {
-    const foundPost = await this.postsQueryRepo.findPostById(postId, userId);
-    if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
-
-    return foundPost;
+    return await this.postsQueryRepo.findPostById(postId, userId);
   }
 
   @Get(':postId/comments')
@@ -66,9 +50,7 @@ export class PostsController {
     @Query(findCommentsQueryPipe) query: FindCommentsQueryModel,
     @UserId() userId: string | null,
   ): Promise<PageViewModel<CommentViewModel>> {
-    const foundPost = await this.postsQueryRepo.findPostById(postId, null);
-    if (!foundPost) throw new HttpException('post not found', HTTP_Status.NOT_FOUND_404);
-
+    await this.postsQueryRepo.findPostById(postId, null);
     return await this.commentsQueryRepo.findCommentsByPostId({ postId, ...query, userId });
   }
 

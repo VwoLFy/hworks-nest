@@ -17,11 +17,9 @@ export class PostLike {
   login: string;
   @Column()
   likeStatus: LikeStatus;
-  @Column()
-  isBanned: boolean;
   @ManyToOne(() => User)
   user: User;
-  @ManyToOne(() => Post, p => p.postLikes,{ onDelete: 'CASCADE' })
+  @ManyToOne(() => Post, (p) => p.postLikes, { orphanedRowAction: 'disable', onDelete: 'CASCADE' })
   post: Post;
 
   constructor(postId: string, userId: string, userLogin: string) {
@@ -30,7 +28,6 @@ export class PostLike {
     this.login = userLogin;
     this.likeStatus = LikeStatus.None;
     this.addedAt = new Date();
-    this.isBanned = false;
   }
 
   updateLikeStatus(likeStatus: LikeStatus) {

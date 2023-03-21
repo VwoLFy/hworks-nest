@@ -22,15 +22,9 @@ export class Post {
   blogName: string;
   @Column()
   createdAt: Date;
-  @Column()
-  isBanned: boolean;
-  @Column()
-  likesCount: number;
-  @Column()
-  dislikesCount: number;
   @ManyToOne(() => Blog, { onDelete: 'CASCADE' })
   blog: Blog;
-  @OneToMany(() => PostLike, (pl) => pl.post)
+  @OneToMany(() => PostLike, (pl) => pl.post, { cascade: ['update', 'insert'] })
   postLikes: PostLike[];
 
   constructor({ ...dto }: CreatePostDto, blogName: string) {
@@ -41,9 +35,6 @@ export class Post {
     this.blogId = dto.blogId;
     this.blogName = blogName;
     this.createdAt = new Date();
-    this.isBanned = false;
-    this.likesCount = 0;
-    this.dislikesCount = 0;
   }
 
   updatePost(dto: UpdatePostDto) {
@@ -52,39 +43,8 @@ export class Post {
     this.content = dto.content;
   }
 
-  setLikeStatus(like: PostLike | null, userId: string, userLogin: string, likeStatus: LikeStatus): PostLike {
-    if (!like) like = this.createLikeStatus(userId, userLogin);
-
-    const oldLikeStatus = like.likeStatus;
-    like.updateLikeStatus(likeStatus);
-
-    this.updateLikesCount(likeStatus, oldLikeStatus);
-
-    return like;
-  }
-
-  createLikeStatus(userId: string, userLogin: string): PostLike {
-    return new PostLike(this.id, userId, userLogin);
-  }
-
-  updateLikesCount(likeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
-    if (likeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
-      this.likesCount += 1;
-    } else if (likeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
-      this.dislikesCount += 1;
-    }
-    if (likeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
-      this.likesCount -= 1;
-    } else if (likeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
-      this.dislikesCount -= 1;
-    }
-  }
-
-  updateLikesCountAfterBan(isBanned: boolean, likeStatus: LikeStatus) {
-    if (isBanned) {
-      this.updateLikesCount(LikeStatus.None, likeStatus);
-    } else {
-      this.updateLikesCount(likeStatus, LikeStatus.None);
-    }
+  setLikeStatus(userId: string, userLogin: string, likeStatus: LikeStatus) {
+    if (this.postLikes.length === 0) this.postLikes.push(new PostLike(this.id, userId, userLogin));
+    this.postLikes[0].updateLikeStatus(likeStatus);
   }
 }

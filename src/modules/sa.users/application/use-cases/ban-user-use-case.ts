@@ -2,7 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { SecurityRepository } from '../../../security/infrastructure/security.repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
@@ -15,7 +14,6 @@ export class BanUserCommand {
 export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
-    protected postsRepository: PostsRepository,
     protected securityRepository: SecurityRepository,
     @InjectDataSource() protected dataSource: DataSource,
   ) {}
@@ -32,7 +30,6 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
       const alreadyIsBanned = await this.banUser(userId, dto, manager);
       if (alreadyIsBanned) return;
 
-      await this.updateBanOnUserPostsLikes(userId, dto.isBanned, manager);
       await this.banUserSessions(userId, dto.isBanned, manager);
 
       await queryRunner.commitTransaction();
@@ -53,17 +50,6 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     user.banUser(dto);
     await this.usersRepository.saveUserTransaction(user, manager);
     return false;
-  }
-
-  private async updateBanOnUserPostsLikes(userId: string, isBanned: boolean, manager: EntityManager) {
-    await this.postsRepository.updateBanOnUserPostsLikesTransaction(userId, isBanned, manager);
-
-    const foundPostLikes = await this.postsRepository.findUserPostLikesWithPostTransaction(userId, manager);
-    for (const foundPostLike of foundPostLikes) {
-      const foundPost = foundPostLike.post;
-      foundPost.updateLikesCountAfterBan(isBanned, foundPostLike.likeStatus);
-      await this.postsRepository.savePostTransaction(foundPost, manager);
-    }
   }
 
   private async banUserSessions(userId: string, isBanned: boolean, manager: EntityManager) {

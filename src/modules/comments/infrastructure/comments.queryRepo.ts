@@ -22,7 +22,7 @@ export class CommentsQueryRepo {
   async findCommentById(commentId: string, userId: string | null): Promise<CommentViewModel | null> {
     const commentFromDB: CommentFromDB = (
       await this.commentRepositoryT.query(
-        `SELECT *,
+        `SELECT c.*,
                COALESCE((SELECT "likeStatus"
                         FROM public."CommentLikes"
                         WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
@@ -40,6 +40,7 @@ export class CommentsQueryRepo {
         [userId, commentId],
       )
     )[0];
+
     if (!commentFromDB) throw new NotFoundException('comment not found');
     return new CommentViewModel(commentFromDB);
   }
@@ -50,11 +51,12 @@ export class CommentsQueryRepo {
     const totalCount = await this.commentRepositoryT.count({
       where: { postId: postId, user: { banInfo: { isBanned: false } } },
     });
+
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
     const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
-      `SELECT *,
+      `SELECT c.*,
                COALESCE((SELECT "likeStatus"
                         FROM public."CommentLikes"
                         WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
@@ -114,7 +116,7 @@ export class CommentsQueryRepo {
     const offset = (pageNumber - 1) * pageSize;
 
     const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
-      `SELECT *,
+      `SELECT c.*,
                COALESCE((SELECT "likeStatus"
                         FROM public."CommentLikes"
                         WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",

@@ -19,7 +19,7 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
 
     foundBlog.setBan(isBanned);
 
-    await this.postsRepository.updateBanOnPostsOfBlog(foundBlog.id, isBanned);
+    //await this.postsRepository.updateBanOnPostsOfBlog(foundBlog.id, isBanned);
 
     await this.blogsRepository.saveBlog(foundBlog);
   }
