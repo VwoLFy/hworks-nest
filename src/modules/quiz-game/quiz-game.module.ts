@@ -9,7 +9,7 @@ import { QuizGame } from './domain/quiz-game.entity';
 import { Player } from './domain/quiz-game.player.entity';
 import { Answer } from './domain/quiz-game.answer.entity';
 import { QuizGameQueryRepo } from './infrastructure/quiz-game.queryRepo';
-import { SaQuizModule } from '../sa.quiz/sa.quiz.module';
+import { SaQuizModule } from '../quiz-questions/sa.quiz.module';
 import { SendAnswerUseCase } from './application/use-cases/send-answer-use-case';
 
 const useCases = [ConnectUserToGameUseCase, SendAnswerUseCase];

@@ -5,8 +5,8 @@ import { AppModule } from '../../src/app.module';
 import { HTTP_Status } from '../../src/main/types/enums';
 import { EmailAdapter } from '../../src/modules/auth/infrastructure/email.adapter';
 import { appConfig } from '../../src/app.config';
-import { QuestionViewModel } from '../../src/modules/sa.quiz/api/models/QuestionViewModel';
-import { UpdateQuestionDto } from '../../src/modules/sa.quiz/application/dto/UpdateQuestionDto';
+import { QuestionViewModel } from '../../src/modules/quiz-questions/api/models/QuestionViewModel';
+import { UpdateQuestionDto } from '../../src/modules/quiz-questions/application/dto/UpdateQuestionDto';
 import { TestQuizQuestions } from './TestQuizQuestions';
 
 describe('quiz questions (e2e)', () => {

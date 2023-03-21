@@ -1,7 +1,7 @@
-import { UsersQueryRepo } from '../../users/infrastructure/users.queryRepo';
+import { UsersQueryRepo } from '../infrastructure/users.queryRepo';
 import { FindUsersQueryModel } from './models/FindUsersQueryModel';
 import { UserViewModel } from './models/UserViewModel';
-import { CreateUserDto } from '../../users/application/dto/CreateUserDto';
+import { CreateUserDto } from '../application/dto/CreateUserDto';
 import {
   Body,
   Controller,
@@ -26,7 +26,7 @@ import { PageViewModel } from '../../../main/types/PageViewModel';
 
 @Controller('sa/users')
 @UseGuards(BasicAuthGuard)
-export class SaUsersController {
+export class UsersController {
   constructor(protected usersQueryRepo: UsersQueryRepo, private commandBus: CommandBus) {}
 
   @Get()

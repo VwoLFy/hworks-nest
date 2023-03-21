@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { NotFoundException } from '@nestjs/common';
-import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 
 export class BanBlogCommand {
   constructor(public blogId: string, public isBanned: boolean) {}
@@ -9,7 +8,7 @@ export class BanBlogCommand {
 
 @CommandHandler(BanBlogCommand)
 export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
-  constructor(protected blogsRepository: BlogsRepository, protected postsRepository: PostsRepository) {}
+  constructor(protected blogsRepository: BlogsRepository) {}
 
   async execute(command: BanBlogCommand) {
     const { isBanned, blogId } = command;
@@ -18,8 +17,6 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
     if (!foundBlog) throw new NotFoundException('blog not found');
 
     foundBlog.setBan(isBanned);
-
-    //await this.postsRepository.updateBanOnPostsOfBlog(foundBlog.id, isBanned);
 
     await this.blogsRepository.saveBlog(foundBlog);
   }

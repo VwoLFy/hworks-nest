@@ -5,7 +5,7 @@ import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
 import { BlogViewModel } from '../src/modules/public.blogs/api/models/BlogViewModel';
 import { PostViewModel } from '../src/modules/posts/api/models/PostViewModel';
-import { UserViewModel } from '../src/modules/sa.users/api/models/UserViewModel';
+import { UserViewModel } from '../src/modules/users/api/models/UserViewModel';
 import { LoginSuccessViewModel } from '../src/modules/auth/api/models/LoginSuccessViewModel';
 import { CommentViewModel } from '../src/modules/comments/api/models/CommentViewModel';
 import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewModel';

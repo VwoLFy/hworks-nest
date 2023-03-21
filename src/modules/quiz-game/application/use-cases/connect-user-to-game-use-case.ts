@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import { QuizGame } from '../../domain/quiz-game.entity';
 import { QuizGameRepository } from '../../infrastructure/quiz-game.repository';
-import { QuizQuestionsRepository } from '../../../sa.quiz/infrastructure/quiz-questions.repository';
+import { QuizQuestionsRepository } from '../../../quiz-questions/infrastructure/quiz-questions.repository';
 import { ForbiddenException } from '@nestjs/common';
 import { GameStatuses } from '../enums';
 

@@ -1,6 +1,6 @@
 import { User } from '../domain/user.entity';
-import { UserViewModel } from '../../sa.users/api/models/UserViewModel';
-import { FindUsersQueryModel } from '../../sa.users/api/models/FindUsersQueryModel';
+import { UserViewModel } from '../api/models/UserViewModel';
+import { FindUsersQueryModel } from '../api/models/FindUsersQueryModel';
 import { Injectable } from '@nestjs/common';
 import { BanStatuses } from '../../../main/types/enums';
 import { PageViewModel } from '../../../main/types/PageViewModel';

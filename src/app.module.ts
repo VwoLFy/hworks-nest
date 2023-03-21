@@ -13,7 +13,6 @@ import { BlogsModule } from './modules/blogs/blogs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BloggerUsersModule } from './modules/blogger.users/blogger.users.module';
 import { DeleteAllModule } from './modules/delete-all/delete-all.module';
-import { SaUsersModule } from './modules/sa.users/sa.users.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { SaBlogsModule } from './modules/sa.blogs/sa.blogs.module';
@@ -21,8 +20,8 @@ import { PublicBlogsModule } from './modules/public.blogs/public.blogs.module';
 import { BloggerBlogsModule } from './modules/blogger.blogs/blogger.blogs.module';
 import { ApiJwtModule } from './modules/api-jwt/api-jwt.module';
 import { SecurityModule } from './modules/security/security.module';
-import { SaQuizModule } from './modules/sa.quiz/sa.quiz.module';
-import { QuizGameModule } from './modules/pair-quiz-game/quiz-game.module';
+import { SaQuizModule } from './modules/quiz-questions/sa.quiz.module';
+import { QuizGameModule } from './modules/quiz-game/quiz-game.module';
 
 @Module({
   imports: [
@@ -101,7 +100,6 @@ import { QuizGameModule } from './modules/pair-quiz-game/quiz-game.module';
     AuthModule,
     BloggerUsersModule,
     DeleteAllModule,
-    SaUsersModule,
     CommentsModule,
     PostsModule,
     SaBlogsModule,

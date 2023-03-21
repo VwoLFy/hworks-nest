@@ -1,6 +1,6 @@
-import { CreateUserDto } from '../../../users/application/dto/CreateUserDto';
+import { CreateUserDto } from '../dto/CreateUserDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersService } from '../../../users/application/users.service';
+import { UsersService } from '../users.service';
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}

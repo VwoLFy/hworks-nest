@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '../../../users/infrastructure/users.repository';
+import { UsersRepository } from '../../infrastructure/users.repository';
 import { SecurityRepository } from '../../../security/infrastructure/security.repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';

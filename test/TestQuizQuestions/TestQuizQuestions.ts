@@ -1,10 +1,10 @@
 import { PageViewModel } from '../../src/main/types/PageViewModel';
-import { QuestionViewModel } from '../../src/modules/sa.quiz/api/models/QuestionViewModel';
+import { QuestionViewModel } from '../../src/modules/quiz-questions/api/models/QuestionViewModel';
 import request from 'supertest';
 import { HTTP_Status } from '../../src/main/types/enums';
-import { CreateQuestionDto } from '../../src/modules/sa.quiz/application/dto/CreateQuestionDto';
-import { PublishQuestionDto } from '../../src/modules/sa.quiz/application/dto/PublishQuestionDto';
-import { UpdateQuestionDto } from '../../src/modules/sa.quiz/application/dto/UpdateQuestionDto';
+import { CreateQuestionDto } from '../../src/modules/quiz-questions/application/dto/CreateQuestionDto';
+import { PublishQuestionDto } from '../../src/modules/quiz-questions/application/dto/PublishQuestionDto';
+import { UpdateQuestionDto } from '../../src/modules/quiz-questions/application/dto/UpdateQuestionDto';
 import { INestApplication } from '@nestjs/common';
 import { BadRequestError, testCheckBadRequestError } from '../Utils/TestCheckBadRequestError';
 

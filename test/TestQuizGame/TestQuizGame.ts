@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { HTTP_Status } from '../../src/main/types/enums';
 import { INestApplication } from '@nestjs/common';
-import { GamePairViewModel } from '../../src/modules/pair-quiz-game/api/models/GamePairViewModel';
-import { AnswerViewModel } from '../../src/modules/pair-quiz-game/api/models/AnswerViewModel';
+import { GamePairViewModel } from '../../src/modules/quiz-game/api/models/GamePairViewModel';
+import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerViewModel';
 
 export class TestQuizGame {
   constructor(private app: INestApplication) {}

@@ -1,5 +1,5 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from 'typeorm';
-import { QuizQuestion } from '../../sa.quiz/domain/quiz-question.entity';
+import { QuizQuestion } from '../../quiz-questions/domain/quiz-question.entity';
 import { GameStatuses } from '../application/enums';
 import { randomUUID } from 'crypto';
 import { Player } from './quiz-game.player.entity';

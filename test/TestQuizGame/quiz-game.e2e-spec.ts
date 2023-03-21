@@ -6,11 +6,11 @@ import { HTTP_Status } from '../../src/main/types/enums';
 import { EmailAdapter } from '../../src/modules/auth/infrastructure/email.adapter';
 import { appConfig } from '../../src/app.config';
 import { TestQuizGame } from './TestQuizGame';
-import { UserViewModel } from '../../src/modules/sa.users/api/models/UserViewModel';
-import { GamePairViewModel } from '../../src/modules/pair-quiz-game/api/models/GamePairViewModel';
-import { AnswerStatuses, GameStatuses } from '../../src/modules/pair-quiz-game/application/enums';
+import { UserViewModel } from '../../src/modules/users/api/models/UserViewModel';
+import { GamePairViewModel } from '../../src/modules/quiz-game/api/models/GamePairViewModel';
+import { AnswerStatuses, GameStatuses } from '../../src/modules/quiz-game/application/enums';
 import { TestQuizQuestions } from '../TestQuizQuestions/TestQuizQuestions';
-import { AnswerViewModel } from '../../src/modules/pair-quiz-game/api/models/AnswerViewModel';
+import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerViewModel';
 
 let app: INestApplication;
 

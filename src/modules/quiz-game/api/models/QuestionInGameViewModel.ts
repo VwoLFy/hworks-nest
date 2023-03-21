@@ -1,4 +1,4 @@
-import { QuizQuestion } from '../../../sa.quiz/domain/quiz-question.entity';
+import { QuizQuestion } from '../../../quiz-questions/domain/quiz-question.entity';
 
 export class QuestionInGameViewModel {
   id: string;
