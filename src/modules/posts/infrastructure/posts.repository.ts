@@ -48,9 +48,4 @@ export class PostsRepository {
   async savePostLike(like: PostLike) {
     await this.postLikeRepositoryT.save(like);
   }
-
-  async deleteAll() {
-    await this.postLikeRepositoryT.delete({});
-    await this.postRepositoryT.delete({});
-  }
 }

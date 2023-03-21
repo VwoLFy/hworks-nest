@@ -18,8 +18,4 @@ export class AttemptsRepository {
   async saveAttempt(attempt: AttemptsData) {
     await this.attemptsDataRepositoryT.save(attempt);
   }
-
-  async deleteAll() {
-    await this.attemptsDataRepositoryT.clear();
-  }
 }

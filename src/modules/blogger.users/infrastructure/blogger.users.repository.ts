@@ -24,8 +24,4 @@ export class BloggerUsersRepository {
   async deleteBannedUserForBlog(userId: string, blogId: string) {
     await this.bannedUsersForBlogRepositoryT.delete({ blogId: blogId, userId: userId });
   }
-
-  async deleteAllBannedUsersForBlogs() {
-    await this.bannedUsersForBlogRepositoryT.clear();
-  }
 }

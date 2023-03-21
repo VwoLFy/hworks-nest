@@ -33,10 +33,6 @@ export class SecurityRepository {
     await this.sessionRepositoryT.delete({ deviceId: deviceId });
   }
 
-  async deleteAll() {
-    await this.sessionRepositoryT.clear();
-  }
-
   async deleteAllUserSessionsTransaction(userId: string, manager: EntityManager) {
     await manager.delete(Session, { userId: userId });
   }

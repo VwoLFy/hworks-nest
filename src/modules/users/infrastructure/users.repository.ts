@@ -48,10 +48,6 @@ export class UsersRepository {
     await this.usersRepositoryT.delete({ id: userId });
   }
 
-  async deleteAllUsers() {
-    await this.usersRepositoryT.delete({});
-  }
-
   async saveUserTransaction(user: User, manager: EntityManager) {
     await manager.save(user);
   }
