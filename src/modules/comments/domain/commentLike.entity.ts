@@ -15,11 +15,9 @@ export class CommentLike {
   public userId: string;
   @Column()
   public likeStatus: LikeStatus;
-  @Column()
-  public isBanned: boolean;
   @ManyToOne(() => User)
   user: User;
-  @ManyToOne(() => Comment, (c) => c.commentLikes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Comment, (c) => c.commentLikes, { orphanedRowAction: 'disable', onDelete: 'CASCADE' })
   comment: Comment;
 
   constructor(commentId: string, userId: string) {
@@ -27,7 +25,6 @@ export class CommentLike {
     this.userId = userId;
     this.likeStatus = LikeStatus.None;
     this.addedAt = new Date();
-    this.isBanned = false;
   }
 
   updateLikeStatus(likeStatus: LikeStatus): void {

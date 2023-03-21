@@ -25,37 +25,56 @@ export class CommentsQueryRepo {
         `SELECT *,
                COALESCE((SELECT "likeStatus"
                         FROM public."CommentLikes"
-                        WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
+                        WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
                FROM public."Comments" as c
-               WHERE "id" = $3 AND "isBanned" = false`,
-        [userId, LikeStatus.None, commentId],
+               left join public."UsersBanInfo" as b on b."userId" = c."userId"               
+               WHERE "id" = $2 AND b."isBanned" = false`,
+        [userId, commentId],
       )
     )[0];
-
     if (!commentFromDB) throw new NotFoundException('comment not found');
-    return this.getCommentViewModel(commentFromDB);
+    return new CommentViewModel(commentFromDB);
   }
 
   async findCommentsByPostId(dto: FindCommentsByPostIdDto): Promise<PageViewModel<CommentViewModel> | null> {
     const { postId, pageNumber, pageSize, sortBy, sortDirection, userId } = dto;
 
-    const totalCount = await this.commentRepositoryT.count({ where: { postId: postId, isBanned: false } });
+    const totalCount = await this.commentRepositoryT.count({
+      where: { postId: postId, user: { banInfo: { isBanned: false } } },
+    });
     const pagesCount = Math.ceil(totalCount / pageSize);
     const offset = (pageNumber - 1) * pageSize;
 
     const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
       `SELECT *,
-             COALESCE((SELECT "likeStatus"
-                      FROM public."CommentLikes"
-                      WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
+               COALESCE((SELECT "likeStatus"
+                        FROM public."CommentLikes"
+                        WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
              FROM public."Comments" as c
-             WHERE "postId" = $3 AND "isBanned" = false
+             left join public."UsersBanInfo" as b on b."userId" = c."userId"
+             WHERE "postId" = $2 AND b."isBanned" = false
 	           ORDER BY "${sortBy}" ${sortDirection}
 	           LIMIT ${pageSize} OFFSET ${offset};`,
-      [userId, LikeStatus.None, postId],
+      [userId, postId],
     );
 
-    const items = await Promise.all(commentsFromDB.map((c) => this.getCommentViewModel(c)));
+    const items = commentsFromDB.map((c) => new CommentViewModel(c));
 
     return new PageViewModel(
       {
@@ -96,8 +115,17 @@ export class CommentsQueryRepo {
 
     const commentsFromDB: CommentFromDB[] = await this.commentRepositoryT.query(
       `SELECT *,
-             COALESCE((SELECT "likeStatus" FROM public."CommentLikes"
-                        WHERE "commentId" = c."id" AND "userId" = $1), $2) as "myStatus"
+               COALESCE((SELECT "likeStatus"
+                        FROM public."CommentLikes"
+                        WHERE "commentId" = c."id" AND "userId" = $1), '${LikeStatus.None}') as "myStatus",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Like}' AND b."isBanned" = false) as "likesCount",
+               (SELECT count(*)::int
+                        FROM public."CommentLikes" as cl
+                        left join public."UsersBanInfo" as b on b."userId" = cl."userId"
+                        WHERE cl."commentId" = c."id" AND cl."likeStatus" = '${LikeStatus.Dislike}' AND b."isBanned" = false) as "dislikesCount"
              FROM public."Comments" as c
              WHERE "postId" IN 
                         (SELECT po.id FROM public."Blogs" b
@@ -105,10 +133,10 @@ export class CommentsQueryRepo {
                         WHERE b."userId" = $1)
 	           ORDER BY "${sortBy}" ${sortDirection}
 	           LIMIT ${pageSize} OFFSET ${offset};`,
-      [userId, LikeStatus.None],
+      [userId],
     );
 
-    const items = await Promise.all(commentsFromDB.map((c) => this.getCommentViewModelBl(c, postsFromDB)));
+    const items = commentsFromDB.map((c) => this.getCommentViewModelBl(c, postsFromDB));
 
     return new PageViewModel(
       {
@@ -121,19 +149,8 @@ export class CommentsQueryRepo {
     );
   }
 
-  private async getCommentViewModel(commentFromDB: CommentFromDB): Promise<CommentViewModel> {
-    const myStatus = commentFromDB.myStatus;
-
-    return new CommentViewModel(commentFromDB, myStatus);
-  }
-
-  private async getCommentViewModelBl(
-    commentFromDB: CommentFromDB,
-    postsFromDB: PostFromDB[],
-  ): Promise<CommentViewModelBl> {
-    const myStatus = commentFromDB.myStatus;
-
+  private getCommentViewModelBl(commentFromDB: CommentFromDB, postsFromDB: PostFromDB[]): CommentViewModelBl {
     const post = postsFromDB.find((p) => p.id === commentFromDB.postId);
-    return new CommentViewModelBl(commentFromDB, post, myStatus);
+    return new CommentViewModelBl(commentFromDB, post);
   }
 }

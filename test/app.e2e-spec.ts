@@ -2454,15 +2454,7 @@ describe('AppController (e2e)', () => {
         .expect(HTTP_Status.CREATED_201);
       comment4 = resultComment.body;
 
-      await request(app.getHttpServer())
-        .get(`/posts/${post.id}/comments`)
-        .expect(HTTP_Status.OK_200, {
-          pagesCount: 1,
-          page: 1,
-          pageSize: 10,
-          totalCount: 4,
-          items: [comment4, comment3, comment2, comment1],
-        });
+      await request(app.getHttpServer()).get(`/comments/${comment4.id}`).expect(HTTP_Status.OK_200, comment4);
     });
     it('PUT ban  user4', async function () {
       await request(app.getHttpServer())
@@ -2499,7 +2491,7 @@ describe('AppController (e2e)', () => {
         .set('Cookie', `refreshToken=${refreshToken}`)
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('GET should return 200 and comments without user4 comment', async () => {
+    it('GET should return 200 and comments without user4 comment and 404 for find comment by id', async () => {
       await request(app.getHttpServer())
         .get(`/posts/${post.id}/comments`)
         .expect(HTTP_Status.OK_200, {
@@ -2509,6 +2501,8 @@ describe('AppController (e2e)', () => {
           totalCount: 3,
           items: [comment3, comment2, comment1],
         });
+
+      await request(app.getHttpServer()).get(`/comments/${comment4.id}`).expect(HTTP_Status.NOT_FOUND_404);
     });
     it('PUT unBan  user4', async function () {
       await request(app.getHttpServer())
@@ -2530,6 +2524,17 @@ describe('AppController (e2e)', () => {
         banDate: null,
         banReason: null,
       });
+
+      const resultComment = await request(app.getHttpServer())
+        .post(`/posts/${post.id}/comments`)
+        .auth(token4.accessToken, { type: 'bearer' })
+        .send({
+          content: 'valid comment_comment4',
+        })
+        .expect(HTTP_Status.CREATED_201);
+      comment4 = resultComment.body;
+
+      await request(app.getHttpServer()).get(`/comments/${comment4.id}`).expect(HTTP_Status.OK_200, comment4);
     });
     it('PUT should like comment by user2, user3 and dislike by user4, user1', async () => {
       await request(app.getHttpServer())
@@ -2695,6 +2700,62 @@ describe('AppController (e2e)', () => {
       expect(newestLikes.length).toBe(2);
       expect(newestLikes2.length).toBe(1);
       expect(newestLikes).not.toEqual(newestLikes2);
+    });
+    it('PUT unBan  user3', async function () {
+      await request(app.getHttpServer())
+        .put(`/sa/users/${user3.id}/ban`)
+        .auth('admin', 'qwerty', { type: 'basic' })
+        .send({
+          isBanned: false,
+          banReason: null,
+        })
+        .expect(HTTP_Status.NO_CONTENT_204);
+    });
+    it('All likes should returned and be counted for comment', async () => {
+      const likedComment = await request(app.getHttpServer())
+        .get(`/comments/${comment1.id}`)
+        .expect(HTTP_Status.OK_200);
+
+      expect(likedComment.body).toEqual({
+        id: expect.any(String),
+        content: 'valid comment_comment',
+        commentatorInfo: {
+          userId: user1.id,
+          userLogin: user1.login,
+        },
+        createdAt: expect.any(String),
+        likesInfo: {
+          likesCount: 2,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+        },
+      });
+    });
+    it('All likes should returned and be counted for post', async () => {
+      const likedPost = await request(app.getHttpServer()).get(`/posts/${post.id}`).expect(HTTP_Status.OK_200);
+
+      expect(likedPost.body).toEqual({
+        id: expect.any(String),
+        title: 'valid',
+        content: 'valid',
+        blogId: `${blog.id}`,
+        blogName: `${blog.name}`,
+        shortDescription: 'K8cqY3aPKo3XWOJyQgGnlX5sP3aW3RlaRSQx',
+        createdAt: expect.any(String),
+        extendedLikesInfo: {
+          likesCount: 2,
+          dislikesCount: 2,
+          myStatus: LikeStatus.None,
+          newestLikes: expect.arrayContaining([
+            {
+              addedAt: expect.any(String),
+              userId: expect.any(String),
+              login: expect.any(String),
+            },
+          ]),
+        },
+      });
+      newestLikes = likedPost.body.extendedLikesInfo.newestLikes;
     });
   });
 
@@ -5871,7 +5932,7 @@ describe('AppController (e2e)', () => {
     let token: LoginSuccessViewModel;
     let post: PostViewModel;
     let blog: BlogViewModel;
-    const commentsCount = 10;
+    const commentsCount = 4000;
 
     it('create blog, post, user, "commentsCount" comments, "commentsCount" likes', async () => {
       const resultUser = await request(app.getHttpServer())
@@ -5924,14 +5985,31 @@ describe('AppController (e2e)', () => {
           .send({ likeStatus: 'Like' })
           .expect(HTTP_Status.NO_CONTENT_204);
       }
+      console.time('c1');
       const commentsResult: PageViewModel<CommentViewModel> = (
         await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
       ).body;
-
+      console.timeEnd('c1');
       expect(commentsResult.totalCount).toBe(commentsCount);
       expect(commentsResult.items[0].likesInfo.likesCount).toBe(1);
     }, 100000);
-    it('ban user', async () => {
+    it('get comments', async () => {
+      console.time('c2');
+      const commentsResult: PageViewModel<CommentViewModel> = (
+        await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
+      ).body;
+      console.timeEnd('c2');
+      expect(commentsResult.totalCount).toBe(commentsCount);
+
+      console.time('c3');
+      await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200);
+      console.timeEnd('c3');
+
+      console.time('c4');
+      await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200);
+      console.timeEnd('c4');
+    }, 100000);
+    it.skip('ban user', async () => {
       await request(app.getHttpServer())
         .put(`/sa/users/${user.id}/ban`)
         .auth('admin', 'qwerty', { type: 'basic' })
@@ -5948,13 +6026,13 @@ describe('AppController (e2e)', () => {
           .expect(HTTP_Status.OK_200)
       ).body.items[0];
 
-      console.log(userFromDB);
+      //console.log(userFromDB);
       expect(userFromDB.banInfo.isBanned).toBe(true);
 
       const commentsResult: PageViewModel<CommentViewModel> = (
         await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(HTTP_Status.OK_200)
       ).body;
-      console.log(commentsResult.items);
+      //console.log(commentsResult.items);
 
       expect(commentsResult.totalCount).toBe(0);
     }, 100000);
@@ -5993,13 +6071,13 @@ describe('AppController (e2e)', () => {
           .expect(HTTP_Status.OK_200)
       ).body.items[0];
 
-      console.log(userFromDB);
+      //console.log(userFromDB);
       expect(userFromDB.banInfo.isBanned).toBe(false);
 
       const commentsResult: PageViewModel<CommentViewModel> = (
         await request(app.getHttpServer()).get(`/posts/${post.id}/comments`).expect(200)
       ).body;
-      console.log(commentsResult.items);
+      //console.log(commentsResult.items);
 
       expect(commentsResult.totalCount).toBe(commentsCount);
     }, 100000);

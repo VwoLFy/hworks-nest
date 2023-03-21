@@ -1,7 +1,7 @@
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { LikeCommentDto } from '../dto/LikeCommentDto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Comment } from '../../domain/comment.entity';
+import { NotFoundException } from '@nestjs/common';
 
 export class LikeCommentCommand {
   constructor(public dto: LikeCommentDto) {}
@@ -12,19 +12,12 @@ export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
   constructor(protected commentsRepository: CommentsRepository) {}
 
   async execute(command: LikeCommentCommand) {
-    const foundComment = await this.commentsRepository.findCommentOrThrowError(command.dto.commentId);
+    const { commentId, userId, likeStatus } = command.dto;
 
-    await this.setLikeStatus(command.dto, foundComment);
-  }
+    const foundCommentWithLike = await this.commentsRepository.findCommentWithLikeOfUser(commentId, userId);
+    if (!foundCommentWithLike) throw new NotFoundException('comment not found');
 
-  async setLikeStatus(dto: LikeCommentDto, foundComment: Comment) {
-    const { commentId, userId, likeStatus } = dto;
-
-    const oldLike = await this.commentsRepository.findCommentLike(commentId, userId);
-
-    const newLike = foundComment.setLikeStatus(oldLike, userId, likeStatus);
-
-    await this.commentsRepository.saveComment(foundComment);
-    await this.commentsRepository.saveCommentLike(newLike);
+    foundCommentWithLike.setLikeStatus(userId, likeStatus);
+    await this.commentsRepository.saveComment(foundCommentWithLike);
   }
 }

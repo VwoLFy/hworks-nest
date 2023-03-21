@@ -6,14 +6,13 @@ import { IsFreeLoginOrEmailConstraint } from '../../main/decorators/is-free-logi
 import { CqrsModule } from '@nestjs/cqrs';
 import { SaUsersController } from './api/sa.users.controller';
 import { UsersModule } from '../users/users.module';
-import { CommentsModule } from '../comments/comments.module';
 import { PostsModule } from '../posts/posts.module';
 import { SecurityModule } from '../security/security.module';
 
 const useCases = [CreateUserUseCase, DeleteUserUseCase, BanUserUseCase];
 
 @Module({
-  imports: [CqrsModule, UsersModule, SecurityModule, CommentsModule, PostsModule],
+  imports: [CqrsModule, UsersModule, SecurityModule, PostsModule],
   controllers: [SaUsersController],
   providers: [IsFreeLoginOrEmailConstraint, ...useCases],
 })

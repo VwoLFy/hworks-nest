@@ -2,7 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BanUserDto } from '../dto/BanUserDto';
 import { NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { SecurityRepository } from '../../../security/infrastructure/security.repository';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -16,7 +15,6 @@ export class BanUserCommand {
 export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
   constructor(
     protected usersRepository: UsersRepository,
-    protected commentsRepository: CommentsRepository,
     protected postsRepository: PostsRepository,
     protected securityRepository: SecurityRepository,
     @InjectDataSource() protected dataSource: DataSource,
@@ -34,8 +32,6 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
       const alreadyIsBanned = await this.banUser(userId, dto, manager);
       if (alreadyIsBanned) return;
 
-      await this.commentsRepository.updateBanOnUserCommentsTransaction(userId, dto.isBanned, manager);
-      await this.updateBanOnUserCommentsLikes(userId, dto.isBanned, manager);
       await this.updateBanOnUserPostsLikes(userId, dto.isBanned, manager);
       await this.banUserSessions(userId, dto.isBanned, manager);
 
@@ -57,17 +53,6 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     user.banUser(dto);
     await this.usersRepository.saveUserTransaction(user, manager);
     return false;
-  }
-
-  private async updateBanOnUserCommentsLikes(userId: string, isBanned: boolean, manager: EntityManager) {
-    await this.commentsRepository.updateBanOnUserCommentsLikesTransaction(userId, isBanned, manager);
-
-    const foundCommentLikes = await this.commentsRepository.findUserCommentLikesWithCommentTransaction(userId, manager);
-    for (const foundCommentLike of foundCommentLikes) {
-      const foundComment = foundCommentLike.comment;
-      foundComment.updateLikesCountAfterBan(isBanned, foundCommentLike.likeStatus);
-      await this.commentsRepository.saveCommentTransaction(foundComment, manager);
-    }
   }
 
   private async updateBanOnUserPostsLikes(userId: string, isBanned: boolean, manager: EntityManager) {

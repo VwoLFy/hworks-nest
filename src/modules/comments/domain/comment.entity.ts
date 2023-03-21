@@ -21,16 +21,12 @@ export class Comment {
   @Column()
   createdAt: Date;
   @Column()
-  likesCount: number;
-  @Column()
-  dislikesCount: number;
-  @Column()
   isBanned: boolean;
   @ManyToOne(() => User)
   user: User;
   @ManyToOne(() => Post)
   post: Post;
-  @OneToMany(() => CommentLike, (cl) => cl.comment)
+  @OneToMany(() => CommentLike, (cl) => cl.comment, { cascade: ['update', 'insert'] })
   commentLikes: CommentLike[];
 
   constructor({ ...dto }: CreateCommentEntityDto) {
@@ -41,47 +37,14 @@ export class Comment {
     this.userId = dto.userId;
     this.userLogin = dto.userLogin;
     this.isBanned = false;
-    this.likesCount = 0;
-    this.dislikesCount = 0;
   }
 
-  setLikeStatus(like: CommentLike | null, userId: string, likeStatus: LikeStatus): CommentLike {
-    if (!like) like = this.createLikeStatus(userId);
-
-    const oldLikeStatus = like.likeStatus;
-    like.updateLikeStatus(likeStatus);
-
-    this.updateLikesCount(likeStatus, oldLikeStatus);
-
-    return like;
-  }
-
-  createLikeStatus(userId: string): CommentLike {
-    return new CommentLike(this.id, userId);
-  }
-
-  updateLikesCount(newLikeStatus: LikeStatus, oldLikeStatus: LikeStatus) {
-    if (newLikeStatus === LikeStatus.Like && oldLikeStatus !== LikeStatus.Like) {
-      this.likesCount += 1;
-    } else if (newLikeStatus === LikeStatus.Dislike && oldLikeStatus !== LikeStatus.Dislike) {
-      this.dislikesCount += 1;
-    }
-    if (newLikeStatus !== LikeStatus.Like && oldLikeStatus === LikeStatus.Like) {
-      this.likesCount -= 1;
-    } else if (newLikeStatus !== LikeStatus.Dislike && oldLikeStatus === LikeStatus.Dislike) {
-      this.dislikesCount -= 1;
-    }
+  setLikeStatus(userId: string, likeStatus: LikeStatus) {
+    if (this.commentLikes.length === 0) this.commentLikes.push(new CommentLike(this.id, userId));
+    this.commentLikes[0].updateLikeStatus(likeStatus);
   }
 
   updateComment(content: string) {
     this.content = content;
-  }
-
-  updateLikesCountAfterBan(isBanned: boolean, likeStatus: LikeStatus) {
-    if (isBanned) {
-      this.updateLikesCount(LikeStatus.None, likeStatus);
-    } else {
-      this.updateLikesCount(likeStatus, LikeStatus.None);
-    }
   }
 }
