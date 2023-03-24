@@ -19,42 +19,58 @@ export class TestQuizQuestions {
     return result.body;
   }
 
-  async createQuestion(body: CreateQuestionDto): Promise<QuestionViewModel> {
+  async createQuestion(
+    createQuestionDto: CreateQuestionDto,
+    httpStatus: HTTP_Status = HTTP_Status.CREATED_201,
+    field?: string,
+  ): Promise<QuestionViewModel> {
     const result = await request(this.app.getHttpServer())
       .post(`/sa/quiz/questions`)
       .auth('admin', 'qwerty', { type: 'basic' })
-      .send(body)
-      .expect(HTTP_Status.CREATED_201);
+      .send(createQuestionDto)
+      .expect(httpStatus);
 
-    return result.body;
+    if (httpStatus !== HTTP_Status.BAD_REQUEST_400) return result.body;
+
+    const error: BadRequestError = result.body;
+    testCheckBadRequestError(error, field);
+    return null;
   }
 
-  async publishQuestion(questionId: string, dto: PublishQuestionDto) {
-    await request(this.app.getHttpServer())
-      .put(`/sa/quiz/questions/${questionId}/publish`)
-      .auth('admin', 'qwerty', { type: 'basic' })
-      .send(dto)
-      .expect(HTTP_Status.NO_CONTENT_204);
-  }
-
-  async updateQuestion(questionId: string, dto: UpdateQuestionDto) {
-    await request(this.app.getHttpServer())
-      .put(`/sa/quiz/questions/${questionId}`)
-      .auth('admin', 'qwerty', { type: 'basic' })
-      .send(dto)
-      .expect(HTTP_Status.NO_CONTENT_204);
-  }
-
-  async publishQuestion400(questionId: string, dto: PublishQuestionDto) {
+  async publishQuestion(
+    questionId: string,
+    publishQuestionDto: PublishQuestionDto,
+    httpStatus: HTTP_Status = HTTP_Status.NO_CONTENT_204,
+    field?: string,
+  ) {
     const result = await request(this.app.getHttpServer())
       .put(`/sa/quiz/questions/${questionId}/publish`)
       .auth('admin', 'qwerty', { type: 'basic' })
-      .send(dto)
-      .expect(HTTP_Status.BAD_REQUEST_400);
+      .send(publishQuestionDto)
+      .expect(httpStatus);
 
-    const error: BadRequestError = result.body;
-    testCheckBadRequestError(error, 'published');
-    return error;
+    if (httpStatus === HTTP_Status.BAD_REQUEST_400 && field) {
+      const error: BadRequestError = result.body;
+      testCheckBadRequestError(error, field);
+    }
+  }
+
+  async updateQuestion(
+    questionId: string,
+    updateQuestionDto: UpdateQuestionDto,
+    httpStatus: HTTP_Status = HTTP_Status.NO_CONTENT_204,
+    field?: string,
+  ) {
+    const result = await request(this.app.getHttpServer())
+      .put(`/sa/quiz/questions/${questionId}`)
+      .auth('admin', 'qwerty', { type: 'basic' })
+      .send(updateQuestionDto)
+      .expect(httpStatus);
+
+    if (httpStatus === HTTP_Status.BAD_REQUEST_400 && field) {
+      const error: BadRequestError = result.body;
+      testCheckBadRequestError(error, field);
+    }
   }
 
   async deleteQuestion(questionId: string) {
@@ -62,29 +78,5 @@ export class TestQuizQuestions {
       .delete(`/sa/quiz/questions/${questionId}`)
       .auth('admin', 'qwerty', { type: 'basic' })
       .expect(HTTP_Status.NO_CONTENT_204);
-  }
-
-  async createQuestion400(dto: CreateQuestionDto, field: string): Promise<BadRequestError> {
-    const result = await request(this.app.getHttpServer())
-      .post(`/sa/quiz/questions`)
-      .auth('admin', 'qwerty', { type: 'basic' })
-      .send(dto)
-      .expect(HTTP_Status.BAD_REQUEST_400);
-
-    const error: BadRequestError = result.body;
-    testCheckBadRequestError(error, field);
-    return error;
-  }
-
-  async updateQuestion400(questionId: string, dto: UpdateQuestionDto, field: string): Promise<BadRequestError> {
-    const result = await request(this.app.getHttpServer())
-      .put(`/sa/quiz/questions/${questionId}`)
-      .auth('admin', 'qwerty', { type: 'basic' })
-      .send(dto)
-      .expect(HTTP_Status.BAD_REQUEST_400);
-
-    const error: BadRequestError = result.body;
-    testCheckBadRequestError(error, field);
-    return error;
   }
 }

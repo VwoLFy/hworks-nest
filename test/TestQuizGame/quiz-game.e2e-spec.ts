@@ -1,61 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../../src/app.module';
 import { HTTP_Status } from '../../src/main/types/enums';
-import { EmailAdapter } from '../../src/modules/auth/infrastructure/email.adapter';
-import { appConfig } from '../../src/app.config';
 import { TestQuizGame } from './TestQuizGame';
 import { UserViewModel } from '../../src/modules/users/api/models/UserViewModel';
 import { GamePairViewModel } from '../../src/modules/quiz-game/api/models/GamePairViewModel';
 import { AnswerStatuses, GameStatuses } from '../../src/modules/quiz-game/application/enums';
 import { TestQuizQuestions } from '../TestQuizQuestions/TestQuizQuestions';
 import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerViewModel';
-
-let app: INestApplication;
-
-async function createUsersWithTokens(countUsers: number): Promise<{ users: UserViewModel[]; accessTokens: string[] }> {
-  const users: UserViewModel[] = [];
-  const accessTokens: string[] = [];
-
-  for (let i = 1; i <= countUsers; i++) {
-    const createUserBody = {
-      login: `login${i}`,
-      password: `password`,
-      email: `string${i}@sdf.ee`,
-    };
-
-    const resultUser = await request(app.getHttpServer())
-      .post('/sa/users')
-      .auth('admin', 'qwerty', { type: 'basic' })
-      .send(createUserBody)
-      .expect(HTTP_Status.CREATED_201);
-    users.push(resultUser.body);
-    const resultToken = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ loginOrEmail: createUserBody.login, password: createUserBody.password })
-      .expect(HTTP_Status.OK_200);
-    accessTokens.push(resultToken.body.accessToken);
-  }
-
-  return { users: users, accessTokens: accessTokens };
-}
+import { TestUsers } from '../TestUsers/TestUsers';
+import { testCreateApp } from '../Utils/TestCreateApp';
 
 describe('quiz game (e2e)', () => {
+  let app: INestApplication;
   let testQuizGame: TestQuizGame;
   let testQuizQuestions: TestQuizQuestions;
+  let testUsers: TestUsers;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(EmailAdapter)
-      .useValue({ sendEmail: () => 'OK' })
-      .compile();
+    app = await testCreateApp();
 
-    app = moduleFixture.createNestApplication();
-    appConfig(app);
-    await app.init();
+    testUsers = new TestUsers(app);
     testQuizGame = new TestQuizGame(app);
     testQuizQuestions = new TestQuizQuestions(app);
   });
@@ -77,7 +41,7 @@ describe('quiz game (e2e)', () => {
       Incorrect = 'Incorrect',
     }
     it('create user with tokens', async () => {
-      const usersWithTokens = await createUsersWithTokens(5);
+      const usersWithTokens = await testUsers.createUsersWithTokens(5);
       users = usersWithTokens.users;
       accessTokens = usersWithTokens.accessTokens;
     });
@@ -149,10 +113,7 @@ describe('quiz game (e2e)', () => {
       expect(game).toEqual(expectedResult);
     });
     it('shouldn`t add player to existing game if user is already playing', async () => {
-      await request(app.getHttpServer())
-        .post(`/pair-game-quiz/pairs/connection`)
-        .auth(accessTokens[0], { type: 'bearer' })
-        .expect(HTTP_Status.FORBIDDEN_403);
+      await testQuizGame.createGame(accessTokens[0], HTTP_Status.FORBIDDEN_403);
     });
     it('shouldn`t create game if user is not authorized', async () => {
       await request(app.getHttpServer()).post(`/pair-game-quiz/pairs/connection`).expect(HTTP_Status.UNAUTHORIZED_401);
@@ -165,22 +126,13 @@ describe('quiz game (e2e)', () => {
       await request(app.getHttpServer()).get(`/pair-game-quiz/pairs/${game.id}`).expect(HTTP_Status.UNAUTHORIZED_401);
     });
     it('find game by id shouldn`t return game with bad id', async () => {
-      await request(app.getHttpServer())
-        .get(`/pair-game-quiz/pairs/1`)
-        .auth(accessTokens[0], { type: 'bearer' })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+      await testQuizGame.findGameById(accessTokens[0], '1', HTTP_Status.BAD_REQUEST_400);
     });
     it('find game by id shouldn`t return game if game is not exist', async () => {
-      await request(app.getHttpServer())
-        .get(`/pair-game-quiz/pairs/${users[0].id}`)
-        .auth(accessTokens[0], { type: 'bearer' })
-        .expect(HTTP_Status.NOT_FOUND_404);
+      await testQuizGame.findGameById(accessTokens[0], users[0].id, HTTP_Status.NOT_FOUND_404);
     });
     it('find game by id shouldn`t return game if user is not participant of this game', async () => {
-      await request(app.getHttpServer())
-        .get(`/pair-game-quiz/pairs/${game.id}`)
-        .auth(accessTokens[1], { type: 'bearer' })
-        .expect(HTTP_Status.FORBIDDEN_403);
+      await testQuizGame.findGameById(accessTokens[1], game.id, HTTP_Status.FORBIDDEN_403);
     });
     it('find users current game by id should return game', async () => {
       const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
@@ -218,10 +170,7 @@ describe('quiz game (e2e)', () => {
       expect(game).toEqual(expectedResult);
     });
     it('shouldn`t create game if user is already playing', async () => {
-      await request(app.getHttpServer())
-        .post(`/pair-game-quiz/pairs/connection`)
-        .auth(accessTokens[0], { type: 'bearer' })
-        .expect(HTTP_Status.FORBIDDEN_403);
+      await testQuizGame.createGame(accessTokens[0], HTTP_Status.FORBIDDEN_403);
     });
     it('find users current game by id should return active game', async () => {
       const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);

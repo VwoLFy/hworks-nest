@@ -1,7 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { HTTP_Status, LikeStatus } from '../src/main/types/enums';
 import { BlogViewModel } from '../src/modules/public.blogs/api/models/BlogViewModel';
 import { PostViewModel } from '../src/modules/posts/api/models/PostViewModel';
@@ -12,24 +10,15 @@ import { DeviceViewModel } from '../src/modules/security/api/models/DeviceViewMo
 import { BlogViewModelSA } from '../src/modules/sa.blogs/api/models/BlogViewModelSA';
 import { EmailAdapter } from '../src/modules/auth/infrastructure/email.adapter';
 import { EmailService } from '../src/modules/auth/application/email.service';
-import { appConfig } from '../src/app.config';
 import { CommentViewModelBl } from '../src/modules/blogger.blogs/api/models/CommentViewModel.Bl';
 import { Comment } from '../src/modules/comments/domain/comment.entity';
 import { PageViewModel } from '../src/main/types/PageViewModel';
+import { TestUsers } from './TestUsers/TestUsers';
+import { testCreateApp } from './Utils/TestCreateApp';
+import { testCheckBadRequestError } from './Utils/TestCheckBadRequestError';
 
-type BadRequestError = {
-  errorsMessages: { message: string; field: string }[];
-};
-const checkBadRequestError = (apiErrorResult: BadRequestError, field: string) => {
-  expect(apiErrorResult).toEqual({
-    errorsMessages: [
-      {
-        message: expect.any(String),
-        field: field,
-      },
-    ],
-  });
-};
+let app: INestApplication;
+
 const delay = async (delay = 1000) => {
   await new Promise((resolve) => {
     setTimeout(() => {
@@ -37,7 +26,7 @@ const delay = async (delay = 1000) => {
     }, delay);
   });
 };
-let app: INestApplication;
+
 async function createComments(postId: string, token: LoginSuccessViewModel, commentsCount: number): Promise<Comment[]> {
   const comment: Comment[] = [];
   for (let i = 1; i <= commentsCount; i++) {
@@ -54,17 +43,11 @@ async function createComments(postId: string, token: LoginSuccessViewModel, comm
 }
 
 describe('AppController (e2e)', () => {
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(EmailAdapter)
-      .useValue({ sendEmail: () => 'OK' })
-      .compile();
+  let testUsers: TestUsers;
 
-    app = moduleFixture.createNestApplication();
-    appConfig(app);
-    await app.init();
+  beforeAll(async () => {
+    app = await testCreateApp();
+    testUsers = new TestUsers(app);
   });
   afterAll(async () => {
     await app.close();
@@ -1745,33 +1728,24 @@ describe('AppController (e2e)', () => {
         });
     });
     it('POST shouldn`t create user with incorrect data', async () => {
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: '',
-          password: 'password',
-          email: 'string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'login',
-          password: '',
-          email: 'string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'login',
-          password: 'password',
-          email: 'string12345.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+      let createUserBody = {
+        login: '',
+        password: 'password',
+        email: 'string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: 'login',
+        password: '',
+        email: 'string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: 'login',
+        password: 'password',
+        email: 'string12345.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
 
       await request(app.getHttpServer())
         .get('/sa/users')
@@ -1785,16 +1759,13 @@ describe('AppController (e2e)', () => {
         });
     });
     it('POST should create user with correct data', async () => {
-      const result = await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'login',
-          password: 'password',
-          email: 'string2@sdf.ee',
-        })
-        .expect(HTTP_Status.CREATED_201);
-      user1 = result.body;
+      const createUserBody = {
+        login: 'login',
+        password: 'password',
+        email: 'string2@sdf.ee',
+      };
+
+      user1 = await testUsers.createUser(createUserBody);
 
       expect(user1).toEqual({
         id: expect.any(String),
@@ -1819,71 +1790,50 @@ describe('AppController (e2e)', () => {
         });
     });
     it('POST shouldn`t create user with existed login', async () => {
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'login',
-          password: 'password',
-          email: '1string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'Login',
-          password: 'password',
-          email: '2string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: 'LOGIN',
-          password: 'password',
-          email: '3string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+      let createUserBody = {
+        login: 'login',
+        password: 'password',
+        email: '1string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: 'Login',
+        password: 'password',
+        email: '2string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: 'LOGIN',
+        password: 'password',
+        email: '3string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
     });
     it('POST shouldn`t create user with existed email', async () => {
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: '1login',
-          password: 'password',
-          email: 'string2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: '2login',
-          password: 'password',
-          email: 'STRING2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: '3login',
-          password: 'password',
-          email: 'String2@sdf.ee',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
-      await request(app.getHttpServer())
-        .post('/sa/users')
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({
-          login: '3login',
-          password: 'password',
-          email: 'string2@sdf.EE',
-        })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+      let createUserBody = {
+        login: '1login',
+        password: 'password',
+        email: 'string2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: '2login',
+        password: 'password',
+        email: 'STRING2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: '3login',
+        password: 'password',
+        email: 'String2@sdf.ee',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
+      createUserBody = {
+        login: '3login',
+        password: 'password',
+        email: 'string2@sdf.EE',
+      };
+      await testUsers.createUser(createUserBody, HTTP_Status.BAD_REQUEST_400);
     });
     it('DELETE shouldn`t delete blog with incorrect "id"', async () => {
       await request(app.getHttpServer())
@@ -3122,7 +3072,7 @@ describe('AppController (e2e)', () => {
         .auth(token1.accessToken, { type: 'bearer' })
         .send({ content: 'bad content' })
         .expect(HTTP_Status.BAD_REQUEST_400);
-      checkBadRequestError(result.body, 'content');
+      testCheckBadRequestError(result.body, 'content');
 
       result = await request(app.getHttpServer())
         .post(`/posts/${post1ForBlog1.id}/comments`)
@@ -3132,7 +3082,7 @@ describe('AppController (e2e)', () => {
             'bad content11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222',
         })
         .expect(HTTP_Status.BAD_REQUEST_400);
-      checkBadRequestError(result.body, 'content');
+      testCheckBadRequestError(result.body, 'content');
 
       await request(app.getHttpServer())
         .post(`/posts/9f38bedb-370a-47d0-9ef1-42f6294a1478/comments`)

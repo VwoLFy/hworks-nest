@@ -1,29 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../../src/app.module';
 import { HTTP_Status } from '../../src/main/types/enums';
-import { EmailAdapter } from '../../src/modules/auth/infrastructure/email.adapter';
-import { appConfig } from '../../src/app.config';
 import { QuestionViewModel } from '../../src/modules/quiz-questions/api/models/QuestionViewModel';
 import { UpdateQuestionDto } from '../../src/modules/quiz-questions/application/dto/UpdateQuestionDto';
 import { TestQuizQuestions } from './TestQuizQuestions';
+import { testCreateApp } from '../Utils/TestCreateApp';
 
 describe('quiz questions (e2e)', () => {
   let app: INestApplication;
   let testQuizQuestions: TestQuizQuestions;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(EmailAdapter)
-      .useValue({ sendEmail: () => 'OK' })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    appConfig(app);
-    await app.init();
+    app = await testCreateApp();
     testQuizQuestions = new TestQuizQuestions(app);
   });
   afterAll(async () => {
@@ -68,58 +56,58 @@ describe('quiz questions (e2e)', () => {
         body: 'bad str',
         correctAnswers: ['1'],
       };
-      await testQuizQuestions.createQuestion400(body, 'body');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = '               bad str';
-      await testQuizQuestions.createQuestion400(body, 'body');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       delete body.body;
-      await testQuizQuestions.createQuestion400(body, 'body');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = 1;
-      await testQuizQuestions.createQuestion400(body, 'body');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = 'a'.repeat(501);
-      await testQuizQuestions.createQuestion400(body, 'body');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body = {
         body: 'valid body',
         correctAnswers: 1,
       };
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       delete body.correctAnswers;
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = '1';
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [1];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = ['       '];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [true];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = null;
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [null];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [{ id: '123' }];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [['123']];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [1, true, '123', {}, ['123']];
-      await testQuizQuestions.createQuestion400(body, 'correctAnswers');
+      await testQuizQuestions.createQuestion(body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
     });
     it('create question', async () => {
       const body = {
@@ -222,29 +210,20 @@ describe('quiz questions (e2e)', () => {
     it('publish shouldn`t publish question with bad data 400', async () => {
       let dto;
       dto = { published: null };
-      await testQuizQuestions.publishQuestion400(question.id, dto);
+      await testQuizQuestions.publishQuestion(question.id, dto, HTTP_Status.BAD_REQUEST_400, 'published');
 
       dto = { published: 'null' };
-      await testQuizQuestions.publishQuestion400(question.id, dto);
+      await testQuizQuestions.publishQuestion(question.id, dto, HTTP_Status.BAD_REQUEST_400, 'published');
 
       dto = { published: 0 };
-      await testQuizQuestions.publishQuestion400(question.id, dto);
+      await testQuizQuestions.publishQuestion(question.id, dto, HTTP_Status.BAD_REQUEST_400, 'published');
 
       dto = null;
-      await testQuizQuestions.publishQuestion400(question.id, dto);
+      await testQuizQuestions.publishQuestion(question.id, dto, HTTP_Status.BAD_REQUEST_400, 'published');
     });
     it('publish shouldn`t publish question with bad questionId', async () => {
-      await request(app.getHttpServer())
-        .put(`/sa/quiz/questions/${question4.id}/publish`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({ published: true })
-        .expect(HTTP_Status.NOT_FOUND_404);
-
-      await request(app.getHttpServer())
-        .put(`/sa/quiz/questions/1/publish`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({ published: true })
-        .expect(HTTP_Status.BAD_REQUEST_400);
+      await testQuizQuestions.publishQuestion(question4.id, { published: true }, HTTP_Status.NOT_FOUND_404);
+      await testQuizQuestions.publishQuestion('1', { published: true }, HTTP_Status.BAD_REQUEST_400);
     });
     it('publish shouldn`t publish question if admin Unauthorized', async () => {
       await request(app.getHttpServer())
@@ -283,70 +262,67 @@ describe('quiz questions (e2e)', () => {
         body: 'bad str',
         correctAnswers: ['1'],
       };
-      await testQuizQuestions.updateQuestion400(question.id, body, 'body');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = '               bad str';
-      await testQuizQuestions.updateQuestion400(question.id, body, 'body');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       delete body.body;
-      await testQuizQuestions.updateQuestion400(question.id, body, 'body');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = 1;
-      await testQuizQuestions.updateQuestion400(question.id, body, 'body');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body.body = 'a'.repeat(501);
-      await testQuizQuestions.updateQuestion400(question.id, body, 'body');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'body');
 
       body = {
         body: 'valid body',
         correctAnswers: 1,
       };
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       delete body.correctAnswers;
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = '1';
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [1];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = ['       '];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [true];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = null;
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [null];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [{ id: '123' }];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [['123']];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
 
       body.correctAnswers = [1, true, '123', {}, ['123']];
-      await testQuizQuestions.updateQuestion400(question.id, body, 'correctAnswers');
+      await testQuizQuestions.updateQuestion(question.id, body, HTTP_Status.BAD_REQUEST_400, 'correctAnswers');
     });
     it('update shouldn`t update question with bad id', async () => {
+      const dto: UpdateQuestionDto = { body: 'Most popular drink?', correctAnswers: ['tea'] };
+      await testQuizQuestions.updateQuestion('1', dto, HTTP_Status.BAD_REQUEST_400);
+      await testQuizQuestions.updateQuestion(question4.id, dto, HTTP_Status.NOT_FOUND_404);
       await request(app.getHttpServer())
         .put(`/sa/quiz/questions/1`)
         .auth('admin', 'qwerty', { type: 'basic' })
         .expect(HTTP_Status.BAD_REQUEST_400);
-
-      await request(app.getHttpServer())
-        .put(`/sa/quiz/questions/${question4.id}`)
-        .auth('admin', 'qwerty', { type: 'basic' })
-        .send({ body: 'Most popular drink?', correctAnswers: ['tea'] })
-        .expect(HTTP_Status.NOT_FOUND_404);
     });
     it('update should update question', async () => {
       const dto: UpdateQuestionDto = { body: 'Most popular drink?', correctAnswers: ['tea'] };

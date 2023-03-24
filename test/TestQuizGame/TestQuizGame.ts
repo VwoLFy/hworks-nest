@@ -7,11 +7,11 @@ import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerVi
 export class TestQuizGame {
   constructor(private app: INestApplication) {}
 
-  async createGame(accessToken: string): Promise<GamePairViewModel> {
+  async createGame(accessToken: string, httpStatus: HTTP_Status = HTTP_Status.OK_200): Promise<GamePairViewModel> {
     const result = await request(this.app.getHttpServer())
       .post(`/pair-game-quiz/pairs/connection`)
       .auth(accessToken, { type: 'bearer' })
-      .expect(HTTP_Status.OK_200);
+      .expect(httpStatus);
 
     return result.body;
   }
@@ -26,11 +26,15 @@ export class TestQuizGame {
     return result.body;
   }
 
-  async findGameById(accessToken: string, gameId: string): Promise<GamePairViewModel> {
+  async findGameById(
+    accessToken: string,
+    gameId: string,
+    httpStatus: HTTP_Status = HTTP_Status.OK_200,
+  ): Promise<GamePairViewModel> {
     const result = await request(this.app.getHttpServer())
       .get(`/pair-game-quiz/pairs/${gameId}`)
       .auth(accessToken, { type: 'bearer' })
-      .expect(HTTP_Status.OK_200);
+      .expect(httpStatus);
 
     return result.body;
   }
