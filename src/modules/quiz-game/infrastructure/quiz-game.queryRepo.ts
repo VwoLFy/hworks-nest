@@ -65,7 +65,7 @@ export class QuizGameQueryRepo {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id IN(${gameIdSubQuery})`, { userId: userId })
-      .orderBy({ [`g.${sortBy}`]: sortDirection === 'asc' ? 'ASC' : 'DESC' })
+      .orderBy({ [`g.${sortBy}`]: sortDirection === 'asc' ? 'ASC' : 'DESC', [`g.pairCreatedDate`]: 'DESC' })
       .take(pageSize)
       .skip((pageNumber - 1) * pageSize)
       .getManyAndCount();
