@@ -34,6 +34,7 @@ describe('quiz game (e2e)', () => {
     let users: UserViewModel[];
     let accessTokens: string[];
     let game: GamePairViewModel;
+    let game3: GamePairViewModel;
     let answer: AnswerViewModel;
     let answer2: AnswerViewModel;
     enum ChitAnswer {
@@ -45,7 +46,7 @@ describe('quiz game (e2e)', () => {
       users = usersWithTokens.users;
       accessTokens = usersWithTokens.accessTokens;
     });
-    it('create 10 questions', async () => {
+    it('create 10 questions and publish they', async () => {
       await testQuizQuestions.createQuestion({
         body: 'Which drink is commonly associated with Czech?',
         correctAnswers: ['beer', ChitAnswer.Correct],
@@ -89,6 +90,10 @@ describe('quiz game (e2e)', () => {
 
       const pageQuestions = await testQuizQuestions.findQuestions();
       expect(pageQuestions.totalCount).toBe(10);
+
+      for (const question of pageQuestions.items) {
+        await testQuizQuestions.publishQuestion(question.id, { published: true });
+      }
     });
     it('create game', async () => {
       game = await testQuizGame.createGame(accessTokens[0]);
@@ -180,7 +185,7 @@ describe('quiz game (e2e)', () => {
       const result = await testQuizGame.findGameById(accessTokens[0], game.id);
       expect(result).toEqual(game);
     });
-    it('create 2 game', async () => {
+    it('create game2', async () => {
       const result = await testQuizGame.createGame(accessTokens[2]);
 
       const expectedResult: GamePairViewModel = {
@@ -202,7 +207,7 @@ describe('quiz game (e2e)', () => {
       };
       expect(result).toEqual(expectedResult);
     });
-    it('add player to existing game 2', async () => {
+    it('add player to existing game2', async () => {
       const expectedResult: GamePairViewModel = {
         id: expect.any(String),
         firstPlayerProgress: {
@@ -231,11 +236,11 @@ describe('quiz game (e2e)', () => {
       const result = await testQuizGame.createGame(accessTokens[3]);
       expect(result).toEqual(expectedResult);
     });
-    it('find game by id should return game/2', async () => {
+    it('find game by id should return game2', async () => {
       const result = await testQuizGame.findGameById(accessTokens[1], game.id);
       expect(result).toEqual(game);
     });
-    it('find users current game by id should return game/2', async () => {
+    it('find users current game by id should return game2', async () => {
       const result = await testQuizGame.findUsersCurrentGame(accessTokens[1]);
       expect(result).toEqual(game);
     });
@@ -245,7 +250,7 @@ describe('quiz game (e2e)', () => {
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.UNAUTHORIZED_401);
     });
-    it('correct answer question', async () => {
+    it('correct answer question in game1', async () => {
       answer = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
       expect(answer).toEqual({
         questionId: expect.any(String),
@@ -258,7 +263,7 @@ describe('quiz game (e2e)', () => {
         firstPlayerProgress: { ...game.firstPlayerProgress, answers: [answer], score: 1 },
       });
     });
-    it('incorrect answer question', async () => {
+    it('incorrect answer question in game1', async () => {
       answer2 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Incorrect);
       expect(answer2).toEqual({
         questionId: expect.any(String),
@@ -272,7 +277,7 @@ describe('quiz game (e2e)', () => {
       });
       expect(answer).not.toEqual(answer2);
     });
-    it('answer +3 questions', async () => {
+    it('answer +3 questions in game1', async () => {
       const answer3 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
       const answer4 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Incorrect);
       const answer5 = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
@@ -301,7 +306,7 @@ describe('quiz game (e2e)', () => {
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
-    it('answer +5 questions by second player and check status of the game', async () => {
+    it('answer +5 questions by second player and check status of the game1 after finish', async () => {
       const answer1 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
       const answer2 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
       const answer3 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
@@ -323,20 +328,22 @@ describe('quiz game (e2e)', () => {
         finishGameDate: expect.any(String),
       });
       game = result;
+      console.log(game);
+      console.log(game.firstPlayerProgress.answers);
     });
-    it('answer 3 questions by first player of second game', async () => {
+    it('answer 3 questions by first player in game2', async () => {
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
     });
-    it('answer 5 questions by second player of second game and check status of the game', async () => {
+    it('answer 5 questions by second player in game2 and check status of the game', async () => {
       await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Incorrect);
       await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Incorrect);
       await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Incorrect);
       await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Incorrect);
       await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Incorrect);
     });
-    it('answer +2 questions by first player of second game and check status of the game', async () => {
+    it('answer +2 questions by first player in game2 and check status of the game', async () => {
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
       const game = await testQuizGame.findUsersCurrentGame(accessTokens[2]);
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Incorrect);
@@ -344,9 +351,10 @@ describe('quiz game (e2e)', () => {
       expect(game.secondPlayerProgress.score).toBe(game2.secondPlayerProgress.score);
       expect(game2.secondPlayerProgress.score).toBe(0);
       expect(game2.firstPlayerProgress.score).toBe(4);
+      expect(game2.status).toBe(GameStatuses.Finished);
     });
-    it('create new game by user 4', async () => {
-      game = await testQuizGame.createGame(accessTokens[3]);
+    it('create new game3 by user 4', async () => {
+      game3 = await testQuizGame.createGame(accessTokens[3]);
 
       const expectedResult: GamePairViewModel = {
         id: expect.any(String),
@@ -365,9 +373,9 @@ describe('quiz game (e2e)', () => {
         startGameDate: null,
         finishGameDate: null,
       };
-      expect(game).toEqual(expectedResult);
+      expect(game3).toEqual(expectedResult);
     });
-    it('add user 1 to existing game', async () => {
+    it('add user 1 to existing game3', async () => {
       const expectedResult: GamePairViewModel = {
         id: expect.any(String),
         firstPlayerProgress: {
@@ -396,20 +404,61 @@ describe('quiz game (e2e)', () => {
       const result = await testQuizGame.createGame(accessTokens[0]);
       expect(result).toEqual(expectedResult);
     });
-    it('correct answer question by user 4', async () => {
+    it('correct answer question by user 4 in game3', async () => {
       answer = await testQuizGame.answerQuestion(accessTokens[3], ChitAnswer.Correct);
       const result = await testQuizGame.findUsersCurrentGame(accessTokens[3]);
       expect(result.firstPlayerProgress.score).toBe(1);
     });
-    it('incorrect answer question by user 1', async () => {
+    it('incorrect answer question by user 1 in game3', async () => {
       answer = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Incorrect);
       const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
       expect(result.secondPlayerProgress.score).toBe(0);
     });
-    it('correct answer question by user 1', async () => {
+    it('correct answer question by user 1 in game3', async () => {
       answer = await testQuizGame.answerQuestion(accessTokens[0], ChitAnswer.Correct);
-      const result = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
-      expect(result.secondPlayerProgress.score).toBe(1);
+      game3 = await testQuizGame.findUsersCurrentGame(accessTokens[0]);
+      expect(game3.secondPlayerProgress.score).toBe(1);
+    });
+    it('should return users games 1 and 3 with query', async () => {
+      let query = `sortDirection=desc`;
+      let pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
+      expect(pageGames).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 2,
+        items: [game3, game],
+      });
+
+      query = `sortDirection=asc`;
+      pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
+      expect(pageGames).toEqual({
+        pagesCount: 1,
+        page: 1,
+        pageSize: 10,
+        totalCount: 2,
+        items: [game, game3],
+      });
+
+      query = `pageSize=1&pageNumber=2`;
+      pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
+      expect(pageGames).toEqual({
+        pagesCount: 2,
+        page: 2,
+        pageSize: 1,
+        totalCount: 2,
+        items: [game],
+      });
+
+      query = `pageSize=1`;
+      pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
+      expect(pageGames).toEqual({
+        pagesCount: 2,
+        page: 1,
+        pageSize: 1,
+        totalCount: 2,
+        items: [game3],
+      });
     });
   });
 });

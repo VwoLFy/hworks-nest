@@ -7,6 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/api/guards/jwt-auth.guard';
@@ -19,11 +20,22 @@ import { AnswerInputDto } from '../application/dto/AnswerInputDto';
 import { HTTP_Status } from '../../../main/types/enums';
 import { AnswerViewModel } from './models/AnswerViewModel';
 import { SendAnswerCommand } from '../application/use-cases/send-answer-use-case';
+import { PageViewModel } from '../../../main/types/PageViewModel';
+import { BasicQueryModel } from '../../../main/types/BasicQueryModel';
+import { findQuizGamesQueryPipe } from './models/FindQuizGamesQueryPipe';
 
 @Controller('pair-game-quiz/pairs')
 @UseGuards(JwtAuthGuard)
 export class QuizGameController {
   constructor(private commandBus: CommandBus, private quizGameQueryRepo: QuizGameQueryRepo) {}
+
+  @Get('my')
+  async findUserGames(
+    @Query(findQuizGamesQueryPipe) query: BasicQueryModel,
+    @UserId() userId: string,
+  ): Promise<PageViewModel<GamePairViewModel>> {
+    return await this.quizGameQueryRepo.findUserGames(userId, query);
+  }
 
   @Get('my-current')
   async findUserCurrentGame(@UserId() userId: string): Promise<GamePairViewModel> {

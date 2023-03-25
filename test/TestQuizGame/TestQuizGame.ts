@@ -3,6 +3,7 @@ import { HTTP_Status } from '../../src/main/types/enums';
 import { INestApplication } from '@nestjs/common';
 import { GamePairViewModel } from '../../src/modules/quiz-game/api/models/GamePairViewModel';
 import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerViewModel';
+import { PageViewModel } from '../../src/main/types/PageViewModel';
 
 export class TestQuizGame {
   constructor(private app: INestApplication) {}
@@ -44,6 +45,19 @@ export class TestQuizGame {
       .get(`/pair-game-quiz/pairs/my-current`)
       .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_Status.OK_200);
+
+    return result.body;
+  }
+
+  async findUserGames(
+    accessToken: string,
+    query: string,
+    httpStatus: HTTP_Status = HTTP_Status.OK_200,
+  ): Promise<PageViewModel<GamePairViewModel>> {
+    const result = await request(this.app.getHttpServer())
+      .get(`/pair-game-quiz/pairs/my?${query}`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(httpStatus);
 
     return result.body;
   }

@@ -2,7 +2,7 @@ import { SortDirection } from './enums';
 import { BasicQueryModel } from './BasicQueryModel';
 
 export class BasicQueryPipe {
-  transformBasic(query: any, fields: string[]): BasicQueryModel {
+  transformBasic(query: any, fields: string[], defaultSortField: string = 'createdAt'): BasicQueryModel {
     let pageNumber = +query.pageNumber || 1;
     pageNumber = pageNumber < 1 ? 1 : pageNumber;
 
@@ -10,7 +10,7 @@ export class BasicQueryPipe {
     pageSize = pageSize < 1 ? 10 : pageSize;
 
     let sortBy = query.sortBy;
-    sortBy = !fields.includes(sortBy) ? 'createdAt' : sortBy === 'id' ? 'ownerId' : sortBy;
+    sortBy = !fields.includes(sortBy) ? defaultSortField : sortBy;
 
     let sortDirection = query.sortDirection;
     sortDirection = sortDirection !== SortDirection.asc ? SortDirection.desc : SortDirection.asc;

@@ -19,7 +19,12 @@ export class QuizQuestionsRepository {
     await this.questionsRepositoryT.delete({ id: questionId });
   }
 
-  async find5Questions(): Promise<QuizQuestion[]> {
-    return this.questionsRepositoryT.createQueryBuilder().orderBy('RANDOM()').limit(5).getMany();
+  async findNQuestions(numberOfQuestions: number): Promise<QuizQuestion[]> {
+    return this.questionsRepositoryT
+      .createQueryBuilder()
+      .orderBy('RANDOM()')
+      .where('published = true')
+      .limit(numberOfQuestions)
+      .getMany();
   }
 }
