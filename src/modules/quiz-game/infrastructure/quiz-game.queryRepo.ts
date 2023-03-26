@@ -8,6 +8,7 @@ import { Answer } from '../domain/quiz-game.answer.entity';
 import { GameStatuses } from '../application/enums';
 import { BasicQueryModel } from '../../../main/types/BasicQueryModel';
 import { PageViewModel } from '../../../main/types/PageViewModel';
+import { SortDirection } from '../../../main/types/enums';
 
 @Injectable()
 export class QuizGameQueryRepo {
@@ -52,6 +53,8 @@ export class QuizGameQueryRepo {
   async findUserGames(userId: string, dto: BasicQueryModel): Promise<PageViewModel<GamePairViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
+    let secondFieldSortDirection = sortDirection;
+    if (sortBy !== `pairCreatedDate`) secondFieldSortDirection = SortDirection.desc;
     const gameIdSubQuery = this.quizGameRepositoryT
       .createQueryBuilder('g')
       .select('g.id')
@@ -65,7 +68,8 @@ export class QuizGameQueryRepo {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id IN(${gameIdSubQuery})`, { userId: userId })
-      .orderBy({ [`g.${sortBy}`]: sortDirection === 'asc' ? 'ASC' : 'DESC', [`g.pairCreatedDate`]: 'DESC' })
+      .orderBy(`g.${sortBy}`, sortDirection === 'asc' ? 'ASC' : 'DESC')
+      .addOrderBy(`g.pairCreatedDate`, secondFieldSortDirection === 'asc' ? 'ASC' : 'DESC')
       .take(pageSize)
       .skip((pageNumber - 1) * pageSize)
       .getManyAndCount();

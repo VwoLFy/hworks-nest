@@ -8,7 +8,9 @@ export class GamePlayerProgressViewModel {
   score: number;
 
   constructor(player: Player) {
-    this.answers = player.answers ? player.answers.map((a) => new AnswerViewModel(a)) : null;
+    this.answers = player.answers
+      ? player.answers.sort((a, b) => a.id - b.id).map((a) => new AnswerViewModel(a))
+      : null;
     this.player = new PlayerViewModel(player);
     this.score = player.score;
   }

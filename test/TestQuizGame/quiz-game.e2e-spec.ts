@@ -328,8 +328,6 @@ describe('quiz game (e2e)', () => {
         finishGameDate: expect.any(String),
       });
       game = result;
-      console.log(game);
-      console.log(game.firstPlayerProgress.answers);
     });
     it('answer 3 questions by first player in game2', async () => {
       await testQuizGame.answerQuestion(accessTokens[2], ChitAnswer.Correct);
