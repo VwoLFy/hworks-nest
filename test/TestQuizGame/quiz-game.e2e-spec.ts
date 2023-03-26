@@ -438,16 +438,6 @@ describe('quiz game (e2e)', () => {
         items: [game, game3],
       });
 
-      query = `pageSize=1&pageNumber=2`;
-      pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
-      expect(pageGames).toEqual({
-        pagesCount: 2,
-        page: 2,
-        pageSize: 1,
-        totalCount: 2,
-        items: [game],
-      });
-
       query = `pageSize=1`;
       pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
       expect(pageGames).toEqual({
@@ -456,6 +446,16 @@ describe('quiz game (e2e)', () => {
         pageSize: 1,
         totalCount: 2,
         items: [game3],
+      });
+
+      query = `pageSize=1&pageNumber=2`;
+      pageGames = await testQuizGame.findUserGames(accessTokens[0], query);
+      expect(pageGames).toEqual({
+        pagesCount: 2,
+        page: 2,
+        pageSize: 1,
+        totalCount: 2,
+        items: [game],
       });
     });
   });

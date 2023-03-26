@@ -1,9 +1,10 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { QuizQuestion } from '../../quiz-questions/domain/quiz-question.entity';
 import { GameStatuses } from '../application/enums';
 import { randomUUID } from 'crypto';
 import { Player } from './quiz-game.player.entity';
 import { Answer } from './quiz-game.answer.entity';
+import { QuizQuestionToGame } from './quiz-game.game-to-question.entity';
 
 @Entity('QuizGames')
 export class QuizGame {
@@ -11,9 +12,8 @@ export class QuizGame {
   id: string;
   @OneToMany(() => Player, (p) => p.quizGame, { cascade: true, eager: true })
   players: Player[];
-  @ManyToMany(() => QuizQuestion, { eager: true })
-  @JoinTable()
-  questions: QuizQuestion[];
+  @OneToMany(() => QuizQuestionToGame, (qq) => qq.quizGame, { cascade: ['insert', 'update'], eager: true })
+  questions: QuizQuestionToGame[];
   @Column()
   status: GameStatuses;
   @Column()
@@ -67,8 +67,8 @@ export class QuizGame {
     this.startGameDate = new Date();
   }
 
-  public addQuestions(questions: QuizQuestion[]) {
-    this.questions = questions;
+  public addQuestions(quizQuestion: QuizQuestion[]) {
+    this.questions = quizQuestion.map((q) => new QuizQuestionToGame(this.id, q));
   }
 
   private areAllQuestionsAnswered(indexOfPlayer: number): boolean {
@@ -85,7 +85,7 @@ export class QuizGame {
     const questionWithAnswer = this.questions[countOfAnswers];
     const isAnswerCorrect = questionWithAnswer.correctAnswers.includes(receivedAnswer);
 
-    const answer = this.players[indexOfPlayer].processAnswer(questionWithAnswer.id, isAnswerCorrect);
+    const answer = this.players[indexOfPlayer].processAnswer(questionWithAnswer.quizQuestionId, isAnswerCorrect);
     this.checkGameOver();
 
     return answer;

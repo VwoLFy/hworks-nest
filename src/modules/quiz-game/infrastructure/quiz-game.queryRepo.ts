@@ -53,16 +53,20 @@ export class QuizGameQueryRepo {
   async findUserGames(userId: string, dto: BasicQueryModel): Promise<PageViewModel<GamePairViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
+    const totalCount = await this.quizGameRepositoryT.count({ where: { players: { userId: userId } } });
     let secondFieldSortDirection = sortDirection;
     if (sortBy !== `pairCreatedDate`) secondFieldSortDirection = SortDirection.desc;
     const gameIdSubQuery = this.quizGameRepositoryT
-      .createQueryBuilder('g')
-      .select('g.id')
-      .leftJoin('g.players', 'pl')
-      .where('pl.userId = :userId')
+      .createQueryBuilder('g1')
+      .select('g1.id')
+      .innerJoin('g1.players', 'pl1')
+      .where('pl1.userId = :userId')
+      .orderBy(`g1.${sortBy}`, sortDirection === 'asc' ? 'ASC' : 'DESC')
+      // .offset((pageNumber - 1) * pageSize)
+      // .limit(pageSize)
       .getQuery();
 
-    const [foundGames, totalCount] = await this.quizGameRepositoryT
+    const aaa = this.quizGameRepositoryT
       .createQueryBuilder('g')
       .leftJoinAndSelect('g.players', 'pl')
       .leftJoinAndSelect('pl.answers', 'ans')
@@ -70,10 +74,17 @@ export class QuizGameQueryRepo {
       .where(`g.id IN(${gameIdSubQuery})`, { userId: userId })
       .orderBy(`g.${sortBy}`, sortDirection === 'asc' ? 'ASC' : 'DESC')
       .addOrderBy(`g.pairCreatedDate`, secondFieldSortDirection === 'asc' ? 'ASC' : 'DESC')
-      .take(pageSize)
       .skip((pageNumber - 1) * pageSize)
-      .getManyAndCount();
+      .take(pageSize);
+    //.addOrderBy(`q.id`)
+    //.skip(0)
 
+    console.log(aaa.getQueryAndParameters());
+    const foundGames = await aaa.getMany();
+    console.log(foundGames);
+    // console.log(foundGames[1].questions);
+    // console.log(foundGames[1].players[0].answers);
+    // console.log(foundGames[1].players[0].answers);
     const pagesCount = Math.ceil(totalCount / pageSize);
 
     const items = foundGames.map((g) => new GamePairViewModel(g));
