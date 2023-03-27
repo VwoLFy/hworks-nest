@@ -53,14 +53,15 @@ export class QuizGameQueryRepo {
   async findUserGames(userId: string, dto: BasicQueryModel): Promise<PageViewModel<GamePairViewModel>> {
     const { pageNumber, pageSize, sortBy, sortDirection } = dto;
 
-    let secondFieldSortDirection = sortDirection;
-    if (sortBy !== `pairCreatedDate`) secondFieldSortDirection = SortDirection.desc;
+    let secondFieldSortDirection = SortDirection.DESC;
+    if (sortBy === `pairCreatedDate`) secondFieldSortDirection = sortDirection;
+
     const gameIdSubQuery = this.quizGameRepositoryT
       .createQueryBuilder('g1')
       .select('g1.id')
       .innerJoin('g1.players', 'pl1')
       .where('pl1.userId = :userId')
-      .orderBy(`g1.${sortBy}`, sortDirection === 'asc' ? 'ASC' : 'DESC')
+      .orderBy(`g1.${sortBy}`, sortDirection)
       .getQuery();
 
     const [foundGames, totalCount] = await this.quizGameRepositoryT
@@ -69,8 +70,8 @@ export class QuizGameQueryRepo {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id IN(${gameIdSubQuery})`, { userId: userId })
-      .orderBy(`g.${sortBy}`, sortDirection === 'asc' ? 'ASC' : 'DESC')
-      .addOrderBy(`g.pairCreatedDate`, secondFieldSortDirection === 'asc' ? 'ASC' : 'DESC')
+      .orderBy(`g.${sortBy}`, sortDirection)
+      .addOrderBy(`g.pairCreatedDate`, secondFieldSortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
       .getManyAndCount();

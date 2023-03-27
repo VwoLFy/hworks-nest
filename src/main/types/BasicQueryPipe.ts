@@ -13,7 +13,7 @@ export class BasicQueryPipe {
     sortBy = !fields.includes(sortBy) ? defaultSortField : sortBy;
 
     let sortDirection = query.sortDirection;
-    sortDirection = sortDirection !== SortDirection.asc ? SortDirection.desc : SortDirection.asc;
+    sortDirection = sortDirection !== SortDirection.ASC.toLowerCase() ? SortDirection.DESC : SortDirection.ASC;
     return { ...query, pageNumber, pageSize, sortBy, sortDirection };
   }
 }
