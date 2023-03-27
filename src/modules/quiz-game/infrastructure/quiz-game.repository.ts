@@ -35,6 +35,9 @@ export class QuizGameRepository {
       .leftJoinAndSelect('pl.answers', 'ans')
       .leftJoinAndSelect('g.questions', 'q')
       .where(`g.id = (${quizGameIdSubQ})`, { userId: userId })
+      .orderBy('q.id')
+      .addOrderBy('pl.id')
+      .addOrderBy('ans.id')
       .getOne();
   }
 

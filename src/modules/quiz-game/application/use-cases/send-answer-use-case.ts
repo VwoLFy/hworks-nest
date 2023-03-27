@@ -23,10 +23,10 @@ export class SendAnswerUseCase implements ICommandHandler<SendAnswerCommand> {
     if (!answer) throw new ForbiddenException('user has already answered to all questions');
 
     if (activeGameOfUser.status === GameStatuses.Finished) {
-      //console.log(activeGameOfUser.players);
       for (const player of activeGameOfUser.players) {
         let statistic = await this.quizGameRepository.findUserStatistic(player.userId);
         if (!statistic) statistic = new Statistic(player.userId);
+
         statistic.processGameResult(player);
         await this.quizGameRepository.saveStatistic(statistic);
       }
