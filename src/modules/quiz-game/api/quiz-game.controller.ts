@@ -23,13 +23,19 @@ import { SendAnswerCommand } from '../application/use-cases/send-answer-use-case
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { BasicQueryModel } from '../../../main/types/BasicQueryModel';
 import { findQuizGamesQueryPipe } from './models/FindQuizGamesQueryPipe';
+import { MyStatisticViewModel } from './models/MyStatisticViewModel';
 
-@Controller('pair-game-quiz/pairs')
+@Controller('pair-game-quiz')
 @UseGuards(JwtAuthGuard)
 export class QuizGameController {
   constructor(private commandBus: CommandBus, private quizGameQueryRepo: QuizGameQueryRepo) {}
 
-  @Get('my')
+  @Get('users/my-statistic')
+  async getUserStatistic(@UserId() userId: string): Promise<MyStatisticViewModel> {
+    return await this.quizGameQueryRepo.getUserStatistic(userId);
+  }
+
+  @Get('pairs/my')
   async findUserGames(
     @Query(findQuizGamesQueryPipe) query: BasicQueryModel,
     @UserId() userId: string,
@@ -37,12 +43,12 @@ export class QuizGameController {
     return await this.quizGameQueryRepo.findUserGames(userId, query);
   }
 
-  @Get('my-current')
+  @Get('pairs/my-current')
   async findUserCurrentGame(@UserId() userId: string): Promise<GamePairViewModel> {
     return await this.quizGameQueryRepo.findUsersCurrentGame(userId);
   }
 
-  @Get(':gameId')
+  @Get('pairs/:gameId')
   async findGameById(
     @UserId() userId: string,
     @Param('gameId', ParseUUIDPipe) gameId: string,
@@ -58,14 +64,14 @@ export class QuizGameController {
     return game;
   }
 
-  @Post('connection')
+  @Post('pairs/connection')
   @HttpCode(HTTP_Status.OK_200)
   async connection(@UserId() userId: string): Promise<GamePairViewModel> {
     const gameId = await this.commandBus.execute(new ConnectUserToGameCommand(userId));
     return await this.quizGameQueryRepo.findGameById(gameId);
   }
 
-  @Post('my-current/answers')
+  @Post('pairs/my-current/answers')
   @HttpCode(HTTP_Status.OK_200)
   async sendAnswer(@UserId() userId: string, @Body() dto: AnswerInputDto): Promise<AnswerViewModel> {
     const answerId = await this.commandBus.execute(new SendAnswerCommand(userId, dto));

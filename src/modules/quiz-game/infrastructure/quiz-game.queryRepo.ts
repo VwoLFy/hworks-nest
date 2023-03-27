@@ -9,6 +9,8 @@ import { GameStatuses } from '../application/enums';
 import { BasicQueryModel } from '../../../main/types/BasicQueryModel';
 import { PageViewModel } from '../../../main/types/PageViewModel';
 import { SortDirection } from '../../../main/types/enums';
+import { Statistic } from '../domain/quiz-game.statistic.entity';
+import { MyStatisticViewModel } from '../api/models/MyStatisticViewModel';
 
 @Injectable()
 export class QuizGameQueryRepo {
@@ -88,5 +90,10 @@ export class QuizGameQueryRepo {
       },
       items,
     );
+  }
+
+  async getUserStatistic(userId: string): Promise<MyStatisticViewModel> {
+    const statistic = await this.manager.getRepository(Statistic).findOne({ where: { userId: userId } });
+    return new MyStatisticViewModel(statistic);
   }
 }

@@ -12,12 +12,13 @@ import { QuizGameQueryRepo } from './infrastructure/quiz-game.queryRepo';
 import { SaQuizModule } from '../quiz-questions/sa.quiz.module';
 import { SendAnswerUseCase } from './application/use-cases/send-answer-use-case';
 import { QuizQuestionToGame } from './domain/quiz-game.game-to-question.entity';
+import { Statistic } from './domain/quiz-game.statistic.entity';
 
 const useCases = [ConnectUserToGameUseCase, SendAnswerUseCase];
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([QuizGame, Player, Answer, QuizQuestionToGame]),
+    TypeOrmModule.forFeature([QuizGame, Player, Answer, QuizQuestionToGame, Statistic]),
     CqrsModule,
     UsersModule,
     SaQuizModule,

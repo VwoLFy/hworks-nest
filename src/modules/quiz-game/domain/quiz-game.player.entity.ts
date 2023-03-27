@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'ty
 import { User } from '../../users/domain/user.entity';
 import { QuizGame } from './quiz-game.entity';
 import { Answer } from './quiz-game.answer.entity';
+import { GameResult } from '../application/enums';
 
 @Entity('QuizGamePlayers')
 export class Player {
@@ -25,6 +26,8 @@ export class Player {
   quizGame: QuizGame;
   @Column()
   numberOfQuestions: number;
+  @Column({ nullable: true })
+  gameResult: GameResult;
 
   constructor(quizGameId: string, userId: string, userLogin: string, numberOfQuestions: number) {
     this.userId = userId;
@@ -34,6 +37,7 @@ export class Player {
     this.quizGameId = quizGameId;
     this.isCompletedAnswering = false;
     this.numberOfQuestions = numberOfQuestions;
+    this.gameResult = null;
   }
 
   public countOfAnswers(): number {
@@ -51,5 +55,9 @@ export class Player {
 
   public addBonusScore() {
     this.score++;
+  }
+
+  public setGameResult(gameResult: GameResult) {
+    this.gameResult = gameResult;
   }
 }

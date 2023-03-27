@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { QuizQuestion } from '../../quiz-questions/domain/quiz-question.entity';
-import { GameStatuses } from '../application/enums';
+import { GameResult, GameStatuses } from '../application/enums';
 import { randomUUID } from 'crypto';
 import { Player } from './quiz-game.player.entity';
 import { Answer } from './quiz-game.answer.entity';
@@ -91,14 +91,20 @@ export class QuizGame {
     return answer;
   }
 
+  private checkGameOver() {
+    if (this.totalAnswers === this.numberOfPlayers * this.numberOfQuestionsForPlayer) this.finishGame();
+  }
+
   private finishGame() {
     this.status = GameStatuses.Finished;
     this.finishGameDate = new Date();
     this.addBonusScore();
-  }
-
-  private checkGameOver() {
-    if (this.totalAnswers === this.numberOfPlayers * this.numberOfQuestionsForPlayer) this.finishGame();
+    const indexOfWinner = this.indexOfWinner();
+    if (indexOfWinner !== null) {
+      this.players.forEach((pl, i) => pl.setGameResult(indexOfWinner === i ? GameResult.win : GameResult.lose));
+    } else {
+      this.players.forEach((pl) => pl.setGameResult(GameResult.draw));
+    }
   }
 
   private addBonusScore() {
@@ -106,5 +112,12 @@ export class QuizGame {
       .map((pl) => pl.answers[pl.answers.length - 1].addedAt)
       .reduce((a, b, i, arr) => (arr[a] < b ? a : i), 0);
     if (this.players[fastestPlayer].score > 0) this.players[fastestPlayer].addBonusScore();
+  }
+
+  private indexOfWinner(): number {
+    let indexOfWinner = this.players.map((pl) => pl.score).reduce((a, b, i, arr) => (arr[a] > b ? a : i), 0);
+    if (this.players.filter((pl) => pl.score === this.players[indexOfWinner].score).length > 1) indexOfWinner = null;
+    //console.log(indexOfWinner);
+    return indexOfWinner;
   }
 }

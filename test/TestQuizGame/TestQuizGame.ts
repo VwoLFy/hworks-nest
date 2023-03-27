@@ -4,6 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import { GamePairViewModel } from '../../src/modules/quiz-game/api/models/GamePairViewModel';
 import { AnswerViewModel } from '../../src/modules/quiz-game/api/models/AnswerViewModel';
 import { PageViewModel } from '../../src/main/types/PageViewModel';
+import { MyStatisticViewModel } from '../../src/modules/quiz-game/api/models/MyStatisticViewModel';
 
 export class TestQuizGame {
   constructor(private app: INestApplication) {}
@@ -61,6 +62,15 @@ export class TestQuizGame {
       .get(`/pair-game-quiz/pairs/my?${query}`)
       .auth(accessToken, { type: 'bearer' })
       .expect(httpStatus);
+
+    return result.body;
+  }
+
+  async getUserStatistic(accessToken: string): Promise<MyStatisticViewModel> {
+    const result = await request(this.app.getHttpServer())
+      .get(`/pair-game-quiz/users/my-statistic`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HTTP_Status.OK_200);
 
     return result.body;
   }
