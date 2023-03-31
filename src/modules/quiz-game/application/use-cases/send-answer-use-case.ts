@@ -4,19 +4,31 @@ import { QuizGameRepository } from '../../infrastructure/quiz-game.repository';
 import { ForbiddenException } from '@nestjs/common';
 import { GameStatuses } from '../enums';
 import { Statistic } from '../../domain/quiz-game.statistic.entity';
+import { BaseTransaction } from '../../../../main/transaction';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 
 export class SendAnswerCommand {
   constructor(public userId: string, public dto: AnswerInputDto) {}
 }
 
 @CommandHandler(SendAnswerCommand)
-export class SendAnswerUseCase implements ICommandHandler<SendAnswerCommand> {
-  constructor(private quizGameRepository: QuizGameRepository) {}
+export class SendAnswerUseCase
+  extends BaseTransaction<SendAnswerCommand, number>
+  implements ICommandHandler<SendAnswerCommand>
+{
+  constructor(private quizGameRepository: QuizGameRepository, @InjectDataSource() dataSource: DataSource) {
+    super(dataSource);
+  }
 
   async execute(command: SendAnswerCommand): Promise<number> {
-    const { userId, dto } = command;
+    return this.run(command);
+  }
 
-    const activeGameOfUser = await this.quizGameRepository.findActiveGame(userId);
+  protected async onExecute(data: SendAnswerCommand, manager: EntityManager): Promise<number> {
+    const { userId, dto } = data;
+
+    const activeGameOfUser = await this.quizGameRepository.findActiveGameTrans(userId, manager);
     if (!activeGameOfUser) throw new ForbiddenException('user is not in the active game');
 
     const answer = activeGameOfUser.processAnswer(userId, dto.answer);
@@ -32,7 +44,8 @@ export class SendAnswerUseCase implements ICommandHandler<SendAnswerCommand> {
       }
     }
 
-    await this.quizGameRepository.saveGame(activeGameOfUser);
+    await this.quizGameRepository.saveGameTrans(activeGameOfUser, manager);
+
     return answer.id;
   }
 }

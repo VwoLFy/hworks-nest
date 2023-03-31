@@ -308,7 +308,41 @@ describe('quiz game (e2e)', () => {
         .send({ answer: ChitAnswer.Correct })
         .expect(HTTP_Status.FORBIDDEN_403);
     });
-    it('answer +5 questions by second player and check status of the game1 after finish', async () => {
+    it('Async answer +5 questions by second player and check status of the game1 after finish. For correct test add to the SendAnswerUseCase delay(300ms)', async () => {
+      const answer1 = testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
+      await delay(100);
+      const answer2 = testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
+      await delay(100);
+      const answer3 = testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
+      await delay(100);
+      const answer4 = testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Incorrect);
+      await delay(100);
+      const answer5 = testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
+      const [answer11, answer12, answer13, answer14, answer15] = await Promise.all([
+        answer1,
+        answer2,
+        answer3,
+        answer4,
+        answer5,
+      ]);
+      const result = await testQuizGame.findGameById(accessTokens[1], game.id);
+      expect(result).toEqual({
+        ...game,
+        firstPlayerProgress: {
+          ...game.firstPlayerProgress,
+          score: 4,
+        },
+        secondPlayerProgress: {
+          ...game.secondPlayerProgress,
+          answers: [answer11, answer12, answer13, answer14, answer15],
+          score: 4,
+        },
+        status: GameStatuses.Finished,
+        finishGameDate: expect.any(String),
+      });
+      game = result;
+    });
+    it.skip('answer +5 questions by second player and check status of the game1 after finish', async () => {
       const answer1 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
       const answer2 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
       const answer3 = await testQuizGame.answerQuestion(accessTokens[1], ChitAnswer.Correct);
@@ -597,3 +631,11 @@ describe('quiz game (e2e)', () => {
     });
   });
 });
+
+const delay = async (delay = 1000) => {
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('');
+    }, delay);
+  });
+};

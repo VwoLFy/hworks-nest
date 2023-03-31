@@ -1,7 +1,7 @@
 import { User } from '../domain/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, ILike, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
@@ -46,9 +46,5 @@ export class UsersRepository {
 
   async deleteUser(userId: string) {
     await this.usersRepositoryT.delete({ id: userId });
-  }
-
-  async saveUserTransaction(user: User, manager: EntityManager) {
-    await manager.save(user);
   }
 }

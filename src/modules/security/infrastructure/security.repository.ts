@@ -1,7 +1,7 @@
 import { Session } from '../domain/session.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 @Injectable()
 export class SecurityRepository {
@@ -33,7 +33,7 @@ export class SecurityRepository {
     await this.sessionRepositoryT.delete({ deviceId: deviceId });
   }
 
-  async deleteAllUserSessionsTransaction(userId: string, manager: EntityManager) {
-    await manager.delete(Session, { userId: userId });
+  async deleteAllUserSessions(userId: string) {
+    await this.sessionRepositoryT.delete({ userId: userId });
   }
 }
